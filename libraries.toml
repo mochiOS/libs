@@ -66,6 +66,14 @@ recipe = "recipes/glib/recipe.json"
 dependencies = ["zlib", "pcre2", "libffi", "libiconv", "gettext-runtime"]
 submodules = { "subprojects/gvdb" = { git = "https://gitlab.gnome.org/GNOME/gvdb.git", commit = "2b42fc75f09dbe1cd1057580b5782b08f2dcb400" } }
 
+[libraries.libjpeg-turbo]
+git = "https://github.com/libjpeg-turbo/libjpeg-turbo.git"
+tag_pattern = '^(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
+revision = 1
+enabled = true
+recipe = "recipes/libjpeg-turbo/recipe.json"
+dependencies = []
+
 # Planned ports are visible but never advertised as buildable/published.
 [libraries.webkit]
 git = "https://github.com/WebKit/WebKit.git"

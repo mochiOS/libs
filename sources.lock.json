@@ -43,6 +43,11 @@
       "tag": "2.90.1",
       "version": "2.90.1",
       "commit": "e05063ccc6c8f222465a1080927f4c14349f3de6"
+    },
+    "libjpeg-turbo": {
+      "tag": "3.2.1",
+      "version": "3.2.1",
+      "commit": "7b4993786d856cbccabfc0ed2f923ba000e326cc"
     }
   }
 }

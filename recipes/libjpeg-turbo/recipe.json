@@ -1,0 +1,25 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "options": {
+    "ENABLE_SHARED": true,
+    "ENABLE_STATIC": false,
+    "WITH_TOOLS": false,
+    "WITH_TESTS": false,
+    "WITH_TURBOJPEG": true,
+    "WITH_SIMD": true
+  },
+  "licenses": [
+    "LICENSE.md",
+    "README.ijg"
+  ],
+  "shared_libraries": [
+    "libjpeg.so*",
+    "libturbojpeg.so*"
+  ],
+  "link_libraries": [
+    "jpeg",
+    "turbojpeg"
+  ],
+  "probe": "probe.c"
+}
