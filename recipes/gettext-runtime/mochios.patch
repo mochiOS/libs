@@ -11,7 +11,30 @@
  	| genix* \
 --- a/gettext-runtime/configure
 +++ b/gettext-runtime/configure
-@@ -16732,6 +16732,14 @@
+@@ -9227,7 +9227,9 @@
+   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+   test $ac_status = 0; } && test -s conftest$ac_exeext; then
+       gl_cv_prog_ansicxx_works=yes
+-      if (./conftest; exit) 2>/dev/null; then
++      if test "$cross_compiling" = yes; then
++        gl_cv_prog_ansicxx_cross=yes
++      elif (./conftest; exit) 2>/dev/null; then
+         gl_cv_prog_ansicxx_cross=no
+       else
+         gl_cv_prog_ansicxx_cross=yes
+@@ -12264,6 +12266,11 @@
+ # whether 'pass_all' will *always* work, you probably want this one.
+ 
+ case $host_os in
++mochios*)
++  # SDK imports and post-link ELF validation still check the process ABI.
++  lt_cv_deplibs_check_method='file_magic ELF 64-bit LSB shared object, x86-64'
++  lt_cv_file_magic_cmd='$FILECMD -L'
++  ;;
+ aix[4-9]*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+@@ -16732,6 +16739,14 @@
    else
      # PORTME fill in a description of your system's linker (not GNU ld)
      case $host_os in
@@ -26,7 +49,7 @@
      aix3*)
        allow_undefined_flag=unsupported
        always_export_symbols=yes
-@@ -17955,6 +17963,22 @@
+@@ -17955,6 +17970,22 @@
  
  
  case $host_os in
@@ -49,7 +72,7 @@
  aix3*)
    version_type=linux # correct to gnu/linux during the next big refactor
    library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
-@@ -22603,6 +22627,22 @@
+@@ -22603,6 +22634,22 @@
  
  
  case $host_os in
@@ -72,9 +95,7 @@
  aix3*)
    version_type=linux # correct to gnu/linux during the next big refactor
    library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
---- a/gettext-runtime/configure
-+++ b/gettext-runtime/configure
-@@ -27313,6 +27313,9 @@
+@@ -27273,6 +27320,9 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a traditional japanese locale" >&5
  printf %s "checking for a traditional japanese locale... " >&6; }
@@ -84,7 +105,7 @@
  if test ${gt_cv_locale_ja+y}
  then :
    printf %s "(cached) " >&6
-@@ -27470,6 +27473,9 @@
+@@ -27430,6 +27480,9 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for an english Unicode locale" >&5
  printf %s "checking for an english Unicode locale... " >&6; }
@@ -94,7 +115,7 @@
  if test ${gt_cv_locale_en_utf8+y}
  then :
    printf %s "(cached) " >&6
-@@ -27607,6 +27613,9 @@
+@@ -27567,6 +27620,9 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a transitional chinese locale" >&5
  printf %s "checking for a transitional chinese locale... " >&6; }
@@ -104,7 +125,7 @@
  if test ${gt_cv_locale_zh_CN+y}
  then :
    printf %s "(cached) " >&6
-@@ -28022,6 +28031,9 @@
+@@ -27982,6 +28038,9 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a traditional french locale" >&5
  printf %s "checking for a traditional french locale... " >&6; }
@@ -114,7 +135,7 @@
  if test ${gt_cv_locale_fr+y}
  then :
    printf %s "(cached) " >&6
-@@ -36411,6 +36423,9 @@
+@@ -36371,6 +36430,9 @@
  
        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for fake locale system (OpenBSD, Android)" >&5
  printf %s "checking for fake locale system (OpenBSD, Android)... " >&6; }
@@ -124,7 +145,7 @@
  if test ${gt_cv_locale_fake+y}
  then :
    printf %s "(cached) " >&6
-@@ -36481,6 +36496,9 @@
+@@ -36441,6 +36503,9 @@
      *yes)
        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Solaris 11.4 locale system" >&5
  printf %s "checking for Solaris 11.4 locale system... " >&6; }
@@ -134,7 +155,7 @@
  if test ${gt_cv_locale_solaris114+y}
  then :
    printf %s "(cached) " >&6
-@@ -36533,6 +36551,9 @@
+@@ -36493,6 +36558,9 @@
        gt_nameless_locales=yes
                    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for AIX locales with LC_MESSAGES name" >&5
  printf %s "checking for AIX locales with LC_MESSAGES name... " >&6; }
@@ -144,9 +165,7 @@
  if test ${gt_cv_locale_aix72+y}
  then :
    printf %s "(cached) " >&6
---- a/gettext-runtime/configure
-+++ b/gettext-runtime/configure
-@@ -9227,7 +9227,9 @@
+@@ -64437,7 +64505,9 @@
    printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
    test $ac_status = 0; } && test -s conftest$ac_exeext; then
        gl_cv_prog_ansicxx_works=yes
@@ -157,14 +176,150 @@
          gl_cv_prog_ansicxx_cross=no
        else
          gl_cv_prog_ansicxx_cross=yes
-@@ -64498,7 +64500,9 @@
-   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-   test $ac_status = 0; } && test -s conftest$ac_exeext; then
-       gl_cv_prog_ansicxx_works=yes
--      if (./conftest; exit) 2>/dev/null; then
-+      if test "$cross_compiling" = yes; then
-+        gl_cv_prog_ansicxx_cross=yes
-+      elif (./conftest; exit) 2>/dev/null; then
-         gl_cv_prog_ansicxx_cross=no
-       else
-         gl_cv_prog_ansicxx_cross=yes
+--- a/gettext-runtime/gnulib-lib/getlocalename_l-unsafe.c
++++ b/gettext-runtime/gnulib-lib/getlocalename_l-unsafe.c
+@@ -469,6 +469,13 @@
+       struct gl_locale_category_t *plc =
+         &locale->category[gl_log2_lcmask_to_index (gl_log2_lc_mask (category))];
+       return (struct string_with_storage) { plc->name, STORAGE_OBJECT };
++#elif defined __mochios__
++      /* The SDK provides POSIX getlocalename_l(). The returned name remains
++         valid for the lifetime of this non-global locale object. */
++      const char *name = getlocalename_l (category, locale);
++      return (name != NULL
++              ? (struct string_with_storage) { name, STORAGE_OBJECT }
++              : (struct string_with_storage) { "", STORAGE_INDEFINITE });
+ #elif __GLIBC__ >= 2 && !defined __UCLIBC__
+       /* Work around an incorrect definition of the _NL_LOCALE_NAME macro in
+          glibc < 2.12.
+--- a/gettext-runtime/intl/configure
++++ b/gettext-runtime/intl/configure
+@@ -10276,6 +10276,11 @@
+ # whether 'pass_all' will *always* work, you probably want this one.
+ 
+ case $host_os in
++mochios*)
++  # SDK imports and post-link ELF validation still check the process ABI.
++  lt_cv_deplibs_check_method='file_magic ELF 64-bit LSB shared object, x86-64'
++  lt_cv_file_magic_cmd='$FILECMD -L'
++  ;;
+ aix[4-9]*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+@@ -14733,6 +14738,14 @@
+   else
+     # PORTME fill in a description of your system's linker (not GNU ld)
+     case $host_os in
++    mochios*)
++      archive_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname,$soname -o $lib'
++      archive_expsym_cmds=
++      hardcode_libdir_flag_spec=
++      hardcode_direct=no
++      hardcode_shlibpath_var=no
++      archive_cmds_need_lc=no
++      ;;
+     aix3*)
+       allow_undefined_flag=unsupported
+       always_export_symbols=yes
+@@ -15956,6 +15969,22 @@
+ 
+ 
+ case $host_os in
++mochios*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  dynamic_linker='mochiOS startup package loader'
++  shlibpath_var=
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=no
++  hardcode_libdir_flag_spec=
++  hardcode_libdir_flag_spec_CXX=
++  sys_lib_search_path_spec=
++  sys_lib_dlsearch_path_spec=
++  finish_cmds=
++  ;;
+ aix3*)
+   version_type=linux # correct to gnu/linux during the next big refactor
+   library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
+@@ -21208,6 +21237,8 @@
+ 
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a traditional japanese locale" >&5
+ printf %s "checking for a traditional japanese locale... " >&6; }
++# Locale test data is unavailable during a cross build.
++if test "$cross_compiling" = yes; then gt_cv_locale_ja=none; fi
+ if test ${gt_cv_locale_ja+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -21365,6 +21396,8 @@
+ 
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for an english Unicode locale" >&5
+ printf %s "checking for an english Unicode locale... " >&6; }
++# Locale test data is unavailable during a cross build.
++if test "$cross_compiling" = yes; then gt_cv_locale_en_utf8=none; fi
+ if test ${gt_cv_locale_en_utf8+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -21502,6 +21535,8 @@
+ 
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a transitional chinese locale" >&5
+ printf %s "checking for a transitional chinese locale... " >&6; }
++# Locale test data is unavailable during a cross build.
++if test "$cross_compiling" = yes; then gt_cv_locale_zh_CN=none; fi
+ if test ${gt_cv_locale_zh_CN+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -22000,6 +22035,8 @@
+ 
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a traditional french locale" >&5
+ printf %s "checking for a traditional french locale... " >&6; }
++# Locale test data is unavailable during a cross build.
++if test "$cross_compiling" = yes; then gt_cv_locale_fr=none; fi
+ if test ${gt_cv_locale_fr+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -26134,6 +26171,8 @@
+ 
+       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for fake locale system (OpenBSD, Android)" >&5
+ printf %s "checking for fake locale system (OpenBSD, Android)... " >&6; }
++# Locale test data is unavailable during a cross build.
++if test "$cross_compiling" = yes; then gt_cv_locale_fake=none; fi
+ if test ${gt_cv_locale_fake+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -26204,6 +26243,8 @@
+     *yes)
+       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Solaris 11.4 locale system" >&5
+ printf %s "checking for Solaris 11.4 locale system... " >&6; }
++# Locale test data is unavailable during a cross build.
++if test "$cross_compiling" = yes; then gt_cv_locale_solaris114=none; fi
+ if test ${gt_cv_locale_solaris114+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -26256,6 +26297,8 @@
+       gt_nameless_locales=yes
+                   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for AIX locales with LC_MESSAGES name" >&5
+ printf %s "checking for AIX locales with LC_MESSAGES name... " >&6; }
++# Locale test data is unavailable during a cross build.
++if test "$cross_compiling" = yes; then gt_cv_locale_aix72=none; fi
+ if test ${gt_cv_locale_aix72+y}
+ then :
+   printf %s "(cached) " >&6
+--- a/gettext-runtime/intl/gnulib-lib/getlocalename_l-unsafe.c
++++ b/gettext-runtime/intl/gnulib-lib/getlocalename_l-unsafe.c
+@@ -469,6 +469,13 @@
+       struct gl_locale_category_t *plc =
+         &locale->category[gl_log2_lcmask_to_index (gl_log2_lc_mask (category))];
+       return (struct string_with_storage) { plc->name, STORAGE_OBJECT };
++#elif defined __mochios__
++      /* The SDK provides POSIX getlocalename_l(). The returned name remains
++         valid for the lifetime of this non-global locale object. */
++      const char *name = getlocalename_l (category, locale);
++      return (name != NULL
++              ? (struct string_with_storage) { name, STORAGE_OBJECT }
++              : (struct string_with_storage) { "", STORAGE_INDEFINITE });
+ #elif __GLIBC__ >= 2 && !defined __UCLIBC__
+       /* Work around an incorrect definition of the _NL_LOCALE_NAME macro in
+          glibc < 2.12.

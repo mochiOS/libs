@@ -49,6 +49,27 @@
  aix3*)
    version_type=linux # correct to gnu/linux during the next big refactor
    library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
+@@ -28250,6 +28274,9 @@
+ 
+   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for an english Unicode locale" >&5
+ printf %s "checking for an english Unicode locale... " >&6; }
++# Locale names are test inputs, not target capability assertions.
++# No locale database has been tested on the target during a cross build.
++if test "$cross_compiling" = yes; then gt_cv_locale_en_utf8=none; fi
+ if test ${gt_cv_locale_en_utf8+y}
+ then :
+   printf %s "(cached) " >&6
+--- a/libcharset/build-aux/config.sub
++++ b/libcharset/build-aux/config.sub
+@@ -2011,7 +2011,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
+-	| fiwix* \
++	| mochios* | fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \
+ 	| genix* \
 --- a/libcharset/configure
 +++ b/libcharset/configure
 @@ -10279,6 +10279,14 @@
@@ -89,26 +110,3 @@
  aix3*)
    version_type=linux # correct to gnu/linux during the next big refactor
    library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
---- a/configure
-+++ b/configure
-@@ -28274,6 +28274,9 @@
- 
-   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for an english Unicode locale" >&5
- printf %s "checking for an english Unicode locale... " >&6; }
-+# Locale names are test inputs, not target capability assertions.
-+# No locale database has been tested on the target during a cross build.
-+if test "$cross_compiling" = yes; then gt_cv_locale_en_utf8=none; fi
- if test ${gt_cv_locale_en_utf8+y}
- then :
-   printf %s "(cached) " >&6
---- a/libcharset/build-aux/config.sub
-+++ b/libcharset/build-aux/config.sub
-@@ -2011,7 +2011,7 @@
- 	| emscripten* \
- 	| emx* \
- 	| es* \
--	| fiwix* \
-+	| mochios* | fiwix* \
- 	| freebsd* \
- 	| fuchsia* \
- 	| genix* \
