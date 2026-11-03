@@ -1,0 +1,23 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "options": {
+    "BROTLI_BUILD_TOOLS": false,
+    "BROTLI_BUILD_FOR_PACKAGE": false,
+    "BROTLI_DISABLE_TESTS": true
+  },
+  "licenses": [
+    "LICENSE"
+  ],
+  "shared_libraries": [
+    "libbrotlicommon.so*",
+    "libbrotlidec.so*",
+    "libbrotlienc.so*"
+  ],
+  "link_libraries": [
+    "brotlienc",
+    "brotlidec",
+    "brotlicommon"
+  ],
+  "probe": "probe.c"
+}
