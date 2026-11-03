@@ -144,3 +144,27 @@
  if test ${gt_cv_locale_aix72+y}
  then :
    printf %s "(cached) " >&6
+--- a/gettext-runtime/configure
++++ b/gettext-runtime/configure
+@@ -9227,7 +9227,9 @@
+   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+   test $ac_status = 0; } && test -s conftest$ac_exeext; then
+       gl_cv_prog_ansicxx_works=yes
+-      if (./conftest; exit) 2>/dev/null; then
++      if test "$cross_compiling" = yes; then
++        gl_cv_prog_ansicxx_cross=yes
++      elif (./conftest; exit) 2>/dev/null; then
+         gl_cv_prog_ansicxx_cross=no
+       else
+         gl_cv_prog_ansicxx_cross=yes
+@@ -64498,7 +64500,9 @@
+   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+   test $ac_status = 0; } && test -s conftest$ac_exeext; then
+       gl_cv_prog_ansicxx_works=yes
+-      if (./conftest; exit) 2>/dev/null; then
++      if test "$cross_compiling" = yes; then
++        gl_cv_prog_ansicxx_cross=yes
++      elif (./conftest; exit) 2>/dev/null; then
+         gl_cv_prog_ansicxx_cross=no
+       else
+         gl_cv_prog_ansicxx_cross=yes
