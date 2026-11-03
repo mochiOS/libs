@@ -142,7 +142,7 @@ def recipe(root, library):
     relative(path.parent, value['probe']).read_text()
     if not value['shared_libraries'] or any('/' in item or '..' in item for item in value['shared_libraries']):
         raise ValueError('Shared library patterns must be basenames')
-    if not value['link_libraries'] or any(not re.fullmatch(r'[A-Za-z0-9_+-]+', item) for item in value['link_libraries']):
+    if not value['link_libraries'] or any(not re.fullmatch(r'[A-Za-z0-9_][A-Za-z0-9_+.-]*', item) for item in value['link_libraries']):
         raise ValueError('Invalid link library name')
     if any(not re.fullmatch(r'[A-Za-z0-9_.+-]+', item) for item in value.get('pkg_config_modules', [])):
         raise ValueError('Invalid consumer pkg-config module')
