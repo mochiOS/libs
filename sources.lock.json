@@ -29,6 +29,15 @@
         "url": "https://ftp.gnu.org/gnu/libiconv/libiconv-1.19.1.tar.gz",
         "sha256": "9a06844846d664d7122161700c10a64480d7c7bcead3091925a785b38c91edab"
       }
+    },
+    "gettext-runtime": {
+      "tag": "v1.0",
+      "version": "1.0",
+      "commit": "53bcae93fbd26e0e816f0e8e6dd3524ebdc67618",
+      "archive": {
+        "url": "https://ftp.gnu.org/gnu/gettext/gettext-1.0.tar.gz",
+        "sha256": "85d99b79c981a404874c02e0342176cf75c7698e2b51fe41031cf6526d974f1a"
+      }
     }
   }
 }

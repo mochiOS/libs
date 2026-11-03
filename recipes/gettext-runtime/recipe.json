@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "backend": "autotools",
+  "subdirectory": "gettext-runtime",
+  "configure": [
+    "--disable-java",
+    "--disable-csharp",
+    "--disable-libasprintf",
+    "--with-included-gettext",
+    "--with-libiconv-prefix=/deps/usr"
+  ],
+  "patches": [
+    "mochios.patch"
+  ],
+  "build_subdirs": [
+    "intl"
+  ],
+  "install_subdirs": [
+    "intl"
+  ],
+  "licenses": [
+    "COPYING",
+    "gettext-runtime/intl/COPYING.LIB"
+  ],
+  "shared_libraries": [
+    "libintl.so*"
+  ],
+  "link_libraries": [
+    "intl",
+    "iconv"
+  ],
+  "probe": "probe.c"
+}
