@@ -25,7 +25,7 @@ UNAVAILABLE_SDK = dict(format=1, available=False, target=libs.TARGET, abi=libs.A
 class RegistryTests(unittest.TestCase):
     def test_real_catalog_and_offline_plan_follow_the_sdk_lock(self):
         catalog = libs.read_catalog()
-        self.assertEqual(libs.order(catalog), ['zlib', 'libpng'])
+        self.assertEqual(libs.order(catalog), ['zlib', 'libpng', 'pcre2'])
         self.assertFalse(catalog['libraries']['webkit']['enabled'])
         plan = libs.make_plan(ROOT)
         libs.validate_plan(ROOT, plan)
@@ -36,6 +36,12 @@ class RegistryTests(unittest.TestCase):
         text = '\n'.join([f'{"a"*40}\trefs/tags/v1.9.0', f'{"b"*40}\trefs/tags/v1.10.0', f'{"c"*40}\trefs/tags/v1.10.0^{{}}', f'{"d"*40}\trefs/tags/v2.0.0-rc1'])
         selected = libs.parse_tags(text, r'^v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$')
         self.assertEqual(selected, dict(tag='v1.10.0', version='1.10.0', commit='c'*40))
+
+    def test_two_component_upstream_versions_are_compared_numerically(self):
+        self.assertEqual(libs.version('10.49'), libs.version('10.49.0'))
+        self.assertLess(libs.version('10.9'), libs.version('10.49'))
+        selected = libs.parse_tags('a'*40 + '\trefs/tags/pcre2-10.49', r'^pcre2-(?P<version>[0-9]+\.[0-9]+)$')
+        self.assertEqual(selected['version'], '10.49')
 
     def test_missing_or_ambiguous_versions_fail(self):
         for text in ['', f'{"a"*40}\trefs/tags/v1.0.0\n{"b"*40}\trefs/tags/1.0.0']:

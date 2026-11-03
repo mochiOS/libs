@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "options": {
+    "BUILD_STATIC_LIBS": false,
+    "PCRE2_BUILD_PCRE2_8": true,
+    "PCRE2_BUILD_PCRE2_16": false,
+    "PCRE2_BUILD_PCRE2_32": false,
+    "PCRE2_BUILD_PCRE2GREP": false,
+    "PCRE2_BUILD_TESTS": false,
+    "PCRE2_SUPPORT_JIT": false,
+    "PCRE2_SUPPORT_UNICODE": true
+  },
+  "licenses": [
+    "LICENCE"
+  ],
+  "shared_libraries": [
+    "libpcre2-8.so*"
+  ],
+  "link_libraries": [
+    "pcre2-8"
+  ],
+  "probe": "probe.c",
+  "config_scripts": [
+    "usr/bin/pcre2-config"
+  ]
+}

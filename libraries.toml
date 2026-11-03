@@ -22,6 +22,14 @@ enabled = true
 recipe = "recipes/libpng/recipe.json"
 dependencies = ["zlib"]
 
+[libraries.pcre2]
+git = "https://github.com/PCRE2Project/pcre2.git"
+tag_pattern = '^pcre2-(?P<version>[0-9]+\.[0-9]+)$'
+revision = 1
+enabled = true
+recipe = "recipes/pcre2/recipe.json"
+dependencies = []
+
 # Planned ports are visible but never advertised as buildable/published.
 [libraries.glib]
 git = "https://gitlab.gnome.org/GNOME/glib.git"

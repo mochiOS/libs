@@ -146,9 +146,9 @@ def order(catalog):
 
 def version(value):
     """Compare numeric stable versions without treating development tags as releases."""
-    if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', value):
+    if not re.fullmatch(r'[0-9]+\.[0-9]+(?:\.[0-9]+)?', value):
         raise ValueError(f'Unsupported stable version: {value}')
-    return tuple(int(part) for part in value.split('.'))
+    return tuple(int(part) for part in value.split('.')) + ((0,) if value.count('.') == 1 else ())
 
 
 def parse_tags(text, pattern):
