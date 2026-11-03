@@ -48,7 +48,7 @@ def verify_bundle(directory, package, plan, root=libs.ROOT):
     expected = {}
     for entry in manifest['files']:
         path = PurePosixPath(entry['path'])
-        if path.is_absolute() or '..' in path.parts or '\\' in entry['path'] or not any(entry['path'].startswith(prefix) for prefix in ['usr/lib/', 'usr/include/', 'usr/share/']) or entry['path'] in expected:
+        if path.is_absolute() or '..' in path.parts or '\\' in entry['path'] or not libs.allowed_payload(entry['path'],specification) or entry['path'] in expected:
             raise ValueError('Invalid manifest payload path')
         if 'link' in entry:
             link = PurePosixPath(entry['link'])
@@ -83,6 +83,9 @@ def verify_bundle(directory, package, plan, root=libs.ROOT):
                 with tar.extractfile(member) as stream:
                     if hashlib.file_digest(stream, 'sha256').hexdigest() != entry['sha256']: raise ValueError('Payload digest mismatch')
                 with tar.extractfile(member) as stream:
+                    if entry['path'] in specification.get('config_scripts', []):
+                        if not libs.config_script_header(stream.read(128)):raise ValueError('Configuration helper is not a POSIX script')
+                        stream.seek(0)
                     magic = stream.read(4)
                     if magic != b'\x7fELF' and (member.name.endswith('.so') or '.so.' in member.name):
                         raise ValueError('Shared-library output is not ELF')

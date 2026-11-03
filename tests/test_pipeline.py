@@ -210,16 +210,27 @@ class IsolationTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which('cc') and shutil.which('readelf'), 'host fixture compiler/readelf required')
 class ArtifactTests(unittest.TestCase):
-    def fixture(self, root):
+    def fixture(self, root, name='zlib', helpers=None):
         stage=root/'stage'; (stage/'usr/lib').mkdir(parents=True)
         (stage/'usr/include').mkdir(); (stage/'usr/include/zlib.h').write_text('/* fixture only */\n')
         source=root/'fixture.c'; source.write_text('int fixture_only(void) { return 42; }\n')
         # Freestanding fixture ELF, not a mochiOS SDK or library compatibility claim.
         subprocess.run(['cc','-shared','-nostdlib','-fPIC','-Wl,--build-id=none',str(source),'-o',str(stage/'usr/lib/libz.so.1')],check=True)
         (stage/'usr/lib/libz.so').symlink_to('libz.so.1')
-        plan=libs.make_plan(ROOT); package=plan['packages'][0]
+        if helpers:
+            (stage/'usr/bin').mkdir()
+            for helper,content in helpers.items():(stage/'usr/bin'/helper).write_bytes(content)
+        plan=libs.make_plan(ROOT); package=next(item for item in plan['packages'] if item['name']==name)
         libs.package_build(ROOT,package,stage,dict(sdk=plan['sdk'],registry_commit='0'*40,builder={'fixture_only':True}),root/'releases')
         return plan,package,root/'releases'/package['release']
+
+    def test_only_declared_posix_config_helpers_can_be_packaged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan,package,directory=self.fixture(Path(tmp),name='libpng',helpers={'libpng16-config':b'#! /bin/sh\nprintf fixture\n'})
+            releases.verify_bundle(directory,package,plan)
+        for helper,content in [('unexpected-config',b'#!/bin/sh\n'),('libpng16-config',b'\x7fELFnot-a-script')]:
+            with self.subTest(helper=helper), tempfile.TemporaryDirectory() as tmp:
+                with self.assertRaises(ValueError):self.fixture(Path(tmp),name='libpng',helpers={helper:content})
 
     def test_package_roundtrip_checks_files_links_and_manifests(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -115,6 +115,9 @@ def recipe(root, library):
         raise ValueError('Shared library patterns must be basenames')
     if not value['link_libraries'] or any(not re.fullmatch(r'[A-Za-z0-9_+-]+', item) for item in value['link_libraries']):
         raise ValueError('Invalid link library name')
+    scripts=value.get('config_scripts', [])
+    if not isinstance(scripts,list) or any(not isinstance(name,str) or not re.fullmatch(r'usr/bin/[A-Za-z0-9_+.-]+-config',name) for name in scripts):
+        raise ValueError('Invalid declared configuration script path')
     return value
 
 
@@ -449,15 +452,30 @@ def docker_command(image, sdk, source, dependencies, work):
     return command + [image]
 
 
+def allowed_payload(path, specification):
+    """Allow library data and explicitly declared configuration scripts, never arbitrary executables."""
+    return any(path.startswith(prefix) for prefix in ['usr/lib/','usr/include/','usr/share/']) or path in specification.get('config_scripts', [])
+
+
+def config_script_header(header):
+    """Require a POSIX shell script header without executing upstream configuration helpers."""
+    return bool(re.match(rb'#![ \t]*/bin/sh[ \t]*\r?\n',header))
+
+
 def package_build(root, package, stage, metadata, destination):
     """Create a developer library archive and exact hash inventory after successful link verification."""
     if stage.is_symlink() or not stage.is_dir(): raise ValueError('Install root must be a regular directory')
+    library = read_catalog(root)['libraries'][package['name']]
+    specification = recipe(root, library)
     files = inventory(stage)
     if not files: raise ValueError('Empty library install')
     for entry in files:
         path = entry['path']
-        if not any(path.startswith(prefix) for prefix in ['usr/lib/', 'usr/include/', 'usr/share/']):
+        if not allowed_payload(path,specification):
             raise ValueError(f'Unexpected library package output: {path}')
+        if path in specification.get('config_scripts', []):
+            with relative(stage,path).open('rb') as stream:
+                if not config_script_header(stream.read(128)):raise ValueError('Declared helper is not a POSIX configuration script')
     library = read_catalog(root)['libraries'][package['name']]
     recipe_path = relative(root, library['recipe'])
     specification = recipe(root, library)
