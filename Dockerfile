@@ -8,6 +8,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 COPY tooling/host-requirements.txt /opt/host-requirements.txt
 RUN python3 -m venv /opt/host-tools && /opt/host-tools/bin/pip install --no-cache-dir --no-deps --only-binary=:all: --require-hashes -r /opt/host-requirements.txt
 ENV PATH=/opt/host-tools/bin:$PATH
+COPY tools/prepare_meson.py /opt/libs/tools/prepare_meson.py
+COPY tooling/meson-port.json tooling/meson-mochios.patch /opt/libs/tooling/
+RUN /opt/host-tools/bin/python /opt/libs/tools/prepare_meson.py
 ARG LIBS_RUNNER_SHA256
 LABEL org.mochios.libs.runner-sha256=$LIBS_RUNNER_SHA256
 COPY tools/container_build.py tools/build_backends.py /opt/libs/

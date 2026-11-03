@@ -444,3 +444,19 @@ class MesonSyntaxTests(unittest.TestCase):
             self.assertEqual(parsed['binaries']['c'], str(sdk/'bin/mochios-cc'))
             self.assertTrue(parsed['properties']['needs_exe_wrapper'])
             self.assertEqual(parsed['built-in options']['c_link_args'], ['-L/deps/usr/lib'])
+
+
+class MesonTargetPolicyTests(unittest.TestCase):
+    def test_mochios_does_not_embed_any_build_or_install_rpath(self):
+        try:
+            from mesonbuild.linkers.linkers import GnuLikeDynamicLinkerMixin
+            from mesonbuild.mesonlib import MachineChoice
+        except ImportError:
+            self.skipTest('Pinned patched Meson is required for linker policy integration')
+        from types import SimpleNamespace
+        machine = MachineChoice.HOST
+        env = SimpleNamespace(machines={machine:SimpleNamespace(system='mochios')})
+        linker = SimpleNamespace(environment=env,for_machine=machine)
+        flags, removed = GnuLikeDynamicLinkerMixin.build_rpath_args(linker, '/work/build', '.', object(), ['/deps/usr/lib'])
+        self.assertEqual(flags, [])
+        self.assertEqual(removed, set())

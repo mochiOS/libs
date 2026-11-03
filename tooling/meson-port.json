@@ -1,0 +1,9 @@
+{
+  "version": "1.12.1",
+  "files": {
+    "mesonbuild/linkers/linkers.py": {
+      "before": "ac4d1f631b291e67cd4367e09ac6810b3f9b01bc337d95265d8ec51eecef3945",
+      "after": "b5b25c337356140b121748c5706ddf649f47288f2b8848916f1accc7901af586"
+    }
+  }
+}

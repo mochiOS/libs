@@ -256,7 +256,7 @@ def sdk_lock(root=ROOT):
 
 def runner_identity(root):
     """Identify the trusted runner/probe implementation embedded in the builder image."""
-    return identity({str(p.relative_to(root)): hash_file(p) for p in [root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tooling/host-requirements.txt', *sorted((root / 'tooling/probe').glob('*'))]})
+    return identity({str(p.relative_to(root)): hash_file(p) for p in [root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tooling/host-requirements.txt', root / 'tools/prepare_meson.py', root / 'tooling/meson-port.json', root / 'tooling/meson-mochios.patch', *sorted((root / 'tooling/probe').glob('*'))]})
 
 
 def make_plan(root, refresh=False):
@@ -267,7 +267,7 @@ def make_plan(root, refresh=False):
     if baseline.get('format') != 1:
         raise ValueError('Unknown source lock format')
     sources, packages = {}, []
-    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tools/source_archives.py', root / 'tooling/host-requirements.txt', *sorted((root / 'tooling/probe').glob('*'))]}
+    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tools/source_archives.py', root / 'tooling/host-requirements.txt', root / 'tools/prepare_meson.py', root / 'tooling/meson-port.json', root / 'tooling/meson-mochios.patch', *sorted((root / 'tooling/probe').glob('*'))]}
     for name in order(catalog):
         library = catalog['libraries'][name]
         pinned = baseline['sources'][name]
@@ -315,7 +315,7 @@ def validate_plan(root, plan):
         raise ValueError('Plan dependency order is invalid')
     # The local offline baseline must not be silently overwritten by resolution.
     baseline = json.loads(baseline_path.read_text())
-    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tools/source_archives.py', root / 'tooling/host-requirements.txt', *sorted((root / 'tooling/probe').glob('*'))]}
+    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tools/source_archives.py', root / 'tooling/host-requirements.txt', root / 'tools/prepare_meson.py', root / 'tooling/meson-port.json', root / 'tooling/meson-mochios.patch', *sorted((root / 'tooling/probe').glob('*'))]}
     completed = {}
     for package in plan['packages']:
         name = package['name']; library = catalog['libraries'][name]; selected = plan['sources'][name]

@@ -18,7 +18,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install the pinned Meson parser for cross-file tests
-        run: python3 -m pip install --no-deps --only-binary=:all: --require-hashes -r tooling/host-requirements.txt
+        run: |
+          python3 -m pip install --no-deps --only-binary=:all: --require-hashes -r tooling/host-requirements.txt
+          python3 tools/prepare_meson.py
       - run: python3 tools/libs.py check
       - run: python3 -m unittest discover -s tests -v
       - name: Build only trusted repository-owned host tooling

@@ -1,0 +1,13 @@
+--- a/mesonbuild/linkers/linkers.py
++++ b/mesonbuild/linkers/linkers.py
+@@ -750,6 +750,10 @@
+                          extra_paths: T.Optional[T.List[str]] = None
+                          ) -> T.Tuple[T.List[str], T.Set[bytes]]:
+         m = self.environment.machines[self.for_machine]
++        if m.system == 'mochios':
++            # Dependencies are resolved by SONAME through the mochiOS package loader.
++            # Build/install search paths must never be embedded in target binaries.
++            return ([], set())
+         if m.is_windows() or m.is_cygwin():
+             return ([], set())
+         rpath_paths = target.determine_rpath_dirs()
