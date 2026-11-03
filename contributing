@@ -152,3 +152,15 @@ Git tag/commit and archive URL/SHA-256. Refreshing to a newer upstream release
 freezes its distribution digest before building; the bytes of an already pinned
 release must never change. Cached extracted sources have a complete inventory
 and are rejected if modified. No build commands are run while fetching sources.
+
+Known platform requirements
+-----------------------------------------
+The GLib recipe is retained but unavailable while the SDK lacks the resolver
+interfaces required by GIO. The native DNS authority currently covers A, AAAA,
+and PTR; GIO also needs record queries such as SRV, MX, TXT, SOA, and NS.
+Do not substitute host headers or fabricate successful resolver results.
+
+See tooling/platform-requirements.json for the existing implementation owners,
+authority constraints, and the audited WebKit dependency baseline. The SDK's
+startup-only shared-loading model also limits dynamic GModule loading. A
+successful build of independent libraries does not mean GLib/WebKit is ported.

@@ -1,0 +1,111 @@
+{
+  "format": 1,
+  "target": "x86_64-unknown-mochios",
+  "baseline_sdk": "27.0-dp.1-shared.2",
+  "status": "requirements-under-review",
+  "ports": {
+    "glib": {
+      "upstream_version": "2.90.1",
+      "upstream_commit": "e05063ccc6c8f222465a1080927f4c14349f3de6",
+      "status": "blocked",
+      "known_blockers": {
+        "headers": [
+          "arpa/nameser.h",
+          "resolv.h"
+        ],
+        "functions": [
+          "res_query",
+          "dn_expand"
+        ],
+        "record_types": [
+          "NS",
+          "SOA",
+          "MX",
+          "TXT",
+          "SRV"
+        ]
+      },
+      "current_native_dns": [
+        "A",
+        "AAAA",
+        "PTR"
+      ],
+      "implementation_owners": [
+        {
+          "repository": "mochiOS/syscalls",
+          "paths": [
+            "crates/network-stack",
+            "crates/net-device-protocol/src/resolver.rs"
+          ],
+          "work": "Extend the existing bounded DNS record parser and authority protocol without granting additional scopes to existing handles."
+        },
+        {
+          "component": "services/network",
+          "paths": [
+            "src/resolver.rs",
+            "src/resolver_provider.rs",
+            "src/resolver_backend.rs"
+          ],
+          "work": "Extend existing DNS jobs and immutable result snapshots; preserve cancellation, timeout, query identity and provider validation."
+        },
+        {
+          "repository": "mochiOS/syscalls",
+          "paths": [
+            "crates/posix-client/src/resolver.rs",
+            "crates/newlib-runtime/src/netdb_backend.rs",
+            "libc-port/include"
+          ],
+          "work": "Provide resolver C interfaces through the scoped native DNS authority and bounded compression-name parsing."
+        },
+        {
+          "repository": "mochiOS/devkit",
+          "paths": [
+            "sdk/sources.lock.json",
+            "sdk/patches"
+          ],
+          "work": "Rebuild and verify a new SDK against reviewed native sources; publication remains manual."
+        }
+      ],
+      "requirements": [
+        "Do not replace SDK headers with host glibc headers.",
+        "Do not implement record lookup as unconditional success or fabricated answers.",
+        "Do not bypass native DNS authority by silently choosing an external DNS server.",
+        "Existing A/AAAA/PTR scope grants must not acquire new record permissions.",
+        "Keep new query types explicitly scoped; reject unknown kinds, malformed replies and oversized results.",
+        "Changes to the existing OS checkout are outside the currently confirmed work scope."
+      ],
+      "further_limitations": [
+        "The baseline SDK supports startup-linked DSOs only; GModule cannot dynamically load new modules.",
+        "Additional GIO platform requirements must be checked after resolving the first DNS blocker."
+      ]
+    },
+    "webkit": {
+      "upstream_tag": "wpewebkit-2.54.2",
+      "upstream_commit": "32717fabcb9dcad9aa00a54ef1f23e41ee64e849",
+      "status": "not-ported",
+      "source_of_dependencies": "Source/cmake/OptionsWPE.cmake",
+      "required_dependency_families": [
+        "glib",
+        "harfbuzz-with-icu",
+        "icu",
+        "libjpeg-turbo",
+        "libepoxy",
+        "libgcrypt",
+        "libsoup3",
+        "libtasn1",
+        "libxkbcommon",
+        "libxml2",
+        "libpng",
+        "sqlite3",
+        "libwebp",
+        "zlib",
+        "freetype"
+      ],
+      "platform_work": [
+        "A mochiOS graphics/input/process integration is still required.",
+        "Compiling dependency libraries does not constitute a working WebKit port."
+      ],
+      "publication": "No SDK or library release is created by this porting work."
+    }
+  }
+}
