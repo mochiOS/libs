@@ -48,6 +48,11 @@
       "tag": "3.2.1",
       "version": "3.2.1",
       "commit": "7b4993786d856cbccabfc0ed2f923ba000e326cc"
+    },
+    "libwebp": {
+      "tag": "v1.6.0",
+      "version": "1.6.0",
+      "commit": "4fa21912338357f89e4fd51cf2368325b59e9bd9"
     }
   }
 }
