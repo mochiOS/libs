@@ -3,6 +3,12 @@ on:
   schedule:
     - cron: '23 4 * * *'
   workflow_dispatch:
+    inputs:
+      refresh:
+        description: Check upstream tags before building; otherwise use reviewed source locks
+        required: true
+        type: boolean
+        default: false
 concurrency:
   group: library-releases
   cancel-in-progress: false
@@ -27,7 +33,13 @@ jobs:
       - id: plan
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 tools/libs.py plan --refresh --check-releases --github-output "$GITHUB_OUTPUT"
+          REFRESH_UPSTREAMS: ${{ github.event_name == 'schedule' || inputs.refresh }}
+        run: |
+          if [ "$REFRESH_UPSTREAMS" = true ]; then
+            python3 tools/libs.py plan --refresh --check-releases --github-output "$GITHUB_OUTPUT"
+          else
+            python3 tools/libs.py plan --check-releases --github-output "$GITHUB_OUTPUT"
+          fi
       - name: Explain SDK readiness
         run: |
           python3 - <<'PY'
