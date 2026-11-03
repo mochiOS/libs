@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "options": {
+    "LIBXML2_WITH_PROGRAMS": false,
+    "LIBXML2_WITH_PYTHON": false,
+    "LIBXML2_WITH_TESTS": false,
+    "LIBXML2_WITH_DOCS": false,
+    "LIBXML2_WITH_MODULES": false,
+    "LIBXML2_WITH_ICU": false,
+    "LIBXML2_WITH_ICONV": true,
+    "LIBXML2_WITH_THREADS": true
+  },
+  "licenses": [
+    "Copyright"
+  ],
+  "shared_libraries": [
+    "libxml2.so*"
+  ],
+  "link_libraries": [
+    "xml2"
+  ],
+  "pkg_config_modules": [
+    "libxml-2.0"
+  ],
+  "probe": "probe.c"
+}
