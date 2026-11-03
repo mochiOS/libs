@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT / 'tools'))
 import libs
 import releases
 import container_build
+import build_backends
 
 
 UNAVAILABLE_SDK = dict(format=1, available=False, target=libs.TARGET, abi=libs.ABI, reason='SDK unavailable test fixture')
@@ -332,3 +333,36 @@ class SubmoduleTests(unittest.TestCase):
             with patch.object(libs, 'run', return_value=''):
                 with self.assertRaisesRegex(ValueError, 'definitions differ'):
                     libs.validate_submodules(root, {'git':'https://example.invalid/base.git'})
+
+
+class CrossBackendTests(unittest.TestCase):
+    def test_meson_machine_uses_mochios_and_cannot_execute_target_helpers(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)/'cross.ini'
+            build_backends.cross_file(Path('/sdk'), Path('/sdk/sysroot'), Path('/deps'), output)
+            text = output.read_text()
+            self.assertIn("system = 'mochios'", text)
+            self.assertIn('needs_exe_wrapper = true', text)
+            self.assertNotIn('exe_wrapper = [', text)
+            self.assertIn('"/sdk/bin/mochios-cc"', text)
+            self.assertIn('"/deps/usr/lib/pkgconfig"', text)
+            self.assertNotIn('"/usr/lib/pkgconfig"', text)
+
+    def test_nested_dependencies_are_included_in_consumer_prefixes(self):
+        catalog = {'libraries': {
+            'a': {'enabled': True, 'dependencies': []},
+            'b': {'enabled': True, 'dependencies': ['a']},
+            'c': {'enabled': True, 'dependencies': ['b']}}}
+        self.assertEqual(libs.transitive_dependencies(catalog, 'c'), ['a', 'b'])
+
+    def test_autotools_commands_always_use_the_target_driver_and_explicit_host(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            spec = {'backend': 'autotools', 'configure':['--disable-docs']}
+            with patch.object(build_backends, 'invoke') as invoke:
+                build_backends.build(spec, Path('/source'), work, Path('/sdk'), Path('/sdk/sysroot'), Path('/deps'), [], {})
+            command, env = invoke.call_args_list[0].args
+            self.assertIn('--host=x86_64-unknown-mochios', command)
+            self.assertEqual(env['CC'], '/sdk/bin/mochios-cc')
+            self.assertEqual(env['LD'], '/sdk/host/bin/ld.lld')
+            self.assertNotIn('ac_cv_func_malloc_0_nonnull', env)

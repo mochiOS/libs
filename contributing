@@ -121,3 +121,27 @@ Bug reports and improvement suggestions are welcome.
 
 Please include the affected library, relevant configuration, error messages,
 and steps to reproduce the problem when applicable.
+
+Cross-build backends
+-----------------------------------------
+Recipes select cmake, meson, or autotools. All backends use the SDK's
+mochiOS compiler drivers and are followed by ELF and consumer-link checks.
+Target executables are never run during the build. Meson uses a cross file
+with needs_exe_wrapper=true and disables subproject downloads. Its install_tags
+must select library/development data rather than target command-line tools.
+
+Autotools recipes use explicit --host and --build triples. Optional bootstrap
+is limited to autoreconf. configure contains argument arrays, not shell text.
+Build/install subdirectories and generated public headers can be declared
+when an upstream package also contains unrelated executables.
+
+patches lists repository-owned unified patches relative to the recipe. They
+are applied after bootstrap to a fresh disposable source copy. Their hashes
+are part of the frozen build identity and verified package provenance. A
+changed upstream context fails the build instead of silently skipping a patch.
+
+Source submodules must declare HTTPS URLs and full commits in libraries.toml.
+Every gitlink and .gitmodules URL is checked; unknown/nested dependencies and
+modified cached sources are rejected. The network is unavailable during the
+actual library build. Dependency prefixes include the transitive closure, so
+pkg-config cannot fall back to host libraries for indirect dependencies.

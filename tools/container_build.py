@@ -9,6 +9,8 @@ import struct
 import subprocess
 import sys
 
+import build_backends
+
 
 def command(args, env=None):
     """Execute a build command with its exact argv and propagate any failure."""
@@ -69,20 +71,9 @@ def main():
     # Some upstream generators modify their source tree; only the disposable copy is writable.
     disposable = work / 'source'
     if disposable.is_symlink(): raise ValueError('Invalid writable source cache')
-    if not disposable.exists():
-        shutil.copytree(source, disposable, symlinks=True, ignore=shutil.ignore_patterns('.git'))
-    options = []
-    for name, value in recipe['options'].items():
-        if isinstance(value, bool): value = 'ON' if value else 'OFF'
-        options.append(f'-D{name}={value}')
-    command(['cmake', '-S', disposable, '-B', work / 'build', *common,
-             '-DCMAKE_INSTALL_PREFIX=/usr', '-DCMAKE_INSTALL_LIBDIR=lib',
-             '-DCMAKE_POSITION_INDEPENDENT_CODE=ON', '-DBUILD_SHARED_LIBS=ON', *options], env)
-    command(['cmake', '--build', work / 'build', '--parallel', '2'], env)
-    stage = work / 'stage'
-    if stage.is_symlink(): stage.unlink()
-    elif stage.exists(): shutil.rmtree(stage)
-    command(['cmake', '--install', work / 'build'], dict(env, DESTDIR=str(stage)))
+    if disposable.exists(): shutil.rmtree(disposable)
+    shutil.copytree(source, disposable, symlinks=True, ignore=shutil.ignore_patterns('.git'))
+    build_backends.build(recipe, disposable, work, sdk, sysroot, dependencies, common, env)
     for pattern in recipe['shared_libraries']:
         matches = list((work / 'stage/usr/lib').glob(pattern))
         if not matches: raise ValueError(f'Required shared output missing: {pattern}')

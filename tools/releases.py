@@ -40,7 +40,7 @@ def verify_bundle(directory, package, plan, root=libs.ROOT):
         raise ValueError('Artifact does not match the frozen source/SDK/recipe plan')
     library = libs.read_catalog(root)['libraries'][package['name']]
     path = libs.relative(root, library['recipe']); specification = libs.recipe(root, library)
-    expected_recipe = dict(path=library['recipe'], sha256=libs.hash_file(path), probe_sha256=libs.hash_file(libs.relative(path.parent, specification['probe'])))
+    expected_recipe = dict(path=library['recipe'], sha256=libs.hash_file(path), probe_sha256=libs.hash_file(libs.relative(path.parent, specification['probe'])), patches={name: libs.hash_file(libs.relative(path.parent, name)) for name in specification.get('patches', [])})
     if manifest.get('source_repository') != library['git'] or manifest.get('recipe') != expected_recipe or not libs.SHA.fullmatch(manifest.get('registry_commit', '')):
         raise ValueError('Missing/mismatched source and recipe provenance')
     if manifest.get('runtime_tested') is not False or manifest.get('verification') != 'compile-and-link-only':

@@ -108,13 +108,32 @@ def recipe(root, library):
     """Load a repository-owned recipe; arbitrary shell command strings are not accepted."""
     path = relative(root, library['recipe'])
     value = json.loads(path.read_text())
-    if value.get('format') != 1 or value.get('backend') != 'cmake':
+    if value.get('format') != 1 or value.get('backend') not in ['cmake', 'meson', 'autotools']:
         raise ValueError(f'Unsupported recipe: {path}')
-    for key, option in value['options'].items():
-        if not re.fullmatch(r'[A-Z][A-Z0-9_]*', key) or type(option) not in [str, int, bool]:
+    for key, option in value.get('options', {}).items():
+        if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*', key) or type(option) not in [str, int, bool]:
             raise ValueError('Invalid CMake recipe option')
-        if key.startswith('CMAKE_') or key in ['FETCHCONTENT_FULLY_DISCONNECTED', 'FETCHCONTENT_UPDATES_DISCONNECTED']:
+        if key.startswith(('CMAKE_', 'b_')) or key in ['FETCHCONTENT_FULLY_DISCONNECTED', 'FETCHCONTENT_UPDATES_DISCONNECTED', 'prefix', 'libdir', 'default_library', 'buildtype', 'wrap_mode', 'c_args', 'cpp_args', 'c_link_args', 'cpp_link_args']:
             raise ValueError('Recipes cannot replace toolchain/isolation settings')
+    for patch in value.get('patches', []):
+        if not relative(path.parent, patch).is_file(): raise ValueError('Missing port patch')
+    if value.get('subdirectory', '.') != '.': relative(root, value['subdirectory'])
+    if value['backend'] == 'meson':
+        if not value.get('install_tags') or any(tag not in ['runtime', 'devel', 'doc', 'man'] for tag in value['install_tags']):
+            raise ValueError('Meson recipes must declare library-only install tags')
+    if value['backend'] == 'autotools':
+        if value.get('bootstrap') not in [None, 'autoreconf']: raise ValueError('Unsupported bootstrap')
+        for arg in value['configure']:
+            if not re.fullmatch(r'--(?:enable|disable|with|without)-[a-z0-9-]+(?:=[A-Za-z0-9_./+-]+)?', arg): raise ValueError('Invalid configure option')
+            if arg.startswith(('--disable-shared', '--enable-static', '--with-sysroot')): raise ValueError('Recipe cannot replace shared SDK settings')
+        for key in ['build_subdirs', 'install_subdirs']:
+            for item in value.get(key, []):
+                if item != '.': relative(root, item)
+        for target in value.get('build_targets', []):
+            if not re.fullmatch(r'[A-Za-z0-9_./+-]+', target) or target.startswith('-') or '..' in target.split('/'): raise ValueError('Invalid make target')
+        for original, target in value.get('install_headers', {}).items():
+            relative(root, original); relative(root, target)
+            if not target.startswith('usr/include/'): raise ValueError('Header install must stay in usr/include')
     for license_path in value['licenses']:
         relative(root, license_path)  # Lexical validation; source location is checked after checkout.
     relative(path.parent, value['probe']).read_text()
@@ -149,6 +168,18 @@ def order(catalog):
         if library['enabled']:
             visit(name)
     return result
+
+
+def transitive_dependencies(catalog, name):
+    """Return a topological dependency prefix including dependencies of dependencies."""
+    required = set()
+    def visit(current):
+        for dependency in catalog['libraries'][current]['dependencies']:
+            if dependency not in required:
+                required.add(dependency)
+                visit(dependency)
+    visit(name)
+    return [item for item in order(catalog) if item in required]
 
 
 def version(value):
@@ -219,7 +250,7 @@ def sdk_lock(root=ROOT):
 
 def runner_identity(root):
     """Identify the trusted runner/probe implementation embedded in the builder image."""
-    return identity({str(p.relative_to(root)): hash_file(p) for p in [root / 'tools/container_build.py', *sorted((root / 'tooling/probe').glob('*'))]})
+    return identity({str(p.relative_to(root)): hash_file(p) for p in [root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tooling/host-requirements.txt', *sorted((root / 'tooling/probe').glob('*'))]})
 
 
 def make_plan(root, refresh=False):
@@ -230,7 +261,7 @@ def make_plan(root, refresh=False):
     if baseline.get('format') != 1:
         raise ValueError('Unknown source lock format')
     sources, packages = {}, []
-    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', *sorted((root / 'tooling/probe').glob('*'))]}
+    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tooling/host-requirements.txt', *sorted((root / 'tooling/probe').glob('*'))]}
     for name in order(catalog):
         library = catalog['libraries'][name]
         pinned = baseline['sources'][name]
@@ -254,7 +285,8 @@ def make_plan(root, refresh=False):
         recipe_path = relative(root, library['recipe'])
         deps = {dep: next(p['input_id'] for p in packages if p['name'] == dep) for dep in library['dependencies']}
         inputs = dict(name=name, source=selected, library=library, sdk=sdk, dependencies=deps, common=common,
-                      recipe=specification, probe_sha256=hash_file(relative(recipe_path.parent, specification['probe'])))
+                      recipe=specification, probe_sha256=hash_file(relative(recipe_path.parent, specification['probe'])),
+                      patches={name: hash_file(relative(recipe_path.parent, name)) for name in specification.get('patches', [])})
         stem = f'{name}-{selected["version"]}-r{library["revision"]}-{TARGET}-{ABI}'
         packages.append(dict(name=name, source=selected, release=f'{name}-{selected["version"]}', stem=stem,
                              input_id=identity(inputs), dependencies=deps))
@@ -275,7 +307,7 @@ def validate_plan(root, plan):
         raise ValueError('Plan dependency order is invalid')
     # The local offline baseline must not be silently overwritten by resolution.
     baseline = json.loads(baseline_path.read_text())
-    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', *sorted((root / 'tooling/probe').glob('*'))]}
+    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tooling/host-requirements.txt', *sorted((root / 'tooling/probe').glob('*'))]}
     completed = {}
     for package in plan['packages']:
         name = package['name']; library = catalog['libraries'][name]; selected = plan['sources'][name]
@@ -287,7 +319,8 @@ def validate_plan(root, plan):
         specification = recipe(root, library); path = relative(root, library['recipe'])
         deps = {dep: completed[dep] for dep in library['dependencies']}
         inputs = dict(name=name, source=selected, library=library, sdk=sdk, dependencies=deps, common=common,
-                      recipe=specification, probe_sha256=hash_file(relative(path.parent, specification['probe'])))
+                      recipe=specification, probe_sha256=hash_file(relative(path.parent, specification['probe'])),
+                      patches={name: hash_file(relative(path.parent, name)) for name in specification.get('patches', [])})
         expected = dict(name=name, source=selected, release=f'{name}-{selected["version"]}',
                         stem=f'{name}-{selected["version"]}-r{library["revision"]}-{TARGET}-{ABI}', input_id=identity(inputs), dependencies=deps)
         if package != expected:
@@ -533,7 +566,8 @@ def package_build(root, package, stage, metadata, destination):
     library = read_catalog(root)['libraries'][package['name']]
     recipe_path = relative(root, library['recipe'])
     specification = recipe(root, library)
-    recipe_identity = dict(path=library['recipe'], sha256=hash_file(recipe_path), probe_sha256=hash_file(relative(recipe_path.parent, specification['probe'])))
+    recipe_identity = dict(path=library['recipe'], sha256=hash_file(recipe_path), probe_sha256=hash_file(relative(recipe_path.parent, specification['probe'])),
+                      patches={name: hash_file(relative(recipe_path.parent, name)) for name in specification.get('patches', [])})
     manifest = dict(format=1, package=package, sdk=metadata['sdk'], builder=metadata['builder'], target=TARGET, abi=ABI,
                     source_repository=library['git'], recipe=recipe_identity, registry_commit=metadata['registry_commit'],
                     verification='compile-and-link-only', runtime_tested=False, files=files)
@@ -599,11 +633,15 @@ def build(root, plan, output, image):
         write_json(ownership, expected_owner)
         if (work / 'complete.json').exists(): (work / 'complete.json').unlink()
         dependencies = output / 'dependencies' / package['input_id']; dependencies.mkdir(parents=True, exist_ok=True)
-        for dependency in library['dependencies']: merge_dependency(installed[dependency], dependencies)
+        for dependency in transitive_dependencies(catalog, name): merge_dependency(installed[dependency], dependencies)
         source = checkout_source(output, library, package['source'])
         specification = recipe(root, library)
         write_json(work / 'recipe.json', specification)
         shutil.copy2(relative(root, library['recipe']).parent / specification['probe'], work / 'library-probe.c')
+        for patch in specification.get('patches', []):
+            target = relative(work / 'recipe-assets', patch)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(relative(relative(root, library['recipe']).parent, patch), target)
         run(docker_command(builder_id, sdk, source, dependencies, work), log=work / 'container.log')
         verified = json.loads((work / 'verified.json').read_text())
         if verified.get('format') != 1 or verified.get('target') != TARGET or verified.get('abi') != ABI:
