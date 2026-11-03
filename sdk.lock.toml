@@ -1,5 +1,6 @@
 format = 1
-available = true
+available = false
+reason = "Shared SDK is awaiting manual publication by the maintainer"
 version = "27.0-dp.1-shared.1"
 target = "x86_64-unknown-mochios"
 abi = "mochios-1"
