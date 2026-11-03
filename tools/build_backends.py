@@ -1,5 +1,4 @@
 """Cross-build backends. Target programs are never used as configure/build helpers."""
-import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -13,7 +12,11 @@ def invoke(argv, env, cwd=None):
 
 def cross_file(sdk, sysroot, dependencies, destination):
     """Describe the real mochiOS ABI, isolating pkg-config and forbidding target execution."""
-    value = lambda item: json.dumps(str(item))
+    def value(item):
+        text = str(item)
+        if any(char in text for char in ['\n', '\r', '\0']) or "'''" in text:
+            raise ValueError('Path cannot be represented in a Meson machine file')
+        return ("'''" + text + "'''") if "'" in text else ("'" + text + "'")
     text = '[binaries]\n'
     for name, path in [('c', sdk/'bin/mochios-cc'), ('cpp', sdk/'bin/mochios-c++'),
                        ('ar', sdk/'host/bin/ar'), ('strip', sdk/'host/bin/strip'),
@@ -25,8 +28,8 @@ def cross_file(sdk, sysroot, dependencies, destination):
     text += '[built-in options]\n'
     for language in ['c', 'cpp']:
         flags = ['-I'+str(dependencies/'usr/include'), '-ffile-prefix-map=/work=/build', '-ffile-prefix-map=/source=/src']
-        text += language + '_args = ' + json.dumps(flags) + '\n'
-        text += language + '_link_args = ' + json.dumps(['-L'+str(dependencies/'usr/lib')]) + '\n'
+        text += language + '_args = ' + '[' + ', '.join(value(flag) for flag in flags) + ']' + '\n'
+        text += language + '_link_args = ' + '[' + value('-L'+str(dependencies/'usr/lib')) + ']' + '\n'
     destination.write_text(text)
     return destination
 

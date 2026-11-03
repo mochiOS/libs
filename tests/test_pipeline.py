@@ -351,9 +351,9 @@ class CrossBackendTests(unittest.TestCase):
             self.assertIn("system = 'mochios'", text)
             self.assertIn('needs_exe_wrapper = true', text)
             self.assertNotIn('exe_wrapper = [', text)
-            self.assertIn('"/sdk/bin/mochios-cc"', text)
-            self.assertIn('"/deps/usr/lib/pkgconfig"', text)
-            self.assertNotIn('"/usr/lib/pkgconfig"', text)
+            self.assertIn("'/sdk/bin/mochios-cc'", text)
+            self.assertIn("'/deps/usr/lib/pkgconfig'", text)
+            self.assertNotIn("'/usr/lib/pkgconfig'", text)
 
     def test_nested_dependencies_are_included_in_consumer_prefixes(self):
         catalog = {'libraries': {
@@ -428,3 +428,19 @@ class ConsumerPrefixTests(unittest.TestCase):
             (source/'escape').symlink_to('..')
             with self.assertRaisesRegex(ValueError, 'External dependency link'):
                 container_build.merge_prefixes([source], root/'consumer')
+
+
+class MesonSyntaxTests(unittest.TestCase):
+    def test_generated_cross_file_parses_with_meson_itself(self):
+        try:
+            from mesonbuild.machinefile import MachineFileParser
+        except ImportError:
+            self.skipTest('Meson is required for the machine-file grammar integration test')
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/'cross.ini'
+            sdk = Path("/sdk's build")
+            build_backends.cross_file(sdk, sdk/'sysroot', Path('/deps'), path)
+            parsed = MachineFileParser([str(path)], str(Path(tmp))).sections
+            self.assertEqual(parsed['binaries']['c'], str(sdk/'bin/mochios-cc'))
+            self.assertTrue(parsed['properties']['needs_exe_wrapper'])
+            self.assertEqual(parsed['built-in options']['c_link_args'], ['-L/deps/usr/lib'])
