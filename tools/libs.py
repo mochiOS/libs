@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Track upstream Git tags, freeze inputs, build isolated target libraries and publish verified releases."""
 import argparse
+import configparser
 import gzip
 import hashlib
 import json
@@ -89,6 +90,12 @@ def read_catalog(root=ROOT):
             raise ValueError(f'Invalid build revision: {name}')
         if type(library['enabled']) is not bool:
             raise ValueError(f'enabled must be boolean: {name}')
+        modules = library.get('submodules', {})
+        if not isinstance(modules, dict): raise ValueError('Invalid source submodule declarations')
+        for path, item in modules.items():
+            relative(root, path)
+            if not isinstance(item, dict) or set(item) != {'git', 'commit'} or not https_url(item['git']) or not SHA.fullmatch(item['commit']):
+                raise ValueError('Source submodules need immutable HTTPS identities')
         if library['enabled']:
             recipe(root, library)
         elif not library.get('reason'):
@@ -392,22 +399,69 @@ def install_sdk(root, output, lock):
     return destination
 
 
+def validate_submodules(source, library):
+    """Match every upstream gitlink and URL to an explicitly reviewed immutable dependency."""
+    declared = library.get('submodules', {})
+    gitlinks = {}
+    for line in run(['git', '-C', source, 'ls-tree', '-r', 'HEAD']).splitlines():
+        fields, path = line.split('\t', 1)
+        mode, kind, commit = fields.split()
+        if mode == '160000': gitlinks[path] = commit
+    if set(gitlinks) != set(declared):
+        raise ValueError('Source needs an explicit submodule/source recipe')
+    definitions = configparser.RawConfigParser()
+    definitions.read(source / '.gitmodules')
+    upstream = {}
+    for section in definitions.sections():
+        path = definitions[section]['path']; url = definitions[section]['url']
+        if path in upstream: raise ValueError('Duplicate source submodule')
+        upstream[path] = urllib.parse.urljoin(library['git'] + '/', url)
+    if set(upstream) != set(declared):
+        raise ValueError('Source submodule definitions differ from the reviewed recipe')
+    for path, item in declared.items():
+        relative(source, path)
+        if not https_url(item['git']) or not SHA.fullmatch(item['commit']):
+            raise ValueError('Submodules require HTTPS and immutable commits')
+        if gitlinks[path] != item['commit'] or upstream[path] != item['git']:
+            raise ValueError('Upstream submodule revision or URL changed; review the port')
+    return declared
+
+
+def verify_source(source, commit):
+    """Do not reuse altered source checkouts or untracked build products."""
+    if run(['git', '-C', source, 'rev-parse', 'HEAD']) != commit or run(['git', '-C', source, 'status', '--porcelain', '--untracked-files=all']):
+        raise ValueError('Source cache is modified')
+
+
+def fetch_commit(destination, url, commit):
+    """Fetch one declared HTTPS Git commit without executing hooks or initializing submodules."""
+    if not https_url(url) or not SHA.fullmatch(commit): raise ValueError('Invalid source identity')
+    run(['git', '-c', 'core.hooksPath=/dev/null', 'init', '--initial-branch=source', destination])
+    run(['git', '-C', destination, 'remote', 'add', 'origin', url])
+    run(['git', '-C', destination, '-c', 'core.hooksPath=/dev/null', 'fetch', '--depth=1', '--no-tags', 'origin', commit])
+    run(['git', '-C', destination, '-c', 'core.hooksPath=/dev/null', 'checkout', '--detach', commit])
+    verify_source(destination, commit)
+
+
 def checkout_source(output, library, selected):
-    """Fetch exactly one pinned commit; do not initialize unpinned submodules or reuse altered trees."""
+    """Fetch pinned sources and explicitly declared gitlinks; never auto-update recursive submodules."""
     source = output / 'sources' / selected['commit']
     if source.exists():
-        if run(['git', '-C', source, 'rev-parse', 'HEAD']) != selected['commit'] or run(['git', '-C', source, 'status', '--porcelain', '--untracked-files=all']):
-            raise ValueError('Source cache is modified')
+        verify_source(source, selected['commit'])
+        for path, item in validate_submodules(source, library).items():
+            child = relative(source, path)
+            verify_source(child, item['commit'])
+            validate_submodules(child, {'git': item['git']})
         return source
     source.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=source.parent, prefix='git-') as temporary:
         staged = Path(temporary) / 'source'
-        run(['git', '-c', 'core.hooksPath=/dev/null', 'init', '--initial-branch=source', staged])
-        run(['git', '-C', staged, 'remote', 'add', 'origin', library['git']])
-        run(['git', '-C', staged, '-c', 'core.hooksPath=/dev/null', 'fetch', '--depth=1', '--no-tags', 'origin', selected['commit']])
-        run(['git', '-C', staged, '-c', 'core.hooksPath=/dev/null', 'checkout', '--detach', selected['commit']])
-        if run(['git', '-C', staged, 'rev-parse', 'HEAD']) != selected['commit'] or (staged / '.gitmodules').exists():
-            raise ValueError('Source needs an explicit submodule/source recipe')
+        fetch_commit(staged, library['git'], selected['commit'])
+        for path, item in validate_submodules(staged, library).items():
+            child = relative(staged, path)
+            fetch_commit(child, item['git'], item['commit'])
+            validate_submodules(child, {'git': item['git']})
+        verify_source(staged, selected['commit'])
         staged.rename(source)
     return source
 

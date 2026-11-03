@@ -302,3 +302,33 @@ class ToolchainTests(unittest.TestCase):
 
 
 if __name__ == '__main__': unittest.main()
+
+
+class SubmoduleTests(unittest.TestCase):
+    def test_gitlinks_and_relative_upstream_urls_must_match_reviewed_commits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / '.gitmodules').write_text('[submodule "subprojects/gvdb"]\npath = subprojects/gvdb\nurl = ../../GNOME/gvdb.git\n')
+            library = {'git': 'https://gitlab.gnome.org/GNOME/glib.git', 'submodules': {
+                'subprojects/gvdb': {'git': 'https://gitlab.gnome.org/GNOME/gvdb.git', 'commit': 'a'*40}}}
+            output = '160000 commit ' + 'a'*40 + '\tsubprojects/gvdb'
+            with patch.object(libs, 'run', return_value=output):
+                self.assertEqual(libs.validate_submodules(root, library), library['submodules'])
+                with self.assertRaisesRegex(ValueError, 'explicit submodule'):
+                    libs.validate_submodules(root, {'git': library['git']})
+                altered = copy.deepcopy(library)
+                altered['submodules']['subprojects/gvdb']['commit'] = 'b'*40
+                with self.assertRaisesRegex(ValueError, 'revision or URL changed'):
+                    libs.validate_submodules(root, altered)
+                altered = copy.deepcopy(library)
+                altered['submodules']['subprojects/gvdb']['git'] = 'https://example.invalid/gvdb.git'
+                with self.assertRaisesRegex(ValueError, 'revision or URL changed'):
+                    libs.validate_submodules(root, altered)
+
+    def test_unexpected_gitmodules_and_nested_dependencies_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / '.gitmodules').write_text('[submodule "extra"]\npath = extra\nurl = https://example.invalid/extra.git\n')
+            with patch.object(libs, 'run', return_value=''):
+                with self.assertRaisesRegex(ValueError, 'definitions differ'):
+                    libs.validate_submodules(root, {'git':'https://example.invalid/base.git'})

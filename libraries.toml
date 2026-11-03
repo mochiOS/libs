@@ -29,6 +29,7 @@ revision = 1
 enabled = true
 recipe = "recipes/pcre2/recipe.json"
 dependencies = []
+submodules = { "deps/sljit" = { git = "https://github.com/zherczeg/sljit.git", commit = "de0259c7aaf36aa40cba8014f3fad3edde9307f9" } }
 
 # Planned ports are visible but never advertised as buildable/published.
 [libraries.glib]
