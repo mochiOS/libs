@@ -101,3 +101,14 @@
  if test ${gt_cv_locale_en_utf8+y}
  then :
    printf %s "(cached) " >&6
+--- a/libcharset/build-aux/config.sub
++++ b/libcharset/build-aux/config.sub
+@@ -2011,7 +2011,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
+-	| fiwix* \
++	| mochios* | fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \
+ 	| genix* \
