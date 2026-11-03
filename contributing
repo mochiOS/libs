@@ -145,3 +145,10 @@ Every gitlink and .gitmodules URL is checked; unknown/nested dependencies and
 modified cached sources are rejected. The network is unavailable during the
 actual library build. Dependency prefixes include the transitive closure, so
 pkg-config cannot fall back to host libraries for indirect dependencies.
+
+Official generated source distributions can declare source_archive as an HTTPS
+URL template containing {version}. sources.lock.json records the corresponding
+Git tag/commit and archive URL/SHA-256. Refreshing to a newer upstream release
+freezes its distribution digest before building; the bytes of an already pinned
+release must never change. Cached extracted sources have a complete inventory
+and are rejected if modified. No build commands are run while fetching sources.

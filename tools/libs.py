@@ -17,6 +17,8 @@ import tomllib
 import urllib.request
 import urllib.parse
 
+import source_archives
+
 ROOT = Path(__file__).resolve().parents[1]
 TARGET = 'x86_64-unknown-mochios'
 ABI = 'mochios-1'
@@ -90,6 +92,7 @@ def read_catalog(root=ROOT):
             raise ValueError(f'Invalid build revision: {name}')
         if type(library['enabled']) is not bool:
             raise ValueError(f'enabled must be boolean: {name}')
+        if 'source_archive' in library: source_archives.release_url(library, '0.0.0', sys.modules[__name__])
         modules = library.get('submodules', {})
         if not isinstance(modules, dict): raise ValueError('Invalid source submodule declarations')
         for path, item in modules.items():
@@ -261,7 +264,7 @@ def make_plan(root, refresh=False):
     if baseline.get('format') != 1:
         raise ValueError('Unknown source lock format')
     sources, packages = {}, []
-    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tooling/host-requirements.txt', *sorted((root / 'tooling/probe').glob('*'))]}
+    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tools/source_archives.py', root / 'tooling/host-requirements.txt', *sorted((root / 'tooling/probe').glob('*'))]}
     for name in order(catalog):
         library = catalog['libraries'][name]
         pinned = baseline['sources'][name]
@@ -280,6 +283,8 @@ def make_plan(root, refresh=False):
             raise ValueError(f'Upstream tag removed or regressed: {name}')
         if selected['version'] == pinned['version'] and selected['commit'] != pinned['commit']:
             raise ValueError(f'Upstream tag moved: {name}; review the lock explicitly')
+        if 'source_archive' in library:
+            selected = source_archives.resolve(library, selected, pinned, sys.modules[__name__])
         sources[name] = selected
         specification = recipe(root, library)
         recipe_path = relative(root, library['recipe'])
@@ -307,7 +312,7 @@ def validate_plan(root, plan):
         raise ValueError('Plan dependency order is invalid')
     # The local offline baseline must not be silently overwritten by resolution.
     baseline = json.loads(baseline_path.read_text())
-    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tooling/host-requirements.txt', *sorted((root / 'tooling/probe').glob('*'))]}
+    common = {str(p.relative_to(root)): hash_file(p) for p in [root / 'Dockerfile', root / 'tools/libs.py', root / 'tools/releases.py', root / 'tools/container_build.py', root / 'tools/build_backends.py', root / 'tools/source_archives.py', root / 'tooling/host-requirements.txt', *sorted((root / 'tooling/probe').glob('*'))]}
     completed = {}
     for package in plan['packages']:
         name = package['name']; library = catalog['libraries'][name]; selected = plan['sources'][name]
@@ -316,6 +321,8 @@ def validate_plan(root, plan):
             raise ValueError('Invalid frozen source')
         if selected['version'] == baseline['sources'][name]['version'] and selected['commit'] != baseline['sources'][name]['commit']:
             raise ValueError('Pinned tag changed')
+        if 'source_archive' in library:
+            source_archives.validate(library, selected, baseline['sources'][name], sys.modules[__name__])
         specification = recipe(root, library); path = relative(root, library['recipe'])
         deps = {dep: completed[dep] for dep in library['dependencies']}
         inputs = dict(name=name, source=selected, library=library, sdk=sdk, dependencies=deps, common=common,
@@ -478,6 +485,8 @@ def fetch_commit(destination, url, commit):
 
 def checkout_source(output, library, selected):
     """Fetch pinned sources and explicitly declared gitlinks; never auto-update recursive submodules."""
+    if 'source_archive' in library:
+        return source_archives.checkout(output, library, selected, sys.modules[__name__])
     source = output / 'sources' / selected['commit']
     if source.exists():
         verify_source(source, selected['commit'])

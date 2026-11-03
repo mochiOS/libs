@@ -366,3 +366,36 @@ class CrossBackendTests(unittest.TestCase):
             self.assertEqual(env['CC'], '/sdk/bin/mochios-cc')
             self.assertEqual(env['LD'], '/sdk/host/bin/ld.lld')
             self.assertNotIn('ac_cv_func_malloc_0_nonnull', env)
+
+
+class SourceDistributionTests(unittest.TestCase):
+    def test_reviewed_distribution_hash_is_preserved_and_cannot_be_changed(self):
+        import source_archives
+        library = {'source_archive': 'https://example.invalid/library-{version}.tar.gz'}
+        baseline = {'version':'1.2', 'commit':'a'*40, 'archive':{
+            'url':'https://example.invalid/library-1.2.tar.gz', 'sha256':'b'*64}}
+        selected = source_archives.resolve(library, baseline, baseline, libs)
+        source_archives.validate(library, selected, baseline, libs)
+        selected['archive'] = dict(selected['archive'], sha256='c'*64)
+        with self.assertRaisesRegex(ValueError, 'Pinned source distribution changed'):
+            source_archives.validate(library, selected, baseline, libs)
+        for template in ['http://example.invalid/{version}.tar.gz', 'https://example.invalid/{token}/{version}.tar.gz']:
+            with self.assertRaises(ValueError): source_archives.release_url({'source_archive':template}, '1.2', libs)
+
+    def test_distribution_cache_is_checked_against_its_complete_inventory(self):
+        import source_archives
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); source = root/'library-1.2'; source.mkdir()
+            (source/'configure').write_text('# source fixture; never executed\n')
+            archive = root/'source.tar.gz'
+            with tarfile.open(archive, 'w:gz') as tar: tar.add(source, arcname=source.name)
+            digest = libs.hash_file(archive)
+            downloads = root/'out/downloads'; downloads.mkdir(parents=True)
+            shutil.copy2(archive, downloads/digest)
+            library = {'source_archive':'https://example.invalid/library-{version}.tar.gz'}
+            selected = {'version':'1.2', 'archive':{'url':'https://example.invalid/library-1.2.tar.gz','sha256':digest}}
+            installed = source_archives.checkout(root/'out', library, selected, libs)
+            self.assertEqual(source_archives.checkout(root/'out', library, selected, libs), installed)
+            (installed/'configure').write_text('modified source')
+            with self.assertRaisesRegex(ValueError, 'cache was modified'):
+                source_archives.checkout(root/'out', library, selected, libs)
