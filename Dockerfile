@@ -2,7 +2,7 @@
 FROM ubuntu:24.04
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates python3 cmake ninja-build make clang lld binutils pkg-config \
-    perl ruby bison flex gperf patch file git zstd autoconf automake libtool libltdl-dev texinfo python3-venv \
+    perl ruby bison flex gperf patch file git zstd autoconf automake libtool libltdl-dev texinfo gettext nasm python3-venv \
     && dpkg-query -W > /usr/share/libs-builder-packages.txt \
     && rm -rf /var/lib/apt/lists/*
 COPY tooling/host-requirements.txt /opt/host-requirements.txt
