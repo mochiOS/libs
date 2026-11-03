@@ -1,0 +1,47 @@
+{
+  "format": 1,
+  "backend": "meson",
+  "options": {
+    "tests": false,
+    "installed_tests": false,
+    "introspection": "disabled",
+    "documentation": false,
+    "man-pages": "disabled",
+    "selinux": "disabled",
+    "libmount": "disabled",
+    "xattr": false,
+    "libelf": "disabled",
+    "sysprof": "disabled",
+    "dtrace": "disabled",
+    "systemtap": "disabled",
+    "nls": "enabled",
+    "force_posix_threads": true
+  },
+  "install_tags": [
+    "runtime",
+    "devel"
+  ],
+  "licenses": [
+    "COPYING",
+    "subprojects/gvdb/COPYING"
+  ],
+  "shared_libraries": [
+    "libglib-2.0.so*",
+    "libgobject-2.0.so*",
+    "libgmodule-2.0.so*",
+    "libgio-2.0.so*"
+  ],
+  "link_libraries": [
+    "gio-2.0",
+    "gobject-2.0",
+    "glib-2.0",
+    "gmodule-2.0"
+  ],
+  "pkg_config_modules": [
+    "gio-2.0",
+    "gio-unix-2.0",
+    "gobject-2.0",
+    "gmodule-2.0"
+  ],
+  "probe": "probe.c"
+}

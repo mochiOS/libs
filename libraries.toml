@@ -57,15 +57,16 @@ enabled = true
 recipe = "recipes/gettext-runtime/recipe.json"
 dependencies = ["libiconv"]
 
-# Planned ports are visible but never advertised as buildable/published.
 [libraries.glib]
 git = "https://gitlab.gnome.org/GNOME/glib.git"
 tag_pattern = '^(?P<version>2\.[0-9]*[02468]\.[0-9]+)$'
 revision = 2
-enabled = false
-reason = "mochiOS Meson recipe and GLib/GIO port are not implemented"
-dependencies = []
+enabled = true
+recipe = "recipes/glib/recipe.json"
+dependencies = ["zlib", "pcre2", "libffi", "libiconv", "gettext-runtime"]
+submodules = { "subprojects/gvdb" = { git = "https://gitlab.gnome.org/GNOME/gvdb.git", commit = "2b42fc75f09dbe1cd1057580b5782b08f2dcb400" } }
 
+# Planned ports are visible but never advertised as buildable/published.
 [libraries.webkit]
 git = "https://github.com/WebKit/WebKit.git"
 tag_pattern = '^wpewebkit-(?P<version>[0-9]+\.[0-9]*[02468]\.[0-9]+)$'
