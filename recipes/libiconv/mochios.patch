@@ -1,0 +1,103 @@
+--- a/build-aux/config.sub
++++ b/build-aux/config.sub
+@@ -2011,7 +2011,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
+-	| fiwix* \
++	| mochios* | fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \
+ 	| genix* \
+--- a/configure
++++ b/configure
+@@ -13755,6 +13755,14 @@
+   else
+     # PORTME fill in a description of your system's linker (not GNU ld)
+     case $host_os in
++    mochios*)
++      archive_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname,$soname -o $lib'
++      archive_expsym_cmds=
++      hardcode_libdir_flag_spec=
++      hardcode_direct=no
++      hardcode_shlibpath_var=no
++      archive_cmds_need_lc=no
++      ;;
+     aix3*)
+       allow_undefined_flag=unsupported
+       always_export_symbols=yes
+@@ -14977,6 +14985,22 @@
+ 
+ 
+ case $host_os in
++mochios*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  dynamic_linker='mochiOS startup package loader'
++  shlibpath_var=
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=no
++  hardcode_libdir_flag_spec=
++  hardcode_libdir_flag_spec_CXX=
++  sys_lib_search_path_spec=
++  sys_lib_dlsearch_path_spec=
++  finish_cmds=
++  ;;
+ aix3*)
+   version_type=linux # correct to gnu/linux during the next big refactor
+   library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
+--- a/libcharset/configure
++++ b/libcharset/configure
+@@ -10279,6 +10279,14 @@
+   else
+     # PORTME fill in a description of your system's linker (not GNU ld)
+     case $host_os in
++    mochios*)
++      archive_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname,$soname -o $lib'
++      archive_expsym_cmds=
++      hardcode_libdir_flag_spec=
++      hardcode_direct=no
++      hardcode_shlibpath_var=no
++      archive_cmds_need_lc=no
++      ;;
+     aix3*)
+       allow_undefined_flag=unsupported
+       always_export_symbols=yes
+@@ -11501,6 +11509,22 @@
+ 
+ 
+ case $host_os in
++mochios*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  dynamic_linker='mochiOS startup package loader'
++  shlibpath_var=
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=no
++  hardcode_libdir_flag_spec=
++  hardcode_libdir_flag_spec_CXX=
++  sys_lib_search_path_spec=
++  sys_lib_dlsearch_path_spec=
++  finish_cmds=
++  ;;
+ aix3*)
+   version_type=linux # correct to gnu/linux during the next big refactor
+   library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
+--- a/configure
++++ b/configure
+@@ -28274,6 +28274,9 @@
+ 
+   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for an english Unicode locale" >&5
+ printf %s "checking for an english Unicode locale... " >&6; }
++# Locale names are test inputs, not target capability assertions.
++# No locale database has been tested on the target during a cross build.
++if test "$cross_compiling" = yes; then gt_cv_locale_en_utf8=none; fi
+ if test ${gt_cv_locale_en_utf8+y}
+ then :
+   printf %s "(cached) " >&6

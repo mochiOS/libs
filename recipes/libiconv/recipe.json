@@ -1,0 +1,35 @@
+{
+  "format": 1,
+  "backend": "autotools",
+  "configure": [
+    "--disable-nls"
+  ],
+  "patches": [
+    "mochios.patch"
+  ],
+  "build_targets": [
+    "lib/localcharset.h"
+  ],
+  "build_subdirs": [
+    "lib"
+  ],
+  "install_subdirs": [
+    "libcharset",
+    "lib"
+  ],
+  "install_headers": {
+    "include/iconv.h.inst": "usr/include/iconv.h"
+  },
+  "licenses": [
+    "COPYING.LIB",
+    "libcharset/COPYING.LIB"
+  ],
+  "shared_libraries": [
+    "libiconv.so*",
+    "libcharset.so*"
+  ],
+  "link_libraries": [
+    "iconv"
+  ],
+  "probe": "probe.c"
+}

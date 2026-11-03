@@ -20,6 +20,15 @@
       "tag": "v3.8.0",
       "version": "3.8.0",
       "commit": "12ffd1f9dc56fcea79d2f742f424301ae668d663"
+    },
+    "libiconv": {
+      "tag": "v1.19.1",
+      "version": "1.19.1",
+      "commit": "baaba39736e3b498e1597bf0e5e899b1f753fb01",
+      "archive": {
+        "url": "https://ftp.gnu.org/gnu/libiconv/libiconv-1.19.1.tar.gz",
+        "sha256": "9a06844846d664d7122161700c10a64480d7c7bcead3091925a785b38c91edab"
+      }
     }
   }
 }
