@@ -1,0 +1,20 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "options": {
+    "ZLIB_BUILD_TESTING": false,
+    "ZLIB_BUILD_SHARED": true,
+    "ZLIB_BUILD_STATIC": false,
+    "ZLIB_INSTALL": true
+  },
+  "licenses": [
+    "LICENSE"
+  ],
+  "shared_libraries": [
+    "libz.so*"
+  ],
+  "link_libraries": [
+    "z"
+  ],
+  "probe": "probe.c"
+}

@@ -1,0 +1,9 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "options": {"PNG_SHARED": true, "PNG_STATIC": false, "PNG_TESTS": false, "PNG_TOOLS": false},
+  "licenses": ["LICENSE"],
+  "shared_libraries": ["libpng16.so*"],
+  "link_libraries": ["png16", "z", "m"],
+  "probe": "probe.c"
+}

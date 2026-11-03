@@ -1,0 +1,4 @@
+.git
+out
+tests
+**/__pycache__
