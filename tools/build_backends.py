@@ -22,8 +22,11 @@ def cross_file(sdk, sysroot, dependencies, destination):
     text += "[host_machine]\nsystem = 'mochios'\ncpu_family = 'x86_64'\ncpu = 'x86_64'\nendian = 'little'\n"
     text += '[properties]\nneeds_exe_wrapper = true\nsys_root = ' + value(sysroot) + '\n'
     text += 'pkg_config_libdir = [' + ', '.join(value(dependencies/p) for p in ['usr/lib/pkgconfig', 'usr/share/pkgconfig']) + ']\n'
-    text += "[built-in options]\nc_args = ['-ffile-prefix-map=/work=/build', '-ffile-prefix-map=/source=/src']\n"
-    text += "cpp_args = ['-ffile-prefix-map=/work=/build', '-ffile-prefix-map=/source=/src']\n"
+    text += '[built-in options]\n'
+    for language in ['c', 'cpp']:
+        flags = ['-I'+str(dependencies/'usr/include'), '-ffile-prefix-map=/work=/build', '-ffile-prefix-map=/source=/src']
+        text += language + '_args = ' + json.dumps(flags) + '\n'
+        text += language + '_link_args = ' + json.dumps(['-L'+str(dependencies/'usr/lib')]) + '\n'
     destination.write_text(text)
     return destination
 
