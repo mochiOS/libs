@@ -1,0 +1,123 @@
+## Contributing to mochiOS Libraries ##
+Thank you for your interest in contributing to mochiOS Libraries!
+
+This repository maintains the infrastructure for building and distributing
+third-party libraries for mochiOS.
+
+Contributions are welcome, including new library ports, improvements to
+existing recipes, bug fixes, and build infrastructure improvements.
+
+
+
+Before contributing
+-----------------------------------------
+Before starting work, please check existing issues and pull requests to
+avoid duplicate efforts.
+
+For new library ports, we recommend opening a library request issue before
+beginning implementation.
+
+
+
+Requesting a library
+-----------------------------------------
+To request support for a new library, open an issue using the library
+request template.
+
+Please provide:
+
+  - Library name and upstream repository
+  - Brief description and intended use
+  - License information
+  - Required dependencies
+  - Known compatibility or porting considerations
+
+A request does not guarantee that a library will be added.
+
+
+
+Adding a library
+-----------------------------------------
+New libraries are registered in libraries.toml.
+
+To add a library:
+
+  1. Add the library definition to libraries.toml.
+  2. Declare its dependencies.
+  3. Create a build recipe under recipes/<library-name>/.
+  4. Add the required build configuration and verification probe.
+  5. Ensure the upstream license is correctly identified.
+  6. Run the available validation and tests.
+
+Any required upstream patches should be minimal and limited to the
+relevant library.
+
+
+
+Modifying existing libraries
+-----------------------------------------
+Changes to existing libraries should preserve compatibility whenever
+possible.
+
+When updating a library:
+
+  - Verify upstream source and version rules.
+  - Review dependency changes.
+  - Check for ABI compatibility concerns.
+  - Update build recipes and verification probes as necessary.
+
+Avoid unrelated modifications.
+
+
+
+Validation and testing
+-----------------------------------------
+Before submitting a pull request, run:
+
+  python3 tools/libs.py check
+  python3 -m unittest discover -s tests -v
+
+All applicable checks should pass.
+
+If testing cannot be completed, explain the reason in the pull request.
+
+Do not claim that a library has been tested on mochiOS unless such testing
+has actually been performed.
+
+
+
+Pull requests
+-----------------------------------------
+Submit contributions through pull requests against the main branch.
+
+Each pull request should:
+
+  - Clearly describe the changes and their purpose.
+  - Reference related issues when applicable.
+  - Include relevant testing results.
+  - Identify any limitations or known issues.
+  - Avoid unrelated modifications.
+
+Maintainers may request changes before merging.
+
+
+
+Licensing
+-----------------------------------------
+Third-party libraries retain their original upstream licenses.
+
+Contributors must ensure that required copyright notices and license
+information are preserved.
+
+Contributions must comply with applicable licenses and redistribution
+requirements.
+
+
+
+Reporting issues
+-----------------------------------------
+
+Bug reports and improvement suggestions are welcome.
+
+Please include the affected library, relevant configuration, error messages,
+and steps to reproduce the problem when applicable.
