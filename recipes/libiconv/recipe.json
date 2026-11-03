@@ -2,7 +2,8 @@
   "format": 1,
   "backend": "autotools",
   "configure": [
-    "--disable-nls"
+    "--disable-nls",
+    "--disable-rpath"
   ],
   "patches": [
     "mochios.patch"
