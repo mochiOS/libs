@@ -61,7 +61,8 @@ dependencies = ["libiconv"]
 git = "https://gitlab.gnome.org/GNOME/glib.git"
 tag_pattern = '^(?P<version>2\.[0-9]*[02468]\.[0-9]+)$'
 revision = 2
-enabled = true
+enabled = false
+reason = "SDK shared.2 lacks ARPA/resolv headers and res_query; native DNS authority currently supports A/AAAA/PTR only"
 recipe = "recipes/glib/recipe.json"
 dependencies = ["zlib", "pcre2", "libffi", "libiconv", "gettext-runtime"]
 submodules = { "subprojects/gvdb" = { git = "https://gitlab.gnome.org/GNOME/gvdb.git", commit = "2b42fc75f09dbe1cd1057580b5782b08f2dcb400" } }
