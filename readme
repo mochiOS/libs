@@ -1,1 +1,38 @@
--- mochiOS Libraries Build Environment --
+## mochiOS Libraries Build Environment ##
+
+This repository maintains the build infrastructure and library definitions
+for third-party libraries targeting mochiOS.
+
+It provides a centralized environment for tracking upstream releases,
+resolving dependencies, cross-compiling libraries, verifying build results,
+and distributing packages for mochiOS.
+
+Repository structure
+-----------------------------------------
+
+  libraries.toml     Library definitions and dependencies
+  recipes/           Library-specific build configurations
+  tools/             Build and release management scripts
+  tooling/           Shared build and verification utilities
+  tests/             Infrastructure tests
+  sdk.lock.toml      mochiOS SDK configuration
+  sources.lock.json  Upstream source revision lockfile
+
+Contributing
+-----------------------------------------
+
+Contributions are welcome!
+
+You can contribute by proposing new libraries, adding library ports,
+improving existing build recipes, or fixing issues in the build infrastructure.
+
+To request support for a new library, open an issue at:
+  https://github.com/mochiOS/libs/issues
+
+For contribution guidelines, see 'contributing' file.
+
+Licenses
+-----------------------------------------
+
+Libraries distributed through this repository retain their respective upstream
+licenses. License notices are included in the corresponding library packages.
