@@ -63,6 +63,11 @@
       "tag": "v2.15.4",
       "version": "2.15.4",
       "commit": "96498992efa48d52b0e8b83058bd88dbdaf153c1"
+    },
+    "freetype": {
+      "tag": "VER-2-15-0",
+      "version": "2.15.0",
+      "commit": "37515cf56ba3349656049edbed89ffc6f6466f2d"
     }
   }
 }

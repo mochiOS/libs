@@ -1,0 +1,28 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "options": {
+    "FT_REQUIRE_ZLIB": true,
+    "FT_REQUIRE_PNG": true,
+    "FT_REQUIRE_BROTLI": true,
+    "FT_DISABLE_BZIP2": true,
+    "FT_DISABLE_HARFBUZZ": true,
+    "FT_DISABLE_HVF": true
+  },
+  "licenses": [
+    "LICENSE.TXT",
+    "docs/FTL.TXT",
+    "docs/GPLv2.TXT",
+    "subprojects/dlg/LICENSE"
+  ],
+  "shared_libraries": [
+    "libfreetype.so*"
+  ],
+  "link_libraries": [
+    "freetype"
+  ],
+  "pkg_config_modules": [
+    "freetype2"
+  ],
+  "probe": "probe.c"
+}
