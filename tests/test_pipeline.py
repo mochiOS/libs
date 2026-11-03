@@ -101,6 +101,35 @@ class SchedulingTests(unittest.TestCase):
 
 
 class SDKContractTests(unittest.TestCase):
+    def test_sdk_archives_support_root_and_one_enclosing_directory(self):
+        for prefix in ['.', 'sdk']:
+            with self.subTest(prefix=prefix), tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp); source=root/'source'; source.mkdir(); (source/'sysroot').mkdir()
+                (source/'toolchain.cmake').write_text('# fixture only\n')
+                libs.write_json(source/'sdk.json',dict(format=1, version='fixture', target=libs.TARGET, abi=libs.ABI,
+                    features=['pic','shared','cxx23','threads','exceptions'],cmake_toolchain='toolchain.cmake',sysroot='sysroot'))
+                archive=root/'input.tar.gz'
+                with tarfile.open(archive,'w:gz') as tar: tar.add(source,arcname=prefix)
+                output=root/'out'; (output/'downloads').mkdir(parents=True)
+                digest=libs.hash_file(archive); shutil.copy2(archive,output/'downloads'/digest)
+                lock=dict(available=True,version='fixture',sha256=digest,url='https://example.invalid/sdk.tar.gz')
+                installed=libs.install_sdk(ROOT,output,lock)
+                self.assertTrue((installed/'sdk.json').is_file())
+                self.assertTrue((installed/'sysroot').is_dir())
+                self.assertEqual(libs.install_sdk(ROOT,output,lock),installed)
+
+    def test_enclosing_sdk_link_cannot_escape_after_flattening(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); source=root/'sdk'; source.mkdir(); (source/'escape').symlink_to('..')
+            (source/'sdk.json').write_text('{}')
+            archive=root/'input.tar.gz'
+            with tarfile.open(archive,'w:gz') as tar:tar.add(source,arcname='sdk')
+            output=root/'out'; (output/'downloads').mkdir(parents=True)
+            digest=libs.hash_file(archive);shutil.copy2(archive,output/'downloads'/digest)
+            lock=dict(available=True,version='fixture',sha256=digest,url='https://example.invalid/sdk.tar.gz')
+            with self.assertRaisesRegex(ValueError,'symlink escapes'):libs.install_sdk(ROOT,output,lock)
+
+
     def test_appcore_or_incomplete_sdk_is_not_accepted_as_shared_toolchain(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); lock={'version':'fixture'}

@@ -374,8 +374,18 @@ def install_sdk(root, output, lock):
                 raise ValueError('Insufficient SDK extraction space or oversized archive')
             staged = temporary / 'tree'; staged.mkdir()
             tar.extractall(staged, members=members, filter='data')
-        validate_sdk(staged, lock)
-        staged.rename(destination)
+        selected = staged
+        if not (staged / 'sdk.json').is_file():
+            children = list(staged.iterdir())
+            if len(children) != 1 or children[0].is_symlink() or not children[0].is_dir():
+                raise ValueError('SDK archive must contain sdk.json at its root or one enclosing directory')
+            selected = children[0]
+        # Flattening an enclosing directory must not make an originally safe link escape the SDK.
+        for path in selected.rglob('*'):
+            if path.is_symlink() and not path.resolve().is_relative_to(selected.resolve()):
+                raise ValueError('SDK symlink escapes its installation root')
+        validate_sdk(selected, lock)
+        selected.rename(destination)
     return destination
 
 
