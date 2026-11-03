@@ -1,9 +1,8 @@
 format = 1
-available = false
-reason = "Shared SDK is awaiting manual publication by the maintainer"
-version = "27.0-dp.1-shared.1"
+available = true
+version = "27.0-dp.1-shared.2"
 target = "x86_64-unknown-mochios"
 abi = "mochios-1"
-url = "https://github.com/mochiOS/devkit/releases/download/sdk-27.0-dp.1-shared.1/x86_64-mochios-sdk-27.0-dp.1-shared.1.tar.gz"
-sha256 = "d95fe87073660eff7c5f1189bdb9ccb55603c0619c17c0b5a969e8823b23727b"
+url = "https://github.com/mochiOS/devkit/releases/download/sdk-27.0-dp.1-shared.2/x86_64-mochios-sdk-27.0-dp.1-shared.2.tar.gz"
+sha256 = "2e7a195b1ee5f38323a6966a72d929ee388776b8ce3e09a3cbb2fa650c58c65e"
 builder_image = "ghcr.io/mochios/libs-builder@sha256:5695f60af775c16f353b18cb07bfaa65fff4a550c00830f8d04902d7c64c8a13"
