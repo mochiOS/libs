@@ -49,7 +49,7 @@
      aix3*)
        allow_undefined_flag=unsupported
        always_export_symbols=yes
-@@ -17955,6 +17970,22 @@
+@@ -17955,6 +17970,25 @@
  
  
  case $host_os in
@@ -60,6 +60,9 @@
 +  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
 +  soname_spec='$libname$release$shared_ext$major'
 +  dynamic_linker='mochiOS startup package loader'
++  # Standard C/C++ runtime state belongs to the executable in this ABI.
++  archive_cmds_need_lc=no
++  archive_cmds_need_lc_CXX=no
 +  shlibpath_var=
 +  shlibpath_overrides_runpath=no
 +  hardcode_into_libs=no
@@ -72,7 +75,7 @@
  aix3*)
    version_type=linux # correct to gnu/linux during the next big refactor
    library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
-@@ -22603,6 +22634,22 @@
+@@ -22603,6 +22637,25 @@
  
  
  case $host_os in
@@ -83,6 +86,9 @@
 +  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
 +  soname_spec='$libname$release$shared_ext$major'
 +  dynamic_linker='mochiOS startup package loader'
++  # Standard C/C++ runtime state belongs to the executable in this ABI.
++  archive_cmds_need_lc=no
++  archive_cmds_need_lc_CXX=no
 +  shlibpath_var=
 +  shlibpath_overrides_runpath=no
 +  hardcode_into_libs=no
@@ -95,7 +101,7 @@
  aix3*)
    version_type=linux # correct to gnu/linux during the next big refactor
    library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
-@@ -27273,6 +27320,9 @@
+@@ -27273,6 +27326,9 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a traditional japanese locale" >&5
  printf %s "checking for a traditional japanese locale... " >&6; }
@@ -105,7 +111,7 @@
  if test ${gt_cv_locale_ja+y}
  then :
    printf %s "(cached) " >&6
-@@ -27430,6 +27480,9 @@
+@@ -27430,6 +27486,9 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for an english Unicode locale" >&5
  printf %s "checking for an english Unicode locale... " >&6; }
@@ -115,7 +121,7 @@
  if test ${gt_cv_locale_en_utf8+y}
  then :
    printf %s "(cached) " >&6
-@@ -27567,6 +27620,9 @@
+@@ -27567,6 +27626,9 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a transitional chinese locale" >&5
  printf %s "checking for a transitional chinese locale... " >&6; }
@@ -125,7 +131,7 @@
  if test ${gt_cv_locale_zh_CN+y}
  then :
    printf %s "(cached) " >&6
-@@ -27982,6 +28038,9 @@
+@@ -27982,6 +28044,9 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a traditional french locale" >&5
  printf %s "checking for a traditional french locale... " >&6; }
@@ -135,7 +141,7 @@
  if test ${gt_cv_locale_fr+y}
  then :
    printf %s "(cached) " >&6
-@@ -36371,6 +36430,9 @@
+@@ -36371,6 +36436,9 @@
  
        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for fake locale system (OpenBSD, Android)" >&5
  printf %s "checking for fake locale system (OpenBSD, Android)... " >&6; }
@@ -145,7 +151,7 @@
  if test ${gt_cv_locale_fake+y}
  then :
    printf %s "(cached) " >&6
-@@ -36441,6 +36503,9 @@
+@@ -36441,6 +36509,9 @@
      *yes)
        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Solaris 11.4 locale system" >&5
  printf %s "checking for Solaris 11.4 locale system... " >&6; }
@@ -155,7 +161,7 @@
  if test ${gt_cv_locale_solaris114+y}
  then :
    printf %s "(cached) " >&6
-@@ -36493,6 +36558,9 @@
+@@ -36493,6 +36564,9 @@
        gt_nameless_locales=yes
                    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for AIX locales with LC_MESSAGES name" >&5
  printf %s "checking for AIX locales with LC_MESSAGES name... " >&6; }
@@ -165,7 +171,7 @@
  if test ${gt_cv_locale_aix72+y}
  then :
    printf %s "(cached) " >&6
-@@ -64437,7 +64505,9 @@
+@@ -64437,7 +64511,9 @@
    printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
    test $ac_status = 0; } && test -s conftest$ac_exeext; then
        gl_cv_prog_ansicxx_works=yes
@@ -221,7 +227,7 @@
      aix3*)
        allow_undefined_flag=unsupported
        always_export_symbols=yes
-@@ -15956,6 +15969,22 @@
+@@ -15956,6 +15969,25 @@
  
  
  case $host_os in
@@ -232,6 +238,9 @@
 +  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
 +  soname_spec='$libname$release$shared_ext$major'
 +  dynamic_linker='mochiOS startup package loader'
++  # Standard C/C++ runtime state belongs to the executable in this ABI.
++  archive_cmds_need_lc=no
++  archive_cmds_need_lc_CXX=no
 +  shlibpath_var=
 +  shlibpath_overrides_runpath=no
 +  hardcode_into_libs=no
@@ -244,7 +253,7 @@
  aix3*)
    version_type=linux # correct to gnu/linux during the next big refactor
    library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
-@@ -21208,6 +21237,8 @@
+@@ -21208,6 +21240,8 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a traditional japanese locale" >&5
  printf %s "checking for a traditional japanese locale... " >&6; }
@@ -253,7 +262,7 @@
  if test ${gt_cv_locale_ja+y}
  then :
    printf %s "(cached) " >&6
-@@ -21365,6 +21396,8 @@
+@@ -21365,6 +21399,8 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for an english Unicode locale" >&5
  printf %s "checking for an english Unicode locale... " >&6; }
@@ -262,7 +271,7 @@
  if test ${gt_cv_locale_en_utf8+y}
  then :
    printf %s "(cached) " >&6
-@@ -21502,6 +21535,8 @@
+@@ -21502,6 +21538,8 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a transitional chinese locale" >&5
  printf %s "checking for a transitional chinese locale... " >&6; }
@@ -271,7 +280,7 @@
  if test ${gt_cv_locale_zh_CN+y}
  then :
    printf %s "(cached) " >&6
-@@ -22000,6 +22035,8 @@
+@@ -22000,6 +22038,8 @@
  
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for a traditional french locale" >&5
  printf %s "checking for a traditional french locale... " >&6; }
@@ -280,7 +289,7 @@
  if test ${gt_cv_locale_fr+y}
  then :
    printf %s "(cached) " >&6
-@@ -26134,6 +26171,8 @@
+@@ -26134,6 +26174,8 @@
  
        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for fake locale system (OpenBSD, Android)" >&5
  printf %s "checking for fake locale system (OpenBSD, Android)... " >&6; }
@@ -289,7 +298,7 @@
  if test ${gt_cv_locale_fake+y}
  then :
    printf %s "(cached) " >&6
-@@ -26204,6 +26243,8 @@
+@@ -26204,6 +26246,8 @@
      *yes)
        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Solaris 11.4 locale system" >&5
  printf %s "checking for Solaris 11.4 locale system... " >&6; }
@@ -298,7 +307,7 @@
  if test ${gt_cv_locale_solaris114+y}
  then :
    printf %s "(cached) " >&6
-@@ -26256,6 +26297,8 @@
+@@ -26256,6 +26300,8 @@
        gt_nameless_locales=yes
                    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for AIX locales with LC_MESSAGES name" >&5
  printf %s "checking for AIX locales with LC_MESSAGES name... " >&6; }
