@@ -43,5 +43,8 @@
     "gobject-2.0",
     "gmodule-2.0"
   ],
-  "probe": "probe.c"
+  "probe": "probe.c",
+  "patches": [
+    "mochios.patch"
+  ]
 }

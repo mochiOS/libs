@@ -1,0 +1,196 @@
+--- a/glib/glib-unix.c
++++ b/glib/glib-unix.c
+@@ -996,6 +996,11 @@
+     }
+ 
+   return g_strdup (file_path);
++#elif defined (__mochios__)
++  /* Native FDs are authorities, not ambient namespace paths. */
++  g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_NOSYS,
++               "File descriptor path queries are unavailable on mochiOS");
++  return NULL;
+ #elif defined (__GNU__)
+   /*
+    * Hurd allows to open("/dev/fd/%u") to open the very same fd, but it's not
+--- a/meson.build
++++ b/meson.build
+@@ -467,7 +467,7 @@
+ ]
+ 
+ foreach h : headers
+-  if cc.has_header(h)
++  if cc.has_header(h) and (host_system != 'mochios' or h != 'ftw.h' or cc.has_function('nftw', prefix : '#include <ftw.h>'))
+     define = 'HAVE_' + h.underscorify().to_upper()
+     glib_conf.set(define, 1)
+     glib_conf_prefix = glib_conf_prefix + '#define @0@ 1\n'.format(define)
+@@ -2161,7 +2161,7 @@
+   if cc.has_header_symbol('pthread.h', 'pthread_cond_timedwait_relative_np')
+     glib_conf.set('HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP', 1)
+   endif
+-  if cc.has_header_symbol('pthread.h', 'pthread_getname_np', prefix : pthread_prefix)
++  if cc.has_header_symbol('pthread.h', 'pthread_getname_np', prefix : pthread_prefix) and (host_system != 'mochios' or cc.has_function('pthread_getname_np', prefix : pthread_prefix + '#include <pthread.h>', dependencies : thread_dep))
+     glib_conf.set('HAVE_PTHREAD_GETNAME_NP', 1)
+   endif
+   if cc.has_header_symbol('pthread.h', 'pthread_getaffinity_np', prefix : pthread_prefix)
+--- a/glib/gstdio.c
++++ b/glib/gstdio.c
+@@ -1143,6 +1143,8 @@
+ 
+   errno = save_errno;
+   return retval;
++#elif defined (__mochios__)
++  return open (filename, O_WRONLY | O_CREAT | O_TRUNC, mode);
+ #else
+   return creat (filename, mode);
+ #endif
+--- a/gio/gnetworking.h.in
++++ b/gio/gnetworking.h.in
+@@ -43,7 +43,9 @@
+ #include <resolv.h>
+ #include <sys/socket.h>
+ #include <sys/un.h>
++#if !defined (__mochios__)
+ #include <net/if.h>
++#endif
+ 
+ #include <arpa/inet.h>
+ #include <arpa/nameser.h>
+--- a/gio/gnetworking.c
++++ b/gio/gnetworking.c
+@@ -56,6 +56,31 @@
+ gboolean
+ g_getservbyname_ntohs (const char *name, const char *proto, guint16 *out_port)
+ {
++#if defined (__mochios__)
++  struct addrinfo hints = { 0 }, *addresses = NULL;
++  gboolean found = FALSE;
++  if (g_strcmp0 (proto, "tcp") == 0)
++    hints.ai_socktype = SOCK_STREAM;
++  else if (g_strcmp0 (proto, "udp") == 0)
++    hints.ai_socktype = SOCK_DGRAM;
++  else
++    return FALSE;
++  hints.ai_family = AF_INET;
++  hints.ai_flags = AI_PASSIVE;
++  /* NULL node performs a local services-database lookup, never a DNS query. */
++  if (getaddrinfo (NULL, name, &hints, &addresses) != 0)
++    return FALSE;
++  for (struct addrinfo *item = addresses; item != NULL; item = item->ai_next)
++    if (item->ai_family == AF_INET && item->ai_addr != NULL &&
++        item->ai_addrlen >= sizeof (struct sockaddr_in))
++      {
++        *out_port = g_ntohs (((struct sockaddr_in *) item->ai_addr)->sin_port);
++        found = TRUE;
++        break;
++      }
++  freeaddrinfo (addresses);
++  return found;
++#else
+   struct servent *result;
+ 
+ #ifdef HAVE_GETSERVBYNAME_R
+@@ -74,4 +99,5 @@
+     return FALSE;
+   *out_port = g_ntohs (result->s_port);
+   return TRUE;
++#endif
+ }
+--- a/gio/gsocket.c
++++ b/gio/gsocket.c
+@@ -3323,10 +3323,15 @@
+     {
+ #ifdef G_OS_WIN32
+       if (ioctlsocket (socket->priv->fd, FIONREAD, &avail) < 0)
++        avail = -1;
++#elif defined (__mochios__)
++      /* Native stream status does not expose an exact pending byte count. */
++      errno = ENOTSUP;
++      avail = -1;
+ #else
+       if (ioctl (socket->priv->fd, FIONREAD, &avail) < 0)
+-#endif
+         avail = -1;
++#endif
+     }
+ #endif
+ 
+--- a/gio/gunixmounts.c
++++ b/gio/gunixmounts.c
+@@ -1076,11 +1076,14 @@
+ }
+ 
+ /* QNX {{{2 */
+-#elif defined (HAVE_QNX)
++#elif defined (HAVE_QNX) || defined (__mochios__)
+ 
+ static char *
+ get_mtab_monitor_file (void)
+ {
++#ifdef __mochios__
++  errno = ENOTSUP;
++#endif
+   /* TODO: Not implemented */
+   return NULL;
+ }
+@@ -1090,6 +1093,9 @@
+                               uint64_t   *time_read_out,
+                               size_t     *n_entries_out)
+ {
++#ifdef __mochios__
++  errno = ENOTSUP;
++#endif
+   /* Not implemented, as per _g_get_unix_mounts() below */
+   if (time_read_out != NULL)
+     *time_read_out = 0;
+@@ -1102,6 +1108,9 @@
+ static GList *
+ _g_get_unix_mounts (void)
+ {
++#ifdef __mochios__
++  errno = ENOTSUP;
++#endif
+   /* TODO: Not implemented */
+   return NULL;
+ }
+@@ -1720,6 +1729,26 @@
+   return NULL;
+ }
+ 
++#elif defined (__mochios__)
++/* No native mount-table observation has been delegated to GIO yet. The Unix
++ * volume monitor below is explicitly disabled, rather than guessing mounts
++ * from host paths or inventing a successful enumeration. */
++static GList *
++_g_get_unix_mount_points (void)
++{
++  errno = ENOTSUP;
++  return NULL;
++}
++static GUnixMountPoint **
++_g_unix_mount_points_get_from_file (const char *table_path,
++                                  uint64_t *time_read_out,
++                                  size_t *n_points_out)
++{
++  if (time_read_out != NULL) *time_read_out = 0;
++  if (n_points_out != NULL) *n_points_out = 0;
++  errno = ENOTSUP;
++  return NULL;
++}
+ /* Common code {{{2 */
+ #else
+ #error No g_get_mount_table() implementation for system
+--- a/gio/gunixvolumemonitor.c
++++ b/gio/gunixvolumemonitor.c
+@@ -142,7 +142,12 @@
+ static gboolean
+ is_supported (void)
+ {
++#ifdef __mochios__
++  /* Requires a future adapter to scoped native mount observations. */
++  return FALSE;
++#else
+   return TRUE;
++#endif
+ }
+ 
+ static GMount *

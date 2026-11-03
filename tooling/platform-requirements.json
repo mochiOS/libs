@@ -7,28 +7,16 @@
     "glib": {
       "upstream_version": "2.90.1",
       "upstream_commit": "e05063ccc6c8f222465a1080927f4c14349f3de6",
-      "status": "blocked",
-      "known_blockers": {
-        "headers": [
-          "arpa/nameser.h",
-          "resolv.h"
-        ],
-        "functions": [
-          "res_query",
-          "dn_expand"
-        ],
-        "record_types": [
-          "NS",
-          "SOA",
-          "MX",
-          "TXT",
-          "SRV"
-        ]
-      },
+      "status": "compiled-with-private-sdk-not-enabled-for-distribution",
       "current_native_dns": [
         "A",
         "AAAA",
-        "PTR"
+        "PTR",
+        "NS",
+        "SOA",
+        "MX",
+        "TXT",
+        "SRV"
       ],
       "implementation_owners": [
         {
@@ -71,13 +59,67 @@
         "Do not implement record lookup as unconditional success or fabricated answers.",
         "Do not bypass native DNS authority by silently choosing an external DNS server.",
         "Existing A/AAAA/PTR scope grants must not acquire new record permissions.",
-        "Keep new query types explicitly scoped; reject unknown kinds, malformed replies and oversized results.",
-        "Changes to the existing OS checkout are outside the currently confirmed work scope."
+        "Keep new query types explicitly scoped; reject unknown kinds, malformed replies and oversized results."
       ],
       "further_limitations": [
-        "The baseline SDK supports startup-linked DSOs only; GModule cannot dynamically load new modules.",
-        "Additional GIO platform requirements must be checked after resolving the first DNS blocker."
-      ]
+        "Published shared.2 does not contain the new APIs; update reviewed source locks/version and build a new SDK before enabling distribution.",
+        "Startup-linked DSOs only: GModule runtime loading is unsupported.",
+        "GIO native volume monitoring and FD-to-path queries are unsupported; no mount list is fabricated.",
+        "Exact pending-byte count for native streams is unavailable; GSocket reports an error.",
+        "Optional IP/TCP options are declared for source compatibility but fail explicitly when unsupported by the native provider.",
+        "No GIO TLS backend or WebKit platform integration has been added.",
+        "Target execution, network operation and browser integration remain unverified."
+      ],
+      "published_sdk_missing": {
+        "headers": [
+          "arpa/nameser.h",
+          "resolv.h"
+        ],
+        "functions": [
+          "res_query",
+          "dn_expand"
+        ],
+        "record_types": [
+          "NS",
+          "SOA",
+          "MX",
+          "TXT",
+          "SRV"
+        ]
+      },
+      "native_implementation": {
+        "syscalls_commit": "6a9a3dd2142012d4624f2decef570fcb522917f6",
+        "services_commit": "c4584afa8b676211566d601ff756eb5c76dd0e50",
+        "sdk_recipe_commit": "9f348194bcc4d86cb8f2afed659be6a3c9c00c1c",
+        "scope_policy": "ALL_SCOPES remains 7; new record kinds require explicit independent bits",
+        "c_api": [
+          "res_query",
+          "dn_expand",
+          "__h_errno_location",
+          "inet_aton",
+          "utime"
+        ],
+        "note": "Component checkout commits; no SDK/library release published"
+      },
+      "private_candidate_verification": {
+        "glib_version": "2.90.1",
+        "build": true,
+        "runtime_devel_install": true,
+        "consumer_executable_link": true,
+        "actual_imports_and_elf_verified": true,
+        "runtime_tested": false,
+        "sdk_archive_built": false,
+        "shared_libraries": [
+          "glib",
+          "gobject",
+          "gmodule",
+          "gio",
+          "girepository",
+          "gthread"
+        ],
+        "note": "Private SDK copy with rebuilt native runtime, headers, selected newlib fnmatch and updated driver; published shared.2 remains unchanged",
+        "checked_libraries": 13
+      }
     },
     "webkit": {
       "upstream_tag": "wpewebkit-2.54.2",
