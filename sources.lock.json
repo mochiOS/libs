@@ -15,6 +15,11 @@
       "tag": "pcre2-10.49",
       "version": "10.49",
       "commit": "6f9d7c1373262c541324a16a358785b33ef116cf"
+    },
+    "libffi": {
+      "tag": "v3.8.0",
+      "version": "3.8.0",
+      "commit": "12ffd1f9dc56fcea79d2f742f424301ae668d663"
     }
   }
 }

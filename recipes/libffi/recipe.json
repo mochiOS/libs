@@ -1,0 +1,23 @@
+{
+  "format": 1,
+  "backend": "autotools",
+  "bootstrap": "autoreconf",
+  "configure": [
+    "--disable-docs",
+    "--disable-multi-os-directory"
+  ],
+  "patches": [
+    "mochios.patch"
+  ],
+  "licenses": [
+    "LICENSE",
+    "LICENSE-BUILDTOOLS"
+  ],
+  "shared_libraries": [
+    "libffi.so*"
+  ],
+  "link_libraries": [
+    "ffi"
+  ],
+  "probe": "probe.c"
+}
