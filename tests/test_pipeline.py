@@ -44,6 +44,13 @@ class RegistryTests(unittest.TestCase):
         selected = libs.parse_tags('a'*40 + '\trefs/tags/pcre2-10.49', r'^pcre2-(?P<version>[0-9]+\.[0-9]+)$')
         self.assertEqual(selected['version'], '10.49')
 
+    def test_upstream_separator_versions_are_canonical_and_annotated_tags_are_peeled(self):
+        text = 'a'*40+'\trefs/tags/VER-2-15-0\n'+'b'*40+'\trefs/tags/VER-2-15-0^{}'
+        selected = libs.parse_tags(text, r'^VER-(?P<version>[0-9]+-[0-9]+-[0-9]+)$')
+        self.assertEqual(selected, {'tag':'VER-2-15-0','version':'2.15.0','commit':'b'*40})
+        self.assertEqual(libs.version('2_15_0'), libs.version('2.15.0'))
+        with self.assertRaises(ValueError): libs.version('2.15.0-rc1')
+
     def test_missing_or_ambiguous_versions_fail(self):
         for text in ['', f'{"a"*40}\trefs/tags/v1.0.0\n{"b"*40}\trefs/tags/1.0.0']:
             with self.assertRaises(ValueError):

@@ -189,6 +189,7 @@ def transitive_dependencies(catalog, name):
 
 def version(value):
     """Compare numeric stable versions without treating development tags as releases."""
+    value = value.replace('-', '.').replace('_', '.')
     if not re.fullmatch(r'[0-9]+\.[0-9]+(?:\.[0-9]+)?', value):
         raise ValueError(f'Unsupported stable version: {value}')
     return tuple(int(part) for part in value.split('.')) + ((0,) if value.count('.') == 1 else ())
@@ -209,7 +210,7 @@ def parse_tags(text, pattern):
         tag = ref[len('refs/tags/'):]
         match = re.fullmatch(pattern, tag)
         if match:
-            number = match['version']
+            number = match['version'].replace('-', '.').replace('_', '.')
             key = version(number)
             item = dict(tag=tag, version=number, commit=refs.get(ref + '^{}', commit))
             if key in tags and tags[key] != item:
@@ -319,7 +320,7 @@ def validate_plan(root, plan):
     for package in plan['packages']:
         name = package['name']; library = catalog['libraries'][name]; selected = plan['sources'][name]
         match = re.fullmatch(library['tag_pattern'], selected['tag'])
-        if not match or match['version'] != selected['version'] or not SHA.fullmatch(selected['commit']) or version(selected['version']) < version(baseline['sources'][name]['version']):
+        if not match or version(match['version']) != version(selected['version']) or not SHA.fullmatch(selected['commit']) or version(selected['version']) < version(baseline['sources'][name]['version']):
             raise ValueError('Invalid frozen source')
         if selected['version'] == baseline['sources'][name]['version'] and selected['commit'] != baseline['sources'][name]['commit']:
             raise ValueError('Pinned tag changed')
