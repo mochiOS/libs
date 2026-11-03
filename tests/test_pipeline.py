@@ -19,15 +19,18 @@ import releases
 import container_build
 
 
+UNAVAILABLE_SDK = dict(format=1, available=False, target=libs.TARGET, abi=libs.ABI, reason='SDK unavailable test fixture')
+
+
 class RegistryTests(unittest.TestCase):
-    def test_real_catalog_and_offline_plan_are_valid_and_explicitly_blocked(self):
+    def test_real_catalog_and_offline_plan_follow_the_sdk_lock(self):
         catalog = libs.read_catalog()
         self.assertEqual(libs.order(catalog), ['zlib', 'libpng'])
         self.assertFalse(catalog['libraries']['webkit']['enabled'])
         plan = libs.make_plan(ROOT)
         libs.validate_plan(ROOT, plan)
-        self.assertFalse(plan['ready'])
-        self.assertIn('AppCore', plan['blocked_reason'])
+        self.assertEqual(plan['ready'], libs.sdk_lock(ROOT)['available'])
+        if not plan['ready']: self.assertTrue(plan['blocked_reason'])
 
     def test_annotated_tags_are_peeled_and_versions_sort_numerically(self):
         text = '\n'.join([f'{"a"*40}\trefs/tags/v1.9.0', f'{"b"*40}\trefs/tags/v1.10.0', f'{"c"*40}\trefs/tags/v1.10.0^{{}}', f'{"d"*40}\trefs/tags/v2.0.0-rc1'])
@@ -59,7 +62,8 @@ class RegistryTests(unittest.TestCase):
         with patch.object(libs, 'run', return_value=text):
             with self.assertRaisesRegex(ValueError, 'moved'): libs.make_plan(ROOT, refresh=True)
 
-    def test_unavailable_sdk_stops_before_sources_or_containers(self):
+    @patch.object(libs, 'sdk_lock', return_value=UNAVAILABLE_SDK)
+    def test_unavailable_sdk_stops_before_sources_or_containers(self, _sdk):
         with tempfile.TemporaryDirectory() as tmp, patch.object(libs, 'run') as command:
             with self.assertRaises(libs.Blocked): libs.build(ROOT, libs.make_plan(ROOT), Path(tmp), None)
             command.assert_not_called()
@@ -67,7 +71,8 @@ class RegistryTests(unittest.TestCase):
 
 
 class SchedulingTests(unittest.TestCase):
-    def test_unavailable_sdk_does_not_query_or_publish_releases(self):
+    @patch.object(libs, 'sdk_lock', return_value=UNAVAILABLE_SDK)
+    def test_unavailable_sdk_does_not_query_or_publish_releases(self, _sdk):
         with patch.object(releases, 'release_metadata') as api:
             self.assertFalse(releases.needs_build(libs.make_plan(ROOT)))
             api.assert_not_called()
@@ -218,7 +223,8 @@ class ArtifactTests(unittest.TestCase):
             binary=root/'host.so'; subprocess.run(['cc','-shared','-fPIC',str(source),'-o',str(binary)],check=True)
             with self.assertRaisesRegex(ValueError,'glibc'): container_build.validate_elf(binary,shared=True)
 
-    def test_no_sdk_means_publish_does_not_call_github(self):
+    @patch.object(libs, 'sdk_lock', return_value=UNAVAILABLE_SDK)
+    def test_no_sdk_means_publish_does_not_call_github(self, _sdk):
         with tempfile.TemporaryDirectory() as tmp, patch.object(releases,'release_metadata') as github:
             with self.assertRaises(libs.Blocked): releases.publish(ROOT,libs.make_plan(ROOT),Path(tmp))
             github.assert_not_called()
