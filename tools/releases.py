@@ -103,12 +103,13 @@ def verify_bundle(directory, package, plan, root=libs.ROOT):
 
 
 def release_metadata(tag):
-    """Read release state; only an explicit 404 is treated as an absent release."""
-    result = subprocess.run(['gh', 'api', f'repos/mochiOS/libs/releases/tags/{tag}'], env=os.environ.copy(), capture_output=True, text=True)
+    """Read both drafts and published releases; distinguish explicit absence from API/auth failures."""
+    result = subprocess.run(['gh','release','view',tag,'--repo','mochiOS/libs','--json','isDraft,assets'], env=os.environ.copy(), capture_output=True, text=True)
     if result.returncode:
-        if 'HTTP 404' in result.stderr: return None
+        if result.stderr.strip().lower() == 'release not found': return None
         raise ValueError('Cannot read release metadata: ' + result.stderr.strip())
-    return json.loads(result.stdout)
+    value=json.loads(result.stdout)
+    return dict(draft=value['isDraft'],assets=value['assets'])
 
 
 def read_published_manifest(package):
@@ -204,7 +205,9 @@ def publish(root, plan, artifacts):
             if name not in existing:
                 libs.run(['gh', 'release', 'upload', package['release'], directory / name, '--repo', 'mochiOS/libs'], env=os.environ.copy())
         # Read back GitHub's asset digests before making the draft public.
-        uploaded = {asset['name']: asset for asset in release_metadata(package['release'])['assets']}
+        readback=release_metadata(package['release'])
+        if readback is None:raise ValueError('Cannot read back the uploaded draft; it remains unpublished')
+        uploaded = {asset['name']: asset for asset in readback['assets']}
         if any(uploaded[name].get('digest') != 'sha256:' + libs.hash_file(directory / name) for name in filenames(package)):
             raise ValueError('Uploaded release digest verification failed; draft remains unpublished')
         if metadata is None or metadata['draft']:

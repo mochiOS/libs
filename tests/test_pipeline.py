@@ -70,6 +70,21 @@ class RegistryTests(unittest.TestCase):
             self.assertEqual(list(Path(tmp).iterdir()), [])
 
 
+class ReleaseMetadataTests(unittest.TestCase):
+    def test_draft_assets_remain_visible_before_tag_creation(self):
+        value={'isDraft':True,'assets':[{'name':'fixture.tar.gz','digest':'sha256:'+'a'*64}]}
+        result=subprocess.CompletedProcess([],0,json.dumps(value),'')
+        with patch.object(releases.subprocess,'run',return_value=result):
+            self.assertEqual(releases.release_metadata('fixture'),{'draft':True,'assets':value['assets']})
+
+    def test_only_explicit_missing_release_is_absence(self):
+        with patch.object(releases.subprocess,'run',return_value=subprocess.CompletedProcess([],1,'','release not found\n')):
+            self.assertIsNone(releases.release_metadata('missing'))
+        for error in ['HTTP 403: forbidden','timeout connecting to api.github.com']:
+            with self.subTest(error=error), patch.object(releases.subprocess,'run',return_value=subprocess.CompletedProcess([],1,'',error)):
+                with self.assertRaisesRegex(ValueError,'Cannot read'):releases.release_metadata('fixture')
+
+
 class SchedulingTests(unittest.TestCase):
     @patch.object(libs, 'sdk_lock', return_value=UNAVAILABLE_SDK)
     def test_unavailable_sdk_does_not_query_or_publish_releases(self, _sdk):
