@@ -399,3 +399,25 @@ class SourceDistributionTests(unittest.TestCase):
             (installed/'configure').write_text('modified source')
             with self.assertRaisesRegex(ValueError, 'cache was modified'):
                 source_archives.checkout(root/'out', library, selected, libs)
+
+
+class ConsumerPrefixTests(unittest.TestCase):
+    def test_current_library_and_indirect_dependencies_share_one_pkg_config_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); dep = root/'dep'; stage = root/'stage'
+            for source in [dep, stage]: (source/'usr/lib').mkdir(parents=True)
+            (dep/'usr/lib/libdependency.so').write_bytes(b'dependency fixture')
+            (stage/'usr/lib/libcurrent.so').write_bytes(b'current fixture')
+            prefix = container_build.merge_prefixes([dep, stage], root/'consumer')
+            self.assertTrue((prefix/'usr/lib/libdependency.so').is_file())
+            self.assertTrue((prefix/'usr/lib/libcurrent.so').is_file())
+            (stage/'usr/lib/libdependency.so').write_bytes(b'different dependency')
+            with self.assertRaisesRegex(ValueError, 'Conflicting consumer file'):
+                container_build.merge_prefixes([dep, stage], root/'consumer')
+
+    def test_consumer_prefix_rejects_external_links(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); source = root/'source'; source.mkdir()
+            (source/'escape').symlink_to('..')
+            with self.assertRaisesRegex(ValueError, 'External dependency link'):
+                container_build.merge_prefixes([source], root/'consumer')

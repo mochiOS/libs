@@ -144,6 +144,8 @@ def recipe(root, library):
         raise ValueError('Shared library patterns must be basenames')
     if not value['link_libraries'] or any(not re.fullmatch(r'[A-Za-z0-9_+-]+', item) for item in value['link_libraries']):
         raise ValueError('Invalid link library name')
+    if any(not re.fullmatch(r'[A-Za-z0-9_.+-]+', item) for item in value.get('pkg_config_modules', [])):
+        raise ValueError('Invalid consumer pkg-config module')
     scripts=value.get('config_scripts', [])
     if not isinstance(scripts,list) or any(not isinstance(name,str) or not re.fullmatch(r'usr/bin/[A-Za-z0-9_+.-]+-config',name) for name in scripts):
         raise ValueError('Invalid declared configuration script path')

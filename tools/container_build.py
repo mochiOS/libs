@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Container-only CMake runner. It never executes target programs or mounts the OS workspace."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -47,6 +48,33 @@ def safe_sdk_path(sdk, relative):
     return path
 
 
+def merge_prefixes(sources, destination):
+    """Assemble a consumer-only prefix and reject conflicting files or external symlinks."""
+    if destination.is_symlink(): raise ValueError('Invalid consumer prefix')
+    if destination.exists(): shutil.rmtree(destination)
+    destination.mkdir()
+    for source in sources:
+        for path in sorted(source.rglob('*')):
+            target = destination/path.relative_to(source)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if path.is_symlink():
+                if Path(os.readlink(path)).is_absolute() or not path.resolve().is_relative_to(source.resolve()): raise ValueError('External dependency link')
+                if target.exists() or target.is_symlink():
+                    if not target.is_symlink() or os.readlink(path) != os.readlink(target): raise ValueError('Conflicting consumer link')
+                else: target.symlink_to(os.readlink(path))
+            elif path.is_dir():
+                if target.is_symlink() or (target.exists() and not target.is_dir()): raise ValueError('Conflicting consumer directory')
+                target.mkdir(exist_ok=True)
+            elif path.is_file():
+                if target.exists() or target.is_symlink():
+                    if target.is_symlink() or not target.is_file(): raise ValueError('Conflicting consumer file')
+                    with path.open('rb') as a, target.open('rb') as b:
+                        if hashlib.file_digest(a, 'sha256').digest() != hashlib.file_digest(b, 'sha256').digest(): raise ValueError('Conflicting consumer file')
+                else: shutil.copy2(path, target)
+            else: raise ValueError('Special dependency file')
+    return destination
+
+
 def main():
     """Probe the SDK, build/install a recipe, then verify target ELF and consumer links."""
     sdk, source, work, dependencies = map(Path, ['/sdk', '/source', '/work', '/deps'])
@@ -81,11 +109,16 @@ def main():
             if not path.resolve().is_relative_to((work / 'stage').resolve()):
                 raise ValueError('External installed library symlink')
             validate_elf(path, shared=True)
-    # Link a library-specific consumer as well as the shared C++ SDK probe. Never run it.
+    # Resolve the installed library and all indirect pkg-config requirements in one isolated prefix.
+    prefix = merge_prefixes([dependencies, work/'stage'], work/'consumer-prefix')
+    consumer_env = dict(env, PKG_CONFIG_SYSROOT_DIR=str(prefix),
+                        PKG_CONFIG_LIBDIR=str(prefix/'usr/lib/pkgconfig')+':'+str(prefix/'usr/share/pkgconfig'))
     command(['cmake', '-S', '/opt/libs/probe', '-B', work / 'library-probe', *common,
-             '-DLIBRARY_PROBE=/work/library-probe.c',
-             '-DLIBRARY_LINKS=' + ';'.join(recipe['link_libraries'])], env)
-    command(['cmake', '--build', work / 'library-probe', '--parallel', '2'], env)
+             f'-DCMAKE_FIND_ROOT_PATH={prefix};{sysroot}',
+             '-DLIBRARY_PREFIX='+str(prefix), '-DLIBRARY_PROBE=/work/library-probe.c',
+             '-DLIBRARY_LINKS=' + ';'.join(recipe['link_libraries']),
+             '-DLIBRARY_PKGCONFIG=' + ';'.join(recipe.get('pkg_config_modules', []))], consumer_env)
+    command(['cmake', '--build', work / 'library-probe', '--parallel', '2'], consumer_env)
     validate_elf(work / 'library-probe/library_probe')
     # Validate every ELF installed by the recipe, not just the declared primary library.
     for path in (work / 'stage').rglob('*'):
