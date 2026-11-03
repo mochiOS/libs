@@ -52,6 +52,8 @@ jobs:
           plan = json.loads(Path('out/plan.json').read_text())
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
               summary.write(('New build inputs detected.\n' if plan['needs_build'] else 'All selected build revisions are already published.\n') if plan['ready'] else '**Build/publication blocked:** ' + plan['blocked_reason'] + '\n')
+              for name, reason in plan.get('blocked_ports', {}).items():
+                  summary.write(f'**{name} remains unavailable:** {reason}\n')
               for item in plan['packages']:
                   summary.write(f"- {item['release']}: `{item['source']['commit']}`\n")
           PY

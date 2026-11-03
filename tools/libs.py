@@ -299,7 +299,8 @@ def make_plan(root, refresh=False):
         packages.append(dict(name=name, source=selected, release=f'{name}-{selected["version"]}', stem=stem,
                              input_id=identity(inputs), dependencies=deps))
     return dict(format=1, catalog_sha256=hash_file(root / 'libraries.toml'), sdk=sdk, sources=sources,
-                packages=packages, ready=sdk['available'], blocked_reason=sdk.get('reason'))
+                packages=packages, ready=sdk['available'], blocked_reason=sdk.get('reason'),
+                blocked_ports={name:lib['reason'] for name,lib in catalog['libraries'].items() if not lib['enabled']})
 
 
 def validate_plan(root, plan):
@@ -310,6 +311,8 @@ def validate_plan(root, plan):
     sdk = sdk_lock(root)
     if plan.get('format') != 1 or plan.get('catalog_sha256') != hash_file(root / 'libraries.toml') or plan.get('sdk') != sdk:
         raise ValueError('Plan does not match this checkout/SDK')
+    if plan.get('blocked_ports') != {name:lib['reason'] for name,lib in catalog['libraries'].items() if not lib['enabled']}:
+        raise ValueError('Plan does not describe blocked ports accurately')
     expected_names = order(catalog)
     if [p['name'] for p in plan['packages']] != expected_names or set(plan['sources']) != set(expected_names):
         raise ValueError('Plan dependency order is invalid')
@@ -686,6 +689,7 @@ def main():
         catalog = read_catalog(root); sdk = sdk_lock(root); plan = make_plan(root); validate_plan(root, plan)
         print(f'Configuration valid: {len(order(catalog))} enabled recipes, {len(catalog["libraries"]) - len(order(catalog))} planned ports')
         print('SDK: ready' if sdk['available'] else 'SDK BLOCKED: ' + sdk['reason'])
+        for name, reason in plan['blocked_ports'].items(): print(f'{name} BLOCKED: {reason}')
     elif args.command == 'plan':
         plan = make_plan(root, args.refresh)
         plan['needs_build'] = plan['ready']

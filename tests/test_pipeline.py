@@ -33,6 +33,7 @@ class RegistryTests(unittest.TestCase):
         plan = libs.make_plan(ROOT)
         libs.validate_plan(ROOT, plan)
         self.assertEqual(plan['ready'], libs.sdk_lock(ROOT)['available'])
+        self.assertEqual(plan['blocked_ports']['glib'], catalog['libraries']['glib']['reason'])
         if not plan['ready']: self.assertTrue(plan['blocked_reason'])
 
     def test_annotated_tags_are_peeled_and_versions_sort_numerically(self):
