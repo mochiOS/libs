@@ -72,6 +72,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }} # Read-only release cache access; not passed into containers.
         run: python3 tools/libs.py build
+      - name: Retain cross-build failure evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: library-build-logs
+          path: |
+            out/builds/**/container.log
+            out/builds/**/build/config.log
+            out/builds/**/build/meson-logs/**
+            out/builds/**/build/CMakeFiles/CMakeConfigureLog.yaml
+          if-no-files-found: ignore
+          retention-days: 7
       - run: python3 tools/releases.py verify
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
