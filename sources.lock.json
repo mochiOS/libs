@@ -82,6 +82,15 @@
       "tag": "version-3.54.1",
       "version": "3.54.1",
       "commit": "57520227c95396ce39ba6ecaac8d475b78dd3964"
+    },
+    "libunistring": {
+      "tag": "v1.5",
+      "version": "1.5",
+      "commit": "9a0b11a515258048ba17f05009cbd317298de92d",
+      "archive": {
+        "url": "https://ftp.gnu.org/gnu/libunistring/libunistring-1.5.tar.gz",
+        "sha256": "5b0ecd46cbf225375f20ab4056197e66a7ac590e2684c069af407ae3383c9d81"
+      }
     }
   }
 }

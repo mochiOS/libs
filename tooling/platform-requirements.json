@@ -220,6 +220,31 @@
         "production_container_build_tested": false,
         "checked_libraries": 1
       }
+    },
+    "libunistring": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "Unicode normalization and case conversion for internationalized hostnames",
+      "verification": {
+        "format": 1,
+        "library": "libunistring",
+        "source": {
+          "tag": "v1.5",
+          "version": "1.5",
+          "commit": "9a0b11a515258048ba17f05009cbd317298de92d",
+          "archive": {
+            "url": "https://ftp.gnu.org/gnu/libunistring/libunistring-1.5.tar.gz",
+            "sha256": "5b0ecd46cbf225375f20ab4056197e66a7ac590e2684c069af407ae3383c9d81"
+          }
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "actual_needed_closure_verified": true,
+        "checked_libraries": 2
+      }
     }
   }
 }

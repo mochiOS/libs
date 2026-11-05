@@ -1,0 +1,28 @@
+{
+  "backend": "autotools",
+  "configure": [
+    "--disable-nls",
+    "--disable-rpath"
+  ],
+  "build_subdirs": [
+    "lib"
+  ],
+  "install_subdirs": [
+    "lib"
+  ],
+  "format": 1,
+  "patches": [
+    "mochios.patch"
+  ],
+  "licenses": [
+    "COPYING",
+    "COPYING.LIB"
+  ],
+  "shared_libraries": [
+    "libunistring.so*"
+  ],
+  "link_libraries": [
+    "unistring"
+  ],
+  "probe": "probe.c"
+}

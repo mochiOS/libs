@@ -1,0 +1,160 @@
+--- a/build-aux/config.sub
++++ b/build-aux/config.sub
+@@ -2011,6 +2011,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
++	| mochios* \
+ 	| fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \
+--- a/configure
++++ b/configure
+@@ -12722,6 +12722,9 @@
+ # whether 'pass_all' will *always* work, you probably want this one.
+ 
+ case $host_os in
++mochios*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
+ aix[4-9]*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+@@ -17184,6 +17187,14 @@
+   else
+     # PORTME fill in a description of your system's linker (not GNU ld)
+     case $host_os in
++    mochios*)
++      archive_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname,$soname -o $lib'
++      archive_expsym_cmds=
++      hardcode_libdir_flag_spec=
++      hardcode_direct=no
++      hardcode_shlibpath_var=no
++      archive_cmds_need_lc=no
++      ;;
+     aix3*)
+       allow_undefined_flag=unsupported
+       always_export_symbols=yes
+@@ -18406,6 +18417,22 @@
+ 
+ 
+ case $host_os in
++mochios*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  dynamic_linker='mochiOS startup package loader'
++  shlibpath_var=
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=no
++  hardcode_libdir_flag_spec=
++  hardcode_libdir_flag_spec_CXX=
++  sys_lib_search_path_spec=
++  sys_lib_dlsearch_path_spec=
++  finish_cmds=
++  ;;
+ aix3*)
+   version_type=linux # correct to gnu/linux during the next big refactor
+   library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
+@@ -21737,6 +21764,7 @@
+ 
+   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for a traditional japanese locale" >&5
+ printf %s "checking for a traditional japanese locale... " >&6; }
++if test "$cross_compiling" = yes; then gt_cv_locale_ja=none; fi
+ if test ${gt_cv_locale_ja+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -21894,6 +21922,7 @@
+ 
+   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for an english Unicode locale" >&5
+ printf %s "checking for an english Unicode locale... " >&6; }
++if test "$cross_compiling" = yes; then gt_cv_locale_en_utf8=none; fi
+ if test ${gt_cv_locale_en_utf8+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -22031,6 +22060,7 @@
+ 
+   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for a transitional chinese locale" >&5
+ printf %s "checking for a transitional chinese locale... " >&6; }
++if test "$cross_compiling" = yes; then gt_cv_locale_zh_CN=none; fi
+ if test ${gt_cv_locale_zh_CN+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -22572,6 +22602,7 @@
+ 
+   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for a traditional french locale" >&5
+ printf %s "checking for a traditional french locale... " >&6; }
++if test "$cross_compiling" = yes; then gt_cv_locale_fr=none; fi
+ if test ${gt_cv_locale_fr+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -26147,6 +26178,7 @@
+ 
+       { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for fake locale system (OpenBSD, Android)" >&5
+ printf %s "checking for fake locale system (OpenBSD, Android)... " >&6; }
++if test "$cross_compiling" = yes; then gt_cv_locale_fake=none; fi
+ if test ${gt_cv_locale_fake+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -26217,6 +26249,7 @@
+     *yes)
+       { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for Solaris 11.4 locale system" >&5
+ printf %s "checking for Solaris 11.4 locale system... " >&6; }
++if test "$cross_compiling" = yes; then gt_cv_locale_solaris114=none; fi
+ if test ${gt_cv_locale_solaris114+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -26269,6 +26302,7 @@
+       gt_nameless_locales=yes
+                   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for AIX locales with LC_MESSAGES name" >&5
+ printf %s "checking for AIX locales with LC_MESSAGES name... " >&6; }
++if test "$cross_compiling" = yes; then gt_cv_locale_aix72=none; fi
+ if test ${gt_cv_locale_aix72+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -40081,6 +40115,7 @@
+ 
+   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for a french Unicode locale" >&5
+ printf %s "checking for a french Unicode locale... " >&6; }
++if test "$cross_compiling" = yes; then gt_cv_locale_fr_utf8=none; fi
+ if test ${gt_cv_locale_fr_utf8+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -40247,6 +40282,7 @@
+ 
+   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for a turkish Unicode locale" >&5
+ printf %s "checking for a turkish Unicode locale... " >&6; }
++if test "$cross_compiling" = yes; then gt_cv_locale_tr_utf8=none; fi
+ if test ${gt_cv_locale_tr_utf8+y}
+ then :
+   printf %s "(cached) " >&6
+@@ -44467,6 +44503,7 @@
+ 
+   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for a traditional Arabic locale" >&5
+ printf %s "checking for a traditional Arabic locale... " >&6; }
++if test "$cross_compiling" = yes; then gt_cv_locale_ar=none; fi
+ if test ${gt_cv_locale_ar+y}
+ then :
+   printf %s "(cached) " >&6
+--- a/lib/getlocalename_l-unsafe.c
++++ b/lib/getlocalename_l-unsafe.c
+@@ -41,7 +41,7 @@
+ #endif
+ #include "setlocale_null.h"
+ 
+-#if (__GLIBC__ >= 2 && !defined __UCLIBC__) || (defined __linux__ && HAVE_LANGINFO_H) || defined __CYGWIN__
++#if (__GLIBC__ >= 2 && !defined __UCLIBC__) || (defined __linux__ && HAVE_LANGINFO_H) || defined __CYGWIN__ || defined __mochios__
+ # include <langinfo.h>
+ #endif
+ #if defined __sun
+@@ -571,7 +571,7 @@
+       if (locale == (locale_t) 2)
+         return (struct string_with_storage) { "C.UTF-8", STORAGE_INDEFINITE };
+       return (struct string_with_storage) { "C", STORAGE_INDEFINITE };
+-#elif defined __CYGWIN__
++#elif defined __CYGWIN__ || defined __mochios__
+       /* Cygwin >= 2.6.
+          Cygwin <= 2.6.1 lacks NL_LOCALE_NAME, requiring peeking inside
+          an opaque struct.  */
