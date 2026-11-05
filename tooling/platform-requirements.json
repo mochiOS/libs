@@ -245,6 +245,32 @@
         "actual_needed_closure_verified": true,
         "checked_libraries": 2
       }
+    },
+    "libidn2": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "IDNA2008 internationalized domain names",
+      "sdk_header_gap": "shared.3 exports the native getexecname C ABI but lacks its declaration; the port declares the existing signature locally.",
+      "verification": {
+        "format": 1,
+        "library": "libidn2",
+        "source": {
+          "tag": "v2.3.8",
+          "version": "2.3.8",
+          "commit": "9bc3ac79e2ae81ade245a0e308bf13c981efaa83",
+          "archive": {
+            "url": "https://ftp.gnu.org/gnu/libidn/libidn2-2.3.8.tar.gz",
+            "sha256": "f557911bf6171621e1f72ff35f5b1825bb35b52ed45325dcdee931e5d3c0787a"
+          }
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "actual_needed_closure_verified": true,
+        "checked_libraries": 3
+      }
     }
   }
 }

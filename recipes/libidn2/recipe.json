@@ -1,0 +1,31 @@
+{
+  "format": 1,
+  "backend": "autotools",
+  "configure": [
+    "--disable-nls",
+    "--disable-rpath",
+    "--disable-doc",
+    "--disable-gtk-doc"
+  ],
+  "patches": [
+    "mochios.patch"
+  ],
+  "install_subdirs": [
+    "."
+  ],
+  "licenses": [
+    "COPYING",
+    "COPYING.LESSERv3",
+    "COPYING.unicode"
+  ],
+  "shared_libraries": [
+    "libidn2.so*"
+  ],
+  "link_libraries": [
+    "idn2"
+  ],
+  "pkg_config_modules": [
+    "libidn2"
+  ],
+  "probe": "probe.c"
+}

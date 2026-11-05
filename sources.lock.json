@@ -91,6 +91,15 @@
         "url": "https://ftp.gnu.org/gnu/libunistring/libunistring-1.5.tar.gz",
         "sha256": "5b0ecd46cbf225375f20ab4056197e66a7ac590e2684c069af407ae3383c9d81"
       }
+    },
+    "libidn2": {
+      "tag": "v2.3.8",
+      "version": "2.3.8",
+      "commit": "9bc3ac79e2ae81ade245a0e308bf13c981efaa83",
+      "archive": {
+        "url": "https://ftp.gnu.org/gnu/libidn/libidn2-2.3.8.tar.gz",
+        "sha256": "f557911bf6171621e1f72ff35f5b1825bb35b52ed45325dcdee931e5d3c0787a"
+      }
     }
   }
 }
