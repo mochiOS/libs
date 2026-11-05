@@ -353,5 +353,14 @@
         "Brotli, Zstandard, GSSAPI, NTLM, introspection, example applications and runtime tests are not enabled."
       ]
     }
+  },
+  "build_infrastructure": {
+    "builder_image": "ghcr.io/mochios/libs-builder@sha256:c02e2a74116a35f623a8013f7a1dcb81277eb4dee44570b8bbd3cbffad3ae6c8",
+    "runner_sha256": "d828f3a6db3cc28457ead24239bb99dd57971400d65aa07b44b8a17043c874dd",
+    "builder_source_commit": "fb37171285c5d714495986b38b1a69e47e683b48",
+    "builder_workflow": "https://github.com/mochiOS/libs/actions/runs/42015079315",
+    "builder_workflow_succeeded": true,
+    "all_recipes_container_built": false,
+    "note": "Builder image refreshed for dependency-root pkg-config resolution. SDK and library release publication remains manual."
   }
 }
