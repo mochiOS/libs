@@ -467,6 +467,8 @@ class MesonSyntaxTests(unittest.TestCase):
             parsed = MachineFileParser([str(path)], str(Path(tmp))).sections
             self.assertEqual(parsed['binaries']['c'], str(sdk/'bin/mochios-cc'))
             self.assertTrue(parsed['properties']['needs_exe_wrapper'])
+            self.assertEqual(parsed['properties']['sys_root'], '/deps')
+            self.assertEqual(parsed['properties']['pkg_config_libdir'], ['/deps/usr/lib/pkgconfig', '/deps/usr/share/pkgconfig'])
             self.assertEqual(parsed['built-in options']['c_link_args'], ['-L/deps/usr/lib'])
 
 

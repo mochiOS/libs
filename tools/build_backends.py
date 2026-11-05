@@ -23,7 +23,9 @@ def cross_file(sdk, sysroot, dependencies, destination):
                        ('pkg-config', Path('/usr/bin/pkg-config'))]:
         text += f'{name} = {value(path)}\n'
     text += "[host_machine]\nsystem = 'mochios'\ncpu_family = 'x86_64'\ncpu = 'x86_64'\nendian = 'little'\n"
-    text += '[properties]\nneeds_exe_wrapper = true\nsys_root = ' + value(sysroot) + '\n'
+    # Meson's sys_root controls pkg-config prefix rewriting. The SDK compiler
+    # already selects the OS sysroot; third-party .pc files belong to /deps.
+    text += '[properties]\nneeds_exe_wrapper = true\nsys_root = ' + value(dependencies) + '\n'
     text += 'pkg_config_libdir = [' + ', '.join(value(dependencies/p) for p in ['usr/lib/pkgconfig', 'usr/share/pkgconfig']) + ']\n'
     text += '[built-in options]\n'
     for language in ['c', 'cpp']:
