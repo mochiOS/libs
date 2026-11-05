@@ -105,6 +105,11 @@
       "tag": "0.23.3",
       "version": "0.23.3",
       "commit": "c486db8d221cbac55f87508d4da4db4497760997"
+    },
+    "libsoup": {
+      "tag": "3.8.1",
+      "version": "3.8.1",
+      "commit": "2756d0076654b680d2021a08b9f2bd9d36d7ae1b"
     }
   }
 }

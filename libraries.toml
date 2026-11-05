@@ -151,6 +151,15 @@ recipe = "recipes/libpsl/recipe.json"
 dependencies = ["libidn2", "libunistring", "libiconv"]
 submodules = { "list" = { git = "https://github.com/publicsuffix/list", commit = "e1b8015c3b2f0f4f8c18659c2480fc1a22c07b20" } }
 
+[libraries.libsoup]
+git = "https://gitlab.gnome.org/GNOME/libsoup.git"
+tag_pattern = '^(?P<version>3\.[0-9]*[02468]\.[0-9]+)$'
+revision = 1
+enabled = false
+reason = "Native GIO TLS backend is not implemented; HTTPS readiness must not be inferred from a compile-only build"
+recipe = "recipes/libsoup/recipe.json"
+dependencies = ["glib", "nghttp2", "sqlite", "libpsl", "zlib"]
+
 # Planned ports are visible but never advertised as buildable/published.
 [libraries.webkit]
 git = "https://github.com/WebKit/WebKit.git"

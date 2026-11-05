@@ -1,0 +1,44 @@
+--- a/meson.build
++++ b/meson.build
+@@ -392,7 +392,7 @@
+   subdir('po')
+ endif
+ 
+-subdir('examples')
++# The SDK package builds libraries, not example applications.
+ subdir('fuzzing')
+ if get_option('tests')
+   subdir('tests')
+--- a/libsoup/meson.build
++++ b/libsoup/meson.build
+@@ -235,6 +235,7 @@
+   dependencies : deps)
+ 
+ libsoup_static = static_library('soup-@0@-static'.format(apiversion),
++  build_by_default : get_option('tests') or get_option('fuzzing').enabled(),
+   sources : [
+     soup_sources,
+     soup_private_enums,
+--- a/libsoup/server/soup-listener.c
++++ b/libsoup/server/soup-listener.c
+@@ -292,6 +292,7 @@
+                 return NULL;
+ 
+         if (family == G_SOCKET_FAMILY_IPV6) {
++#ifdef IPV6_V6ONLY
+                 GError *option_error = NULL;
+ 
+                 g_socket_set_option (socket, IPPROTO_IPV6, IPV6_V6ONLY, TRUE, &option_error);
+@@ -299,6 +300,12 @@
+                         g_warning ("Failed to set IPv6 only on socket: %s", option_error->message);
+                         g_error_free (option_error);
+                 }
++#else
++                g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
++                                     "IPv6-only listeners are unavailable on this platform");
++                g_object_unref (socket);
++                return NULL;
++#endif
+         }
+ 
+         if (!g_socket_bind (socket, address, TRUE, error)) {

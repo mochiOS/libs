@@ -154,6 +154,25 @@
         "interpreter": "/usr/bin/env python3",
         "runtime_binaries_changed": false,
         "note": "Portable upstream Python generators are development data, not target ELF helpers; pkg-config resolves them within the dependency prefix."
+      },
+      "native_tls_integration": {
+        "status": "bridge-required-not-implemented",
+        "existing_implementation": [
+          "mochiOS/syscalls: crates/tls-client/src/config.rs",
+          "mochiOS/syscalls: crates/tls-client/src/verifier.rs",
+          "mochiOS/syscalls: crates/tls-client/src/trust_store.rs",
+          "mochiOS/services: network/src/tls.rs"
+        ],
+        "existing_trust": "The native TLS client verifies server certificates using webpki-roots; reuse the existing verification and trust policy.",
+        "observed_gaps": [
+          "GIO wraps an existing GIOStream; the scoped TlsConnect protocol currently creates a transport by hostname and port.",
+          "No GIO GTlsBackend adapter or SDK C TLS-session interface is available in shared.3.",
+          "Native TLS configuration clears ALPN; the network protocol does not expose ALPN negotiation.",
+          "The network protocol returns certificate summaries; GIO certificate objects require a defined mapping of certificate data and verification failures.",
+          "The bridge must preserve transport ownership, capability checks, cancellation and nonblocking readiness."
+        ],
+        "scope": "No new TLS engine, certificate store, AppCore API or service was introduced by this dependency port.",
+        "runtime_tested": false
       }
     },
     "webkit": {
@@ -306,6 +325,33 @@
         "list_timestamp": 1784989194,
         "generation_independent_of_checkout_mtime": true
       }
+    },
+    "libsoup": {
+      "status": "published-sdk-compile-link-verified-distribution-disabled",
+      "verification": {
+        "format": 1,
+        "library": "libsoup",
+        "source": {
+          "tag": "3.8.1",
+          "version": "3.8.1",
+          "commit": "2756d0076654b680d2021a08b9f2bd9d36d7ae1b"
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "actual_needed_closure_verified": true,
+        "checked_libraries": 15
+      },
+      "tls_backend": "Native mochiOS GIO backend required; no GnuTLS or alternate trust store was added.",
+      "limitations": [
+        "No native GIO TLS backend: HTTPS, TLS peer validation through GIO and HTTP/2 ALPN negotiation are not verified.",
+        "The configure tls_check=false setting permits cross-building a component; it does not provide TLS and the catalog remains disabled.",
+        "IPv6-only server listeners report unsupported when IPV6_V6ONLY is unavailable.",
+        "Brotli, Zstandard, GSSAPI, NTLM, introspection, example applications and runtime tests are not enabled."
+      ]
     }
   }
 }
