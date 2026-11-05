@@ -1,0 +1,609 @@
+--- a/tls/base/gtlsconnection-base.c
++++ b/tls/base/gtlsconnection-base.c
+@@ -1076,6 +1076,10 @@
+ {
+   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+ 
++  GTlsConnectionBaseClass *klass = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
++  if (klass->get_io_condition)
++    condition = klass->get_io_condition (tls, condition);
++
+   if (g_tls_connection_base_is_dtls (tls))
+     return g_datagram_based_condition_check (priv->base_socket, condition);
+ 
+@@ -1111,6 +1115,10 @@
+       ((condition & G_IO_OUT) && priv->write_closing))
+     return FALSE;
+ 
++  if (G_TLS_CONNECTION_BASE_GET_CLASS (tls)->has_pending_data &&
++      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->has_pending_data (tls, condition))
++    return TRUE;
++
+   /* Defer to the base stream or GDatagramBased. */
+   return g_tls_connection_base_base_check (tls, condition);
+ }
+@@ -1127,6 +1135,7 @@
+ 
+   GSource            *child_source;
+   GIOCondition        condition;
++  GIOCondition        io_condition;
+ 
+   gboolean            io_waiting;
+   gboolean            op_waiting;
+@@ -1147,6 +1156,8 @@
+   GTlsConnectionBase *tls = tls_source->tls;
+   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+   gboolean io_waiting, op_waiting;
++  GIOCondition io_condition;
++  GTlsConnectionBaseClass *klass = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
+ 
+   /* Was the source destroyed earlier in this main context iteration? */
+   if (g_source_is_destroyed ((GSource *)tls_source))
+@@ -1167,11 +1178,17 @@
+     io_waiting = FALSE;
+   g_mutex_unlock (&priv->op_mutex);
+ 
++  io_condition = klass->get_io_condition ? klass->get_io_condition (tls, tls_source->condition) : tls_source->condition;
++  if (io_waiting && klass->has_pending_data && klass->has_pending_data (tls, tls_source->condition))
++    io_waiting = FALSE;
++
+   if (op_waiting == tls_source->op_waiting &&
+-      io_waiting == tls_source->io_waiting)
++      io_waiting == tls_source->io_waiting &&
++      io_condition == tls_source->io_condition)
+     return;
+   tls_source->op_waiting = op_waiting;
+   tls_source->io_waiting = io_waiting;
++  tls_source->io_condition = io_condition;
+ 
+   if (tls_source->child_source)
+     {
+@@ -1184,9 +1201,9 @@
+     tls_source->child_source = g_cancellable_source_new (priv->waiting_for_op);
+   else if (io_waiting && G_IS_DATAGRAM_BASED (tls_source->base))
+     tls_source->child_source = g_datagram_based_create_source (priv->base_socket, tls_source->condition, NULL);
+-  else if (io_waiting && G_IS_POLLABLE_INPUT_STREAM (tls_source->base))
++  else if (io_waiting && (io_condition & G_IO_IN))
+     tls_source->child_source = g_pollable_input_stream_create_source (priv->base_istream, NULL);
+-  else if (io_waiting && G_IS_POLLABLE_OUTPUT_STREAM (tls_source->base))
++  else if (io_waiting && (io_condition & G_IO_OUT))
+     tls_source->child_source = g_pollable_output_stream_create_source (priv->base_ostream, NULL);
+   else
+     tls_source->child_source = g_timeout_source_new (0);
+--- a/tls/base/gtlsconnection-base.h
++++ b/tls/base/gtlsconnection-base.h
+@@ -56,6 +56,12 @@
+ struct _GTlsConnectionBaseClass
+ {
+   GTlsConnectionClass parent_class;
++
++  /* Optional record-engine hooks. No transport I/O is performed by readiness
++   * callbacks; existing backends retain their original behavior. */
++  gboolean (*has_pending_data) (GTlsConnectionBase *tls, GIOCondition condition);
++  GIOCondition (*get_io_condition) (GTlsConnectionBase *tls, GIOCondition condition);
++  gboolean (*flush_fn) (GTlsConnectionBase *tls, GCancellable *cancel, GError **error);
+ 
+   void                        (*session_id_changed)         (GTlsConnectionBase       *tls);
+   void                        (*prepare_handshake)          (GTlsConnectionBase       *tls,
+--- a/tls/base/gtlsoutputstream.c
++++ b/tls/base/gtlsoutputstream.c
+@@ -58,6 +58,22 @@
+   g_weak_ref_clear (&stream->weak_conn);
+ 
+   G_OBJECT_CLASS (g_tls_output_stream_parent_class)->finalize (object);
++}
++
++static gboolean
++g_tls_output_stream_flush (GOutputStream *stream, GCancellable *cancel, GError **error)
++{
++  GTlsOutputStream *self = G_TLS_OUTPUT_STREAM (stream);
++  GTlsConnectionBase *conn = g_weak_ref_get (&self->weak_conn);
++  gboolean result;
++  if (!conn) {
++    g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED, "Connection is closed");
++    return FALSE;
++  }
++  result = !G_TLS_CONNECTION_BASE_GET_CLASS (conn)->flush_fn ||
++    G_TLS_CONNECTION_BASE_GET_CLASS (conn)->flush_fn (conn, cancel, error);
++  g_object_unref (conn);
++  return result;
+ }
+ 
+ static gssize
+@@ -240,6 +256,7 @@
+   gobject_class->finalize = g_tls_output_stream_finalize;
+ 
+   output_stream_class->write_fn = g_tls_output_stream_write;
++  output_stream_class->flush = g_tls_output_stream_flush;
+   output_stream_class->close_fn = g_tls_output_stream_close;
+   output_stream_class->close_async = g_tls_output_stream_close_async;
+   output_stream_class->close_finish = g_tls_output_stream_close_finish;
+--- /dev/null
++++ b/tls/mochios/backend.c
+@@ -0,0 +1,440 @@
++/* Native mochiOS GIO TLS client, using the existing mochiOS verifier.
++ * SPDX-License-Identifier: LGPL-2.1-or-later */
++#include "config.h"
++#include <gio/gio.h>
++#include <string.h>
++#include <mochios/tls.h>
++#include "gtlsconnection-base.h"
++
++#define MAX_RECORD 16384u
++#define INFO_LIMIT 65536u
++
++typedef struct {
++  GTlsCertificate parent;
++  GByteArray *der;
++  GTlsCertificate *issuer;
++  gchar *subject, *issuer_name;
++  GDateTime *not_before, *not_after;
++} MochiTlsCertificate;
++typedef GTlsCertificateClass MochiTlsCertificateClass;
++static void cert_initable(GInitableIface *iface);
++G_DEFINE_TYPE_WITH_CODE(MochiTlsCertificate,mochi_tls_certificate,G_TYPE_TLS_CERTIFICATE,
++                        G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE,cert_initable))
++static gboolean unsupported_init(GInitable *self,GCancellable *cancel,GError **error)
++{
++  g_set_error_literal(error,G_IO_ERROR,G_IO_ERROR_NOT_SUPPORTED,
++                      "Native TLS uses the mochiOS system trust policy; imported keys and custom trust stores are unavailable");
++  return FALSE;
++}
++static void cert_initable(GInitableIface *iface) { iface->init=unsupported_init; }
++static void cert_get(GObject *obj,guint id,GValue *value,GParamSpec *spec)
++{
++  MochiTlsCertificate *cert=(MochiTlsCertificate *)obj;
++  const gchar *name=spec->name;
++  if (!strcmp(name,"certificate")) g_value_set_boxed(value,cert->der);
++  else if (!strcmp(name,"issuer")) g_value_set_object(value,cert->issuer);
++  else if (!strcmp(name,"subject-name")) g_value_set_string(value,cert->subject);
++  else if (!strcmp(name,"issuer-name")) g_value_set_string(value,cert->issuer_name);
++  else if (!strcmp(name,"not-valid-before")) g_value_set_boxed(value,cert->not_before);
++  else if (!strcmp(name,"not-valid-after")) g_value_set_boxed(value,cert->not_after);
++  else if (!strcmp(name,"certificate-pem") && cert->der) {
++    gchar *encoded=g_base64_encode(cert->der->data,cert->der->len);
++    gchar *pem=g_strdup_printf("-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n",encoded);
++    g_value_take_string(value,pem);g_free(encoded);
++  } else g_param_value_set_default(spec,value);
++}
++static void cert_set(GObject *obj,guint id,const GValue *value,GParamSpec *spec) { /* imports fail GInitable */ }
++static GTlsCertificateFlags cert_verify(GTlsCertificate *cert,GSocketConnectable *identity,GTlsCertificate *ca)
++{ return G_TLS_CERTIFICATE_UNKNOWN_CA; }
++static void cert_finalize(GObject *obj)
++{
++  MochiTlsCertificate *cert=(MochiTlsCertificate *)obj;
++  g_clear_pointer(&cert->der,g_byte_array_unref);g_clear_object(&cert->issuer);
++  g_free(cert->subject);g_free(cert->issuer_name);
++  g_clear_pointer(&cert->not_before,g_date_time_unref);g_clear_pointer(&cert->not_after,g_date_time_unref);
++  G_OBJECT_CLASS(mochi_tls_certificate_parent_class)->finalize(obj);
++}
++static void mochi_tls_certificate_init(MochiTlsCertificate *cert) {}
++static void mochi_tls_certificate_class_init(MochiTlsCertificateClass *klass)
++{
++  GObjectClass *object=G_OBJECT_CLASS(klass);
++  GParamSpec **properties;guint count,i;
++  object->get_property=cert_get;object->set_property=cert_set;object->finalize=cert_finalize;
++  klass->verify=cert_verify;
++  properties=g_object_class_list_properties(G_OBJECT_CLASS(mochi_tls_certificate_parent_class),&count);
++  for (i=0;i<count;i++) g_object_class_override_property(object,i+1,properties[i]->name);
++  g_free(properties);
++}
++
++typedef struct { GTlsDatabase parent; } MochiTlsDatabase;
++typedef GTlsDatabaseClass MochiTlsDatabaseClass;
++static void database_initable(GInitableIface *iface) { iface->init=unsupported_init; }
++static void file_database_iface(GTlsFileDatabaseInterface *iface) {}
++G_DEFINE_TYPE_WITH_CODE(MochiTlsDatabase,mochi_tls_database,G_TYPE_TLS_DATABASE,
++  G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE,database_initable)
++  G_IMPLEMENT_INTERFACE(G_TYPE_TLS_FILE_DATABASE,file_database_iface))
++static GTlsCertificateFlags database_verify(GTlsDatabase *db,GTlsCertificate *chain,const gchar *purpose,
++  GSocketConnectable *identity,GTlsInteraction *interaction,GTlsDatabaseVerifyFlags flags,GCancellable *cancel,GError **error)
++{
++  g_set_error_literal(error,G_IO_ERROR,G_IO_ERROR_NOT_SUPPORTED,"Detached certificate verification is unavailable; use a native TLS connection");
++  return G_TLS_CERTIFICATE_GENERIC_ERROR;
++}
++static void db_get(GObject *obj,guint id,GValue *value,GParamSpec *spec) { g_value_set_string(value,NULL); }
++static void db_set(GObject *obj,guint id,const GValue *value,GParamSpec *spec) {}
++static gchar *db_handle(GTlsDatabase *db,GTlsCertificate *cert) { return NULL; }
++static GTlsCertificate *db_lookup(GTlsDatabase *db,const gchar *handle,GTlsInteraction *i,GTlsDatabaseLookupFlags f,GCancellable *c,GError **e)
++{ g_set_error_literal(e,G_IO_ERROR,G_IO_ERROR_NOT_SUPPORTED,"Certificate store enumeration is unavailable");return NULL; }
++static GTlsCertificate *db_issuer(GTlsDatabase *db,GTlsCertificate *cert,GTlsInteraction *i,GTlsDatabaseLookupFlags f,GCancellable *c,GError **e)
++{ return db_lookup(db,NULL,i,f,c,e); }
++static GList *db_issued(GTlsDatabase *db,GByteArray *name,GTlsInteraction *i,GTlsDatabaseLookupFlags f,GCancellable *c,GError **e)
++{ db_lookup(db,NULL,i,f,c,e);return NULL; }
++static void mochi_tls_database_init(MochiTlsDatabase *db) {}
++static void mochi_tls_database_class_init(MochiTlsDatabaseClass *klass)
++{
++  GObjectClass *object=G_OBJECT_CLASS(klass);
++  klass->verify_chain=database_verify;klass->create_certificate_handle=db_handle;
++  klass->lookup_certificate_for_handle=db_lookup;klass->lookup_certificate_issuer=db_issuer;
++  klass->lookup_certificates_issued_by=db_issued;
++  object->get_property=db_get;object->set_property=db_set;
++  g_object_class_override_property(object,1,"anchors");
++}
++static GTlsDatabase *system_database(void)
++{
++  static gsize once;
++  if (g_once_init_enter(&once)) g_once_init_leave(&once,(gsize)g_object_new(mochi_tls_database_get_type(),NULL));
++  return (GTlsDatabase *)once;
++}
++
++typedef struct {
++  GTlsConnectionBase parent;
++  GSocketConnectable *identity;
++  GTlsCertificateFlags validation;
++  uint64_t session;
++  GError *prepare_error, *fatal;
++  GTlsCertificate *peer;
++  GMutex meta_mutex,send_mutex;
++  GCond send_idle;
++  gboolean sending;
++  GByteArray *pending;
++  gsize pending_offset;
++  gint read_needs_write,read_eof;
++  gchar *host;
++} MochiTlsConnection;
++typedef GTlsConnectionBaseClass MochiTlsConnectionClass;
++static void client_initable(GInitableIface *iface);
++static void client_iface(GTlsClientConnectionInterface *iface) {}
++G_DEFINE_TYPE_WITH_CODE(MochiTlsConnection,mochi_tls_connection,G_TYPE_TLS_CONNECTION_BASE,
++  G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE,client_initable)
++  G_IMPLEMENT_INTERFACE(G_TYPE_TLS_CLIENT_CONNECTION,client_iface))
++enum { P_IDENTITY=100,P_VALIDATION,P_SSL3,P_CAS,P_RESUMPTION,P_REUSED };
++static GTlsConnectionBaseStatus error_status(GError *error)
++{
++  if (g_error_matches(error,G_IO_ERROR,G_IO_ERROR_WOULD_BLOCK)) return G_TLS_CONNECTION_BASE_WOULD_BLOCK;
++  if (g_error_matches(error,G_IO_ERROR,G_IO_ERROR_TIMED_OUT)) return G_TLS_CONNECTION_BASE_TIMED_OUT;
++  return G_TLS_CONNECTION_BASE_ERROR;
++}
++static gboolean crypto_result(int code,GError **error)
++{
++  if (!code) return TRUE;
++  g_set_error(error,G_TLS_ERROR,(code==MOCHI_TLS_CERTIFICATE || code==MOCHI_TLS_HOSTNAME ||
++    code==MOCHI_TLS_CHAIN_DEPTH || code==MOCHI_TLS_CERT_SIZE || code==MOCHI_TLS_CHAIN_SIZE)?G_TLS_ERROR_BAD_CERTIFICATE:G_TLS_ERROR_MISC,
++    "mochiOS TLS rejected the operation (code %d)",code);
++  return FALSE;
++}
++static gboolean check_error(MochiTlsConnection *self,GCancellable *cancel,GError **error)
++{
++  gboolean failed;
++  if (g_cancellable_set_error_if_cancelled(cancel,error)) return FALSE;
++  g_mutex_lock(&self->meta_mutex);failed=self->fatal!=NULL;
++  if (failed && error) *error=g_error_copy(self->fatal);
++  g_mutex_unlock(&self->meta_mutex);return !failed;
++}
++static void remember_error(MochiTlsConnection *self,GError *error)
++{
++  if (!error || g_error_matches(error,G_IO_ERROR,G_IO_ERROR_WOULD_BLOCK) || g_error_matches(error,G_IO_ERROR,G_IO_ERROR_CANCELLED) || g_error_matches(error,G_IO_ERROR,G_IO_ERROR_TIMED_OUT)) return;
++  g_mutex_lock(&self->meta_mutex);if (!self->fatal) self->fatal=g_error_copy(error);g_mutex_unlock(&self->meta_mutex);
++}
++static gboolean send_enter(MochiTlsConnection *self,gint64 timeout,GCancellable *cancel,GError **error)
++{
++  gint64 deadline=timeout>0?g_get_monotonic_time()+timeout:G_MAXINT64;
++  g_mutex_lock(&self->send_mutex);
++  while (self->sending) {
++    if (g_cancellable_set_error_if_cancelled(cancel,error)) {g_mutex_unlock(&self->send_mutex);return FALSE;}
++    if (!timeout) {g_set_error_literal(error,G_IO_ERROR,G_IO_ERROR_WOULD_BLOCK,"TLS output is busy");g_mutex_unlock(&self->send_mutex);return FALSE;}
++    if (g_get_monotonic_time()>=deadline) {g_set_error_literal(error,G_IO_ERROR,G_IO_ERROR_TIMED_OUT,"TLS output timed out");g_mutex_unlock(&self->send_mutex);return FALSE;}
++    g_cond_wait_until(&self->send_idle,&self->send_mutex,MIN(deadline,g_get_monotonic_time()+50000));
++  }
++  self->sending=TRUE;g_mutex_unlock(&self->send_mutex);return TRUE;
++}
++static void send_leave(MochiTlsConnection *self)
++{ g_mutex_lock(&self->send_mutex);self->sending=FALSE;g_cond_broadcast(&self->send_idle);g_mutex_unlock(&self->send_mutex); }
++/* Caller owns the output gate, never a crypto lock, while transport blocks. */
++static gboolean flush_locked(MochiTlsConnection *self,gint64 timeout,GCancellable *cancel,GError **error)
++{
++  GTlsConnectionBase *base=G_TLS_CONNECTION_BASE(self);
++  for (;;) {
++    gssize written;size_t size=0;
++    if (!check_error(self,cancel,error)) return FALSE;
++    if (self->pending_offset==self->pending->len) {
++      g_byte_array_set_size(self->pending,MAX_RECORD);
++      if (!crypto_result(mochi_tls_take_v1(self->session,MOCHI_TLS_CIPHERTEXT,self->pending->data,MAX_RECORD,&size),error)) return FALSE;
++      g_byte_array_set_size(self->pending,size);self->pending_offset=0;
++      if (!size) return TRUE;
++    }
++    written=g_pollable_stream_write(G_OUTPUT_STREAM(g_tls_connection_base_get_base_ostream(base)),
++      self->pending->data+self->pending_offset,self->pending->len-self->pending_offset,timeout!=0,cancel,error);
++    if (written<0) return FALSE;
++    if (!written) {g_set_error_literal(error,G_IO_ERROR,G_IO_ERROR_BROKEN_PIPE,"TLS transport wrote no data");return FALSE;}
++    self->pending_offset+=(gsize)written;
++  }
++}
++static gboolean flush_output(MochiTlsConnection *self,gint64 timeout,GCancellable *cancel,GError **error)
++{
++  gboolean ok;
++  if (!self->session) return check_error(self,cancel,error);
++  if (!send_enter(self,timeout,cancel,error)) return FALSE;
++  ok=flush_locked(self,timeout,cancel,error);send_leave(self);
++  g_atomic_int_set(&self->read_needs_write,!ok && error && g_error_matches(*error,G_IO_ERROR,G_IO_ERROR_WOULD_BLOCK));
++  if (!ok && error) remember_error(self,*error);
++  return ok;
++}
++static gboolean get_status(MochiTlsConnection *self,mochi_tls_status *status,GError **error)
++{
++  if (!crypto_result(mochi_tls_status_v1(self->session,status),error)) return FALSE;
++  if (status->state==MOCHI_TLS_FAILED) {g_set_error_literal(error,G_TLS_ERROR,G_TLS_ERROR_MISC,"TLS connection failed");return FALSE;}
++  return TRUE;
++}
++static gboolean receive_record(MochiTlsConnection *self,gint64 timeout,GCancellable *cancel,GError **error)
++{
++  guint8 buffer[MAX_RECORD];gssize count;
++  count=g_pollable_stream_read(G_INPUT_STREAM(g_tls_connection_base_get_base_istream(G_TLS_CONNECTION_BASE(self))),buffer,sizeof(buffer),timeout!=0,cancel,error);
++  if (count<0) return FALSE;
++  if (!count) {
++    g_atomic_int_set(&self->read_eof,TRUE);
++    if (!g_tls_connection_get_require_close_notify(G_TLS_CONNECTION(self))) return TRUE;
++    g_set_error_literal(error,G_TLS_ERROR,G_TLS_ERROR_EOF,"TLS peer closed without close_notify");return FALSE;
++  }
++  return crypto_result(mochi_tls_receive_v1(self->session,buffer,(gsize)count),error);
++}
++static void client_get(GObject *obj,guint id,GValue *value,GParamSpec *spec)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)obj;
++  switch(id) {
++    case P_IDENTITY:g_value_set_object(value,self->identity);break;
++    case P_VALIDATION:g_value_set_flags(value,self->validation);break;
++    case P_SSL3:case P_RESUMPTION:case P_REUSED:g_value_set_boolean(value,FALSE);break;
++    case P_CAS:g_value_set_pointer(value,NULL);break;
++    default:G_OBJECT_CLASS(mochi_tls_connection_parent_class)->get_property(obj,id,value,spec);
++  }
++}
++static void client_set(GObject *obj,guint id,const GValue *value,GParamSpec *spec)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)obj;
++  switch(id) {
++    case P_IDENTITY:
++      if (self->session && g_value_get_object(value)!=self->identity) {
++        GError *error=g_error_new_literal(G_IO_ERROR,G_IO_ERROR_NOT_SUPPORTED,"TLS identity cannot change after handshake starts");
++        remember_error(self,error);g_error_free(error);
++      } else g_set_object(&self->identity,g_value_get_object(value));
++      break;
++    case P_VALIDATION:self->validation=g_value_get_flags(value);break;
++    case P_SSL3:if (g_value_get_boolean(value) && !self->prepare_error) g_set_error_literal(&self->prepare_error,G_IO_ERROR,G_IO_ERROR_NOT_SUPPORTED,"SSL 3 is unavailable");break;
++    case P_RESUMPTION:break; /* The native policy disables resumption. */
++    default:G_OBJECT_CLASS(mochi_tls_connection_parent_class)->set_property(obj,id,value,spec);
++  }
++}
++static gboolean client_init(GInitable *initable,GCancellable *cancel,GError **error)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)initable;
++  const gchar *host=NULL;
++  if (self->prepare_error) {g_propagate_error(error,g_error_copy(self->prepare_error));return FALSE;}
++  if (!self->identity || g_tls_connection_get_certificate(G_TLS_CONNECTION(self))) {g_set_error_literal(error,G_IO_ERROR,G_IO_ERROR_NOT_SUPPORTED,"Server TLS and client certificates are unavailable");return FALSE;}
++  if (G_IS_NETWORK_ADDRESS(self->identity)) host=g_network_address_get_hostname(G_NETWORK_ADDRESS(self->identity));
++  else if (G_IS_NETWORK_SERVICE(self->identity)) host=g_network_service_get_domain(G_NETWORK_SERVICE(self->identity));
++  if (!host || !g_str_is_ascii(host) || g_hostname_is_ip_address(host)) {g_set_error_literal(error,G_IO_ERROR,G_IO_ERROR_NOT_SUPPORTED,"Native TLS requires a canonical ASCII DNS identity");return FALSE;}
++  self->host=g_strdup(host);
++  if (!g_tls_connection_base_get_base_istream(G_TLS_CONNECTION_BASE(self)) ||
++      !g_tls_connection_base_get_base_ostream(G_TLS_CONNECTION_BASE(self))) {
++    g_set_error_literal(error,G_IO_ERROR,G_IO_ERROR_NOT_SUPPORTED,"Native TLS requires pollable input and output streams");return FALSE;
++  }
++  return !g_cancellable_set_error_if_cancelled(cancel,error);
++}
++static void client_initable(GInitableIface *iface) { iface->init=client_init; }
++static void prepare(GTlsConnectionBase *base,gchar **protocols)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)base;
++  GByteArray *offer=g_byte_array_new();guint i;
++  GTlsDatabase *db=g_tls_connection_get_database(G_TLS_CONNECTION(base));
++  if (self->session || self->prepare_error) {g_byte_array_unref(offer);return;}
++  if (db!=system_database() || self->validation!=G_TLS_CERTIFICATE_VALIDATE_ALL || g_tls_connection_get_certificate(G_TLS_CONNECTION(base))) {
++    g_set_error_literal(&self->prepare_error,G_IO_ERROR,G_IO_ERROR_NOT_SUPPORTED,"Custom trust, verification bypass and client authentication are unavailable");
++    g_byte_array_unref(offer);return;
++  }
++  for (i=0;protocols && protocols[i];i++) {
++    gsize size=strlen(protocols[i]);guint8 length=(guint8)size;
++    if (!size || size>255 || i>=16 || offer->len+size+1>1024) {g_set_error_literal(&self->prepare_error,G_IO_ERROR,G_IO_ERROR_INVALID_ARGUMENT,"Invalid ALPN offer");break;}
++    g_byte_array_append(offer,&length,1);g_byte_array_append(offer,(guint8 *)protocols[i],size);
++  }
++  if (!self->prepare_error) crypto_result(mochi_tls_new_v1(self->host,strlen(self->host),offer->data,offer->len,&self->session),&self->prepare_error);
++  g_byte_array_unref(offer);
++}
++static GByteArray *info_bytes(MochiTlsConnection *self,guint field,gsize index,GError **error)
++{
++  GByteArray *bytes=g_byte_array_sized_new(INFO_LIMIT);size_t size=0;int code;
++  g_byte_array_set_size(bytes,INFO_LIMIT);code=mochi_tls_info_v1(self->session,field,index,bytes->data,bytes->len,&size);
++  if (!crypto_result(code,error)) {g_byte_array_unref(bytes);return NULL;}
++  g_byte_array_set_size(bytes,size);return bytes;
++}
++static GTlsCertificate *peer_certificate(GTlsConnectionBase *base)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)base;
++  MochiTlsCertificate *previous=NULL;guint i;
++  if (self->peer) return g_object_ref(self->peer);
++  for (i=0;i<8;i++) {
++    GByteArray *der;GError *error=NULL;MochiTlsCertificate *cert;
++    der=info_bytes(self,MOCHI_TLS_CERT_DER,i,&error);
++    if (!der) {g_clear_error(&error);break;}
++    cert=g_object_new(mochi_tls_certificate_get_type(),NULL);cert->der=der;
++    if (!previous) self->peer=G_TLS_CERTIFICATE(cert);
++    else previous->issuer=G_TLS_CERTIFICATE(cert);
++    previous=cert;
++  }
++  if (self->peer) {
++    MochiTlsCertificate *leaf=(MochiTlsCertificate *)self->peer;
++    guint field;
++    for (field=MOCHI_TLS_SUBJECT;field<=MOCHI_TLS_NOT_AFTER;field++) {
++      GError *error=NULL;GByteArray *bytes=info_bytes(self,field,0,&error);
++      if (!bytes) {g_clear_error(&error);continue;}
++      if (field==MOCHI_TLS_SUBJECT) leaf->subject=g_strndup((gchar *)bytes->data,bytes->len);
++      else if (field==MOCHI_TLS_ISSUER) leaf->issuer_name=g_strndup((gchar *)bytes->data,bytes->len);
++      else if (bytes->len==8) {uint64_t seconds;memcpy(&seconds,bytes->data,8);if (seconds<=G_MAXINT64) {GDateTime *date=g_date_time_new_from_unix_utc((gint64)seconds);if (field==MOCHI_TLS_NOT_BEFORE) leaf->not_before=date;else leaf->not_after=date;}}
++      g_byte_array_unref(bytes);
++    }
++  }
++  return self->peer?g_object_ref(self->peer):NULL;
++}
++static GTlsCertificateFlags verify_chain(GTlsConnectionBase *base,GTlsCertificate *chain,const gchar *purpose,
++ GSocketConnectable *identity,GTlsInteraction *interaction,GTlsDatabaseVerifyFlags flags,GCancellable *cancel,GError **error)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)base;mochi_tls_status status;
++  if (chain!=self->peer || identity!=self->identity || flags!=G_TLS_DATABASE_VERIFY_NONE ||
++      strcmp(purpose,G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER) ||
++      g_tls_connection_get_database(G_TLS_CONNECTION(base))!=system_database() ||
++      !get_status(self,&status,error) || status.state!=MOCHI_TLS_ESTABLISHED) return G_TLS_CERTIFICATE_GENERIC_ERROR;
++  /* This exact chain/identity pair has already passed native path, signature,
++   * validity and hostname verification before the engine exposed ESTABLISHED. */
++  return 0;
++}
++static GTlsConnectionBaseStatus handshake(GTlsConnectionBase *base,gint64 timeout,GCancellable *cancel,GError **error)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)base;mochi_tls_status status;
++  if (self->prepare_error) {g_propagate_error(error,g_error_copy(self->prepare_error));return G_TLS_CONNECTION_BASE_ERROR;}
++  for (;;) {
++    if (!check_error(self,cancel,error) || !get_status(self,&status,error) || !flush_output(self,timeout,cancel,error)) return error_status(error?*error:NULL);
++    if (status.state==MOCHI_TLS_ESTABLISHED) {
++      if (!g_tls_connection_base_handshake_thread_verify_certificate(base)) {g_set_error_literal(error,G_TLS_ERROR,G_TLS_ERROR_BAD_CERTIFICATE,"Native TLS peer verification was rejected");return G_TLS_CONNECTION_BASE_ERROR;}
++      return G_TLS_CONNECTION_BASE_OK;
++    }
++    if (g_atomic_int_get(&self->read_eof)) {g_set_error_literal(error,G_TLS_ERROR,G_TLS_ERROR_EOF,"TLS handshake transport ended");return G_TLS_CONNECTION_BASE_ERROR;}
++    if (status.state!=MOCHI_TLS_HANDSHAKING) {g_set_error_literal(error,G_TLS_ERROR,G_TLS_ERROR_MISC,"TLS handshake ended prematurely");return G_TLS_CONNECTION_BASE_ERROR;}
++    if (!receive_record(self,timeout,cancel,error)) return error_status(error?*error:NULL);
++  }
++}
++static void complete(GTlsConnectionBase *base,gboolean success,gchar **protocol,GTlsProtocolVersion *version,gchar **cipher,GError **error)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)base;mochi_tls_status status;GByteArray *bytes;
++  if (!success || !get_status(self,&status,error)) return;
++  bytes=info_bytes(self,MOCHI_TLS_ALPN,0,error);if (!bytes) return;
++  *protocol=bytes->len?g_strndup((gchar *)bytes->data,bytes->len):NULL;g_byte_array_unref(bytes);
++  *version=status.protocol==0x0304?G_TLS_PROTOCOL_VERSION_TLS_1_3:G_TLS_PROTOCOL_VERSION_UNKNOWN;
++  *cipher=g_strdup(status.cipher==0x1303?"TLS_CHACHA20_POLY1305_SHA256":status.cipher==0x1301?"TLS_AES_128_GCM_SHA256":"UNKNOWN");
++}
++static GTlsConnectionBaseStatus read_fn(GTlsConnectionBase *base,void *buffer,gsize count,gint64 timeout,gssize *read,GCancellable *cancel,GError **error)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)base;mochi_tls_status status;size_t size;
++  *read=0;if (!count) return G_TLS_CONNECTION_BASE_OK;
++  for (;;) {
++    if (!check_error(self,cancel,error) || !get_status(self,&status,error)) return error_status(error?*error:NULL);
++    if (status.receive_pending) {if (!crypto_result(mochi_tls_take_v1(self->session,MOCHI_TLS_PLAINTEXT,buffer,count,&size),error)) return G_TLS_CONNECTION_BASE_ERROR;*read=(gssize)size;return G_TLS_CONNECTION_BASE_OK;}
++    if (g_atomic_int_get(&self->read_eof) || status.state==MOCHI_TLS_PEER_CLOSED || status.state==MOCHI_TLS_CLOSED) return G_TLS_CONNECTION_BASE_OK;
++    if (!flush_output(self,timeout,cancel,error) || !receive_record(self,timeout,cancel,error)) {if (error) remember_error(self,*error);return error_status(error?*error:NULL);}
++  }
++}
++static GTlsConnectionBaseStatus write_fn(GTlsConnectionBase *base,const void *buffer,gsize count,gint64 timeout,gssize *written,GCancellable *cancel,GError **error)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)base;GError *local=NULL;gboolean ok;gsize size=MIN(count,MAX_RECORD);
++  *written=0;if (!count) return G_TLS_CONNECTION_BASE_OK;
++  if (!check_error(self,cancel,error) || !send_enter(self,timeout,cancel,error)) return error_status(error?*error:NULL);
++  ok=flush_locked(self,timeout,cancel,error);
++  if (ok) ok=crypto_result(mochi_tls_write_v1(self->session,buffer,size),error);
++  if (!ok) {send_leave(self);return error_status(error?*error:NULL);}
++  ok=flush_locked(self,timeout,cancel,&local);send_leave(self);
++  if (!ok && !g_error_matches(local,G_IO_ERROR,G_IO_ERROR_WOULD_BLOCK) && !g_error_matches(local,G_IO_ERROR,G_IO_ERROR_CANCELLED)) {remember_error(self,local);g_propagate_error(error,local);return G_TLS_CONNECTION_BASE_ERROR;}
++  g_clear_error(&local);*written=(gssize)size;return G_TLS_CONNECTION_BASE_OK;
++}
++static GTlsConnectionBaseStatus close_fn(GTlsConnectionBase *base,gint64 timeout,GCancellable *cancel,GError **error)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)base;mochi_tls_status status;
++  if (!self->session) return G_TLS_CONNECTION_BASE_OK;
++  if (!flush_output(self,timeout,cancel,error) || !get_status(self,&status,error)) return error_status(error?*error:NULL);
++  if (status.state==MOCHI_TLS_ESTABLISHED || status.state==MOCHI_TLS_PEER_CLOSED) if (!crypto_result(mochi_tls_close_notify_v1(self->session),error)) return G_TLS_CONNECTION_BASE_ERROR;
++  return flush_output(self,timeout,cancel,error)?G_TLS_CONNECTION_BASE_OK:error_status(error?*error:NULL);
++}
++static gboolean flush_fn(GTlsConnectionBase *base,GCancellable *cancel,GError **error) {return flush_output((MochiTlsConnection *)base,-1,cancel,error);}
++static gboolean pending_data(GTlsConnectionBase *base,GIOCondition condition)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)base;mochi_tls_status status;gboolean fatal;
++  if (!(condition&G_IO_IN) || !self->session) return FALSE;
++  g_mutex_lock(&self->meta_mutex);fatal=self->fatal!=NULL;g_mutex_unlock(&self->meta_mutex);
++  if (fatal || mochi_tls_status_v1(self->session,&status)) return TRUE;
++  return g_atomic_int_get(&self->read_eof) || status.receive_pending || status.state==MOCHI_TLS_PEER_CLOSED || status.state==MOCHI_TLS_CLOSED || status.state==MOCHI_TLS_FAILED;
++}
++static GIOCondition io_condition(GTlsConnectionBase *base,GIOCondition condition)
++{ return (condition&G_IO_IN) && g_atomic_int_get(&((MochiTlsConnection *)base)->read_needs_write)?G_IO_OUT:condition; }
++static gboolean resumed(GTlsConnectionBase *base) {return FALSE;}
++static void client_finalize(GObject *obj)
++{
++  MochiTlsConnection *self=(MochiTlsConnection *)obj;
++  if (self->session) mochi_tls_free_v1(self->session);
++  g_clear_object(&self->identity);g_clear_object(&self->peer);g_free(self->host);
++  g_clear_error(&self->fatal);g_clear_error(&self->prepare_error);g_clear_pointer(&self->pending,g_byte_array_unref);
++  g_mutex_clear(&self->meta_mutex);g_mutex_clear(&self->send_mutex);g_cond_clear(&self->send_idle);
++  G_OBJECT_CLASS(mochi_tls_connection_parent_class)->finalize(obj);
++}
++static void mochi_tls_connection_init(MochiTlsConnection *self)
++{self->validation=G_TLS_CERTIFICATE_VALIDATE_ALL;self->pending=g_byte_array_new();g_mutex_init(&self->meta_mutex);g_mutex_init(&self->send_mutex);g_cond_init(&self->send_idle);}
++static void mochi_tls_connection_class_init(MochiTlsConnectionClass *klass)
++{
++  GObjectClass *obj=G_OBJECT_CLASS(klass);GTlsConnectionBaseClass *base=G_TLS_CONNECTION_BASE_CLASS(klass);
++  obj->get_property=client_get;obj->set_property=client_set;obj->finalize=client_finalize;
++  base->prepare_handshake=prepare;base->handshake_thread_handshake=handshake;base->complete_handshake=complete;
++  base->retrieve_peer_certificate=peer_certificate;base->verify_chain=verify_chain;base->is_session_resumed=resumed;
++  base->read_fn=read_fn;base->write_fn=write_fn;base->close_fn=close_fn;
++  base->flush_fn=flush_fn;base->has_pending_data=pending_data;base->get_io_condition=io_condition;
++  g_object_class_override_property(obj,P_IDENTITY,"server-identity");g_object_class_override_property(obj,P_VALIDATION,"validation-flags");
++  g_object_class_override_property(obj,P_SSL3,"use-ssl3");g_object_class_override_property(obj,P_CAS,"accepted-cas");
++  g_object_class_override_property(obj,P_RESUMPTION,"session-resumption-enabled");g_object_class_override_property(obj,P_REUSED,"session-reused");
++}
++
++typedef struct { GObject parent; } MochiTlsBackend;
++typedef GObjectClass MochiTlsBackendClass;
++static void backend_iface(GTlsBackendInterface *iface);
++G_DEFINE_TYPE_WITH_CODE(MochiTlsBackend,mochi_tls_backend,G_TYPE_OBJECT,G_IMPLEMENT_INTERFACE(G_TYPE_TLS_BACKEND,backend_iface))
++static gboolean supports_tls(GTlsBackend *self) {return mochi_tls_available_v1()!=0;}
++static GTlsDatabase *default_database(GTlsBackend *self) {return g_object_ref(system_database());}
++static void backend_iface(GTlsBackendInterface *iface)
++{iface->supports_tls=supports_tls;iface->get_certificate_type=mochi_tls_certificate_get_type;iface->get_client_connection_type=mochi_tls_connection_get_type;iface->get_server_connection_type=mochi_tls_connection_get_type;iface->get_file_database_type=mochi_tls_database_get_type;iface->get_default_database=default_database;}
++static void mochi_tls_backend_init(MochiTlsBackend *self) {}
++static void mochi_tls_backend_class_init(MochiTlsBackendClass *klass) {}
++/* Startup registration works without dlopen or an application-specific call. */
++__attribute__((visibility("default"))) void g_io_mochios_tls_register(void)
++{
++  static gsize once;
++  if (g_once_init_enter(&once)) {
++    GIOExtensionPoint *point=g_io_extension_point_register(G_TLS_BACKEND_EXTENSION_POINT_NAME);
++    g_io_extension_point_set_required_type(point,G_TYPE_TLS_BACKEND);
++    g_io_extension_point_implement(G_TLS_BACKEND_EXTENSION_POINT_NAME,mochi_tls_backend_get_type(),"mochios",500);
++    g_once_init_leave(&once,1);
++  }
++}
++__attribute__((constructor)) static void register_module(void) {g_io_mochios_tls_register();}
+--- /dev/null
++++ b/tls/mochios/exports.map
+@@ -0,0 +1 @@
++{ global: g_io_mochios_tls_register; local: *; };
+--- /dev/null
++++ b/tls/mochios/meson.build
+@@ -0,0 +1,39 @@
++project('glib-networking-mochios', 'c', version: '2.90.1', meson_version: '>= 0.60.0',
++        default_options: ['c_std=gnu11', 'warning_level=1'])
++cc = meson.get_compiler('c')
++gio = dependency('gio-2.0', version: '>= 2.80')
++gmodule = dependency('gmodule-2.0')
++# This archive owns no socket or process runtime. All Rust internals must stay
++# private to this DSO; it cannot be linked directly into the C process image.
++if not cc.has_header('mochios/tls.h')
++  error('This provider requires an SDK with the native TLS record archive')
++endif
++# find_library() links an executable, which is invalid for this private PIC archive.
++# The real shared-library link below is the availability/import check.
++tls_engine = declare_dependency(link_args: ['-lmochios_tls_pic'])
++conf = configuration_data()
++conf.set_quoted('GETTEXT_PACKAGE', 'glib-networking')
++conf.set('ENABLE_DEBUG_LOGS', 0)
++conf.set('GLIB_NETWORKING_STATIC_COMPILATION', 1)
++configure_file(output: 'config.h', configuration: conf)
++args = ['-D_GNU_SOURCE', '-fvisibility=hidden', '-Wno-deprecated-declarations']
++# Avoid colliding with an alternate installed GIO backend in host tests.
++foreach name : ['GTlsConnectionBase', 'GTlsConnectionBaseClass', 'GTlsConnectionBasePrivate',
++                'GTlsConnectionBase_private_offset', 'GTlsInputStream', 'GTlsInputStreamClass',
++                'GTlsOutputStream', 'GTlsOutputStreamClass']
++  args += '-D' + name + '=' + name.replace('GTls', 'GTlsMochios')
++endforeach
++base = files('../base/gtlsconnection-base.c', '../base/gtlsinputstream.c', '../base/gtlslog.c',
++             '../base/gtlsoutputstream.c', '../base/gtlssessioncache.c', '../base/gtlsutils.c')
++module = shared_library('giomochios', 'backend.c', base,
++  include_directories: include_directories('.', '../base'),
++  dependencies: [gio, gmodule, tls_engine], c_args: args,
++  link_args: ['-Wl,--version-script=' + meson.current_source_dir() / 'exports.map'],
++  link_depends: 'exports.map', install: true, install_tag: 'runtime')
++# Constructors register the provider before GIO first looks up its backend.
++# --no-as-needed is necessary even when the app only calls generic GIO APIs.
++pkg = import('pkgconfig')
++pkg.generate(name: 'Native mochiOS GIO TLS', filebase: 'gio-mochios-tls',
++  description: 'Verified TLS 1.3 client provider using the mochiOS record engine',
++  version: meson.project_version(),
++  requires: ['gio-2.0'], libraries: ['-L${libdir}', '-Wl,--no-as-needed', '-lgiomochios', '-Wl,--as-needed'])

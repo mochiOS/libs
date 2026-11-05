@@ -1,6 +1,8 @@
 #include <libsoup/soup.h>
 #include <string.h>
 int main(void) {
+    if (!g_tls_backend_supports_tls(g_tls_backend_get_default()) ||
+        g_strcmp0(G_OBJECT_TYPE_NAME(g_tls_backend_get_default()), "MochiTlsBackend")) return 1;
     SoupSession *session = soup_session_new();
     SoupMessage *message = soup_message_new("GET", "https://example.com/");
     SoupCookieJar *jar = soup_cookie_jar_new();

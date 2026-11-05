@@ -154,11 +154,11 @@ submodules = { "list" = { git = "https://github.com/publicsuffix/list", commit =
 [libraries.libsoup]
 git = "https://gitlab.gnome.org/GNOME/libsoup.git"
 tag_pattern = '^(?P<version>3\.[0-9]*[02468]\.[0-9]+)$'
-revision = 1
+revision = 2
 enabled = false
-reason = "Native GIO TLS backend is not implemented; HTTPS readiness must not be inferred from a compile-only build"
+reason = "Native GIO TLS provider is implemented but requires the unpublished SDK TLS archive and mochiOS runtime verification"
 recipe = "recipes/libsoup/recipe.json"
-dependencies = ["glib", "nghttp2", "sqlite", "libpsl", "zlib"]
+dependencies = ["glib", "glib-networking", "nghttp2", "sqlite", "libpsl", "zlib"]
 
 # Planned ports are visible but never advertised as buildable/published.
 [libraries.webkit]
@@ -168,3 +168,12 @@ revision = 2
 enabled = false
 reason = "WebKit platform integration and its full dependency graph are not ported"
 dependencies = ["glib", "libpng"]
+
+[libraries.glib-networking]
+git = "https://gitlab.gnome.org/GNOME/glib-networking.git"
+tag_pattern = '^(?P<version>2\.[0-9]*[02468]\.[0-9]+)$'
+revision = 1
+enabled = false
+recipe = "recipes/glib-networking/recipe.json"
+dependencies = ["glib"]
+reason = "Native TLS provider cross-linked and host-tested; requires an unpublished SDK TLS archive and mochiOS runtime verification."

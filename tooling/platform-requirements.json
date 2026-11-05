@@ -66,7 +66,7 @@
         "GIO native volume monitoring and FD-to-path queries are unsupported; no mount list is fabricated.",
         "Exact pending-byte count for native streams is unavailable; GSocket reports an error.",
         "Optional IP/TCP options are declared for source compatibility but fail explicitly when unsupported by the native provider.",
-        "No GIO TLS backend or WebKit platform integration has been added.",
+        "The native GIO TLS provider is implemented as a separate port, but is not yet distributed or executed on mochiOS; WebKit platform integration is pending.",
         "Target execution, network operation and browser integration remain unverified."
       ],
       "native_implementation": {
@@ -156,7 +156,7 @@
         "note": "Portable upstream Python generators are development data, not target ELF helpers; pkg-config resolves them within the dependency prefix."
       },
       "native_tls_integration": {
-        "status": "bridge-required-not-implemented",
+        "status": "shared.3-baseline-gap-addressed-by-unpublished-native-provider",
         "existing_implementation": [
           "mochiOS/syscalls: crates/tls-client/src/config.rs",
           "mochiOS/syscalls: crates/tls-client/src/verifier.rs",
@@ -327,7 +327,7 @@
       }
     },
     "libsoup": {
-      "status": "published-sdk-compile-link-verified-distribution-disabled",
+      "status": "native-tls-wired-cross-linked-distribution-disabled",
       "verification": {
         "format": 1,
         "library": "libsoup",
@@ -345,12 +345,56 @@
         "actual_needed_closure_verified": true,
         "checked_libraries": 15
       },
-      "tls_backend": "Native mochiOS GIO backend required; no GnuTLS or alternate trust store was added.",
+      "tls_backend": "Startup-linked libgiomochios.so using the native mochiOS verifier; no GnuTLS or alternate trust store.",
       "limitations": [
-        "No native GIO TLS backend: HTTPS, TLS peer validation through GIO and HTTP/2 ALPN negotiation are not verified.",
+        "Native GIO TLS is cross-linked and host-tested; HTTPS through libsoup and HTTP/2 on mochiOS remain unverified.",
         "The configure tls_check=false setting permits cross-building a component; it does not provide TLS and the catalog remains disabled.",
         "IPv6-only server listeners report unsupported when IPV6_V6ONLY is unavailable.",
         "Brotli, Zstandard, GSSAPI, NTLM, introspection, example applications and runtime tests are not enabled."
+      ],
+      "tls_candidate_verification": {
+        "sdk_candidate": "27.0-dp.1-shared.4",
+        "native_compile_link": true,
+        "native_consumer_link": true,
+        "needed_contains_libgiomochios": true,
+        "runtime_tested": false
+      }
+    },
+    "glib-networking": {
+      "upstream_version": "2.90.1",
+      "upstream_commit": "ece5af2e7ffafe974c5c6ed6195000ff26a82aa5",
+      "status": "native-cross-linked-host-interoperability-tested-distribution-disabled",
+      "sdk_candidate": "27.0-dp.1-shared.4",
+      "sdk_runtime_baseline": "27.0-dp.1-shared.3",
+      "tls_source_commit": "93b83c64fae5d197d4264efecb3fa6f0a97da1c3",
+      "sdk_recipe_commit": "9d07b98",
+      "verification": {
+        "native_compile_link": true,
+        "native_consumer_link": true,
+        "actual_import_closure": true,
+        "private_archive_path_audit": true,
+        "host_c_ownership_fork_limits": true,
+        "host_tls_tests": [
+          "synchronous handshake and HTTP response",
+          "asynchronous handshake and read",
+          "ALPN",
+          "buffered-input readiness and poll source",
+          "authenticated close_notify in both directions",
+          "hostname mismatch rejected even with accept-certificate handler",
+          "relaxed validation rejected",
+          "in-flight cancellation"
+        ],
+        "mochios_runtime_tested": false,
+        "production_container_build_tested": false,
+        "full_sdk_archive_built": false
+      },
+      "security": "Existing rustls/rustcrypto verifier and production webpki roots; no second TLS engine, trust override, networking capability grant, AppCore API or OS service. Test CA feature is rejected for mochiOS targets.",
+      "limitations": [
+        "TLS 1.3 client only, following the existing native TLS policy.",
+        "Canonical ASCII DNS identities only; raw IP and Unicode identities require explicit future support.",
+        "No custom trust stores, verification bypass, client certificates, server TLS or session resumption.",
+        "Bounded to 16 concurrent native sessions per linked provider; fork children invalidate inherited sessions.",
+        "New SDK/archive distribution and mochiOS execution are required before enabling this port."
       ]
     }
   },

@@ -110,6 +110,11 @@
       "tag": "3.8.1",
       "version": "3.8.1",
       "commit": "2756d0076654b680d2021a08b9f2bd9d36d7ae1b"
+    },
+    "glib-networking": {
+      "tag": "2.90.1",
+      "version": "2.90.1",
+      "commit": "ece5af2e7ffafe974c5c6ed6195000ff26a82aa5"
     }
   }
 }

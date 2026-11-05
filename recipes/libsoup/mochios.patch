@@ -42,3 +42,16 @@
          }
  
          if (!g_socket_bind (socket, address, TRUE, error)) {
+--- a/meson.build
++++ b/meson.build
+@@ -109,6 +109,10 @@
+                        fallback: ['glib', 'libgio_dep'])
+ 
+ glib_deps = [glib_dep, gmodule_dep, gobject_dep, gio_dep]
++if host_system == 'mochios'
++  # Startup-linked provider: no dlopen, alternate trust store or app hook.
++  glib_deps += dependency('gio-mochios-tls', required: true)
++endif
+ 
+ cdata = configuration_data()
+ 
