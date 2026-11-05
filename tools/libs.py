@@ -531,9 +531,15 @@ def inventory(directory):
     return files
 
 
+def libtool_archive(path):
+    """Identify non-relocatable libtool metadata, which is not part of the shared-library ABI."""
+    return path.startswith("usr/lib/") and path.endswith(".la")
+
+
 def merge_dependency(source, destination):
     """Merge already-verified dependency prefixes without silently overwriting different files."""
     for entry in inventory(source):
+        if libtool_archive(entry['path']): continue
         target = relative(destination, entry['path'])
         original = source / entry['path']; target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists() or target.is_symlink():
@@ -570,6 +576,9 @@ def package_build(root, package, stage, metadata, destination):
     library = read_catalog(root)['libraries'][package['name']]
     specification = recipe(root, library)
     files = inventory(stage)
+    for entry in files:
+        if libtool_archive(entry['path']): relative(stage, entry['path']).unlink()
+    files = [entry for entry in files if not libtool_archive(entry['path'])]
     if not files: raise ValueError('Empty library install')
     for entry in files:
         path = entry['path']

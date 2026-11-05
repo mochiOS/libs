@@ -230,6 +230,17 @@ class IsolationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'Conflicting'): libs.merge_dependency(two,merged)
             self.assertEqual((merged/'usr/include/shared.h').read_text(),'first')
 
+    def test_dependency_merge_ignores_installed_libtool_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); source=root/'source'; merged=root/'merged'
+            (source/'usr/lib/pkgconfig').mkdir(parents=True); merged.mkdir()
+            (source/'usr/lib/libexample.la').write_text("dependency_libs='/usr/lib/libother.la'\n")
+            (source/'usr/lib/pkgconfig/example.pc').write_text('prefix=/usr\n')
+            libs.merge_dependency(source,merged)
+            self.assertFalse((merged/'usr/lib/libexample.la').exists())
+            self.assertTrue((source/'usr/lib/libexample.la').exists())
+            self.assertEqual((merged/'usr/lib/pkgconfig/example.pc').read_text(),'prefix=/usr\n')
+
     def test_external_install_root_is_rejected_without_writing_to_it(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); outside=root/'outside'; outside.mkdir(); (root/'stage').symlink_to(outside)
@@ -241,7 +252,7 @@ class IsolationTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which('cc') and shutil.which('readelf'), 'host fixture compiler/readelf required')
 class ArtifactTests(unittest.TestCase):
-    def fixture(self, root, name='zlib', helpers=None):
+    def fixture(self, root, name='zlib', helpers=None, libtool=False):
         stage=root/'stage'; (stage/'usr/lib').mkdir(parents=True)
         (stage/'usr/include').mkdir(); (stage/'usr/include/zlib.h').write_text('/* fixture only */\n')
         source=root/'fixture.c'; source.write_text('int fixture_only(void) { return 42; }\n')
@@ -251,9 +262,20 @@ class ArtifactTests(unittest.TestCase):
         if helpers:
             (stage/'usr/bin').mkdir()
             for helper,content in helpers.items():(stage/'usr/bin'/helper).write_bytes(content)
+        if libtool:
+            (stage/'usr/lib/libz.la').write_text("dependency_libs='/private/build/libother.la'\n")
         plan=libs.make_plan(ROOT); package=next(item for item in plan['packages'] if item['name']==name)
         libs.package_build(ROOT,package,stage,dict(sdk=plan['sdk'],registry_commit='0'*40,builder={'fixture_only':True}),root/'releases')
         return plan,package,root/'releases'/package['release']
+
+    def test_package_excludes_libtool_build_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); plan,package,directory=self.fixture(root,libtool=True)
+            manifest=releases.verify_bundle(directory,package,plan)
+            paths={entry['path'] for entry in manifest['files']}
+            self.assertIn('usr/lib/libz.so.1',paths)
+            self.assertNotIn('usr/lib/libz.la',paths)
+            self.assertFalse((root/'stage/usr/lib/libz.la').exists())
 
     def test_only_declared_posix_config_helpers_can_be_packaged(self):
         with tempfile.TemporaryDirectory() as tmp:
