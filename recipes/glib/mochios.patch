@@ -1,60 +1,3 @@
---- a/glib/glib-unix.c
-+++ b/glib/glib-unix.c
-@@ -996,6 +996,11 @@
-     }
- 
-   return g_strdup (file_path);
-+#elif defined (__mochios__)
-+  /* Native FDs are authorities, not ambient namespace paths. */
-+  g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_NOSYS,
-+               "File descriptor path queries are unavailable on mochiOS");
-+  return NULL;
- #elif defined (__GNU__)
-   /*
-    * Hurd allows to open("/dev/fd/%u") to open the very same fd, but it's not
---- a/meson.build
-+++ b/meson.build
-@@ -467,7 +467,7 @@
- ]
- 
- foreach h : headers
--  if cc.has_header(h)
-+  if cc.has_header(h) and (host_system != 'mochios' or h != 'ftw.h' or cc.has_function('nftw', prefix : '#include <ftw.h>'))
-     define = 'HAVE_' + h.underscorify().to_upper()
-     glib_conf.set(define, 1)
-     glib_conf_prefix = glib_conf_prefix + '#define @0@ 1\n'.format(define)
-@@ -2161,7 +2161,7 @@
-   if cc.has_header_symbol('pthread.h', 'pthread_cond_timedwait_relative_np')
-     glib_conf.set('HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP', 1)
-   endif
--  if cc.has_header_symbol('pthread.h', 'pthread_getname_np', prefix : pthread_prefix)
-+  if cc.has_header_symbol('pthread.h', 'pthread_getname_np', prefix : pthread_prefix) and (host_system != 'mochios' or cc.has_function('pthread_getname_np', prefix : pthread_prefix + '#include <pthread.h>', dependencies : thread_dep))
-     glib_conf.set('HAVE_PTHREAD_GETNAME_NP', 1)
-   endif
-   if cc.has_header_symbol('pthread.h', 'pthread_getaffinity_np', prefix : pthread_prefix)
---- a/glib/gstdio.c
-+++ b/glib/gstdio.c
-@@ -1143,6 +1143,8 @@
- 
-   errno = save_errno;
-   return retval;
-+#elif defined (__mochios__)
-+  return open (filename, O_WRONLY | O_CREAT | O_TRUNC, mode);
- #else
-   return creat (filename, mode);
- #endif
---- a/gio/gnetworking.h.in
-+++ b/gio/gnetworking.h.in
-@@ -43,7 +43,9 @@
- #include <resolv.h>
- #include <sys/socket.h>
- #include <sys/un.h>
-+#if !defined (__mochios__)
- #include <net/if.h>
-+#endif
- 
- #include <arpa/inet.h>
- #include <arpa/nameser.h>
 --- a/gio/gnetworking.c
 +++ b/gio/gnetworking.c
 @@ -56,6 +56,31 @@
@@ -95,6 +38,18 @@
    return TRUE;
 +#endif
  }
+--- a/gio/gnetworking.h.in
++++ b/gio/gnetworking.h.in
+@@ -43,7 +43,9 @@
+ #include <resolv.h>
+ #include <sys/socket.h>
+ #include <sys/un.h>
++#if !defined (__mochios__)
+ #include <net/if.h>
++#endif
+ 
+ #include <arpa/inet.h>
+ #include <arpa/nameser.h>
 --- a/gio/gsocket.c
 +++ b/gio/gsocket.c
 @@ -3323,10 +3323,15 @@
@@ -194,3 +149,92 @@
  }
  
  static GMount *
+--- a/glib/glib-unix.c
++++ b/glib/glib-unix.c
+@@ -996,6 +996,11 @@
+     }
+ 
+   return g_strdup (file_path);
++#elif defined (__mochios__)
++  /* Native FDs are authorities, not ambient namespace paths. */
++  g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_NOSYS,
++               "File descriptor path queries are unavailable on mochiOS");
++  return NULL;
+ #elif defined (__GNU__)
+   /*
+    * Hurd allows to open("/dev/fd/%u") to open the very same fd, but it's not
+--- a/glib/gstdio.c
++++ b/glib/gstdio.c
+@@ -1143,6 +1143,8 @@
+ 
+   errno = save_errno;
+   return retval;
++#elif defined (__mochios__)
++  return open (filename, O_WRONLY | O_CREAT | O_TRUNC, mode);
+ #else
+   return creat (filename, mode);
+ #endif
+--- a/glib/meson.build
++++ b/glib/meson.build
+@@ -480,9 +480,9 @@
+   subdirs : ['glib-2.0'],
+   extra_cflags : ['-I${libdir}/glib-2.0/include'] + win32_cflags,
+   variables : [
+-    'glib_genmarshal=' + '${bindir}' / 'glib-genmarshal',
++    'glib_genmarshal=' + glib_codegen_pkg_dir / 'glib-genmarshal',
+     'gobject_query=' + '${bindir}' / 'gobject-query',
+-    'glib_mkenums=' + '${bindir}' / 'glib-mkenums',
++    'glib_mkenums=' + glib_codegen_pkg_dir / 'glib-mkenums',
+     'glib_valgrind_suppressions=' + '${datadir}' /
+       valgrind_suppression_file_install_subdir /
+       fs.name(valgrind_suppression_file),
+--- a/gobject/meson.build
++++ b/gobject/meson.build
+@@ -100,8 +100,8 @@
+     input : tool + '.in',
+     output : tool,
+     configuration : python_tools_conf,
+-    install_dir : glib_bindir,
+-    install_tag : 'bin-devel',
++    install_dir : glib_codegen_install_dir,
++    install_tag : glib_codegen_install_tag,
+   )
+ 
+   # Set variables for later use
+--- a/meson.build
++++ b/meson.build
+@@ -467,7 +467,7 @@
+ ]
+ 
+ foreach h : headers
+-  if cc.has_header(h)
++  if cc.has_header(h) and (host_system != 'mochios' or h != 'ftw.h' or cc.has_function('nftw', prefix : '#include <ftw.h>'))
+     define = 'HAVE_' + h.underscorify().to_upper()
+     glib_conf.set(define, 1)
+     glib_conf_prefix = glib_conf_prefix + '#define @0@ 1\n'.format(define)
+@@ -2161,7 +2161,7 @@
+   if cc.has_header_symbol('pthread.h', 'pthread_cond_timedwait_relative_np')
+     glib_conf.set('HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP', 1)
+   endif
+-  if cc.has_header_symbol('pthread.h', 'pthread_getname_np', prefix : pthread_prefix)
++  if cc.has_header_symbol('pthread.h', 'pthread_getname_np', prefix : pthread_prefix) and (host_system != 'mochios' or cc.has_function('pthread_getname_np', prefix : pthread_prefix + '#include <pthread.h>', dependencies : thread_dep))
+     glib_conf.set('HAVE_PTHREAD_GETNAME_NP', 1)
+   endif
+   if cc.has_header_symbol('pthread.h', 'pthread_getaffinity_np', prefix : pthread_prefix)
+@@ -2523,6 +2523,16 @@
+ # further changes: https://gitlab.gnome.org/GNOME/glib/-/merge_requests/4391
+ python_shebang = '/usr/bin/env python3'
+ 
++# Architecture-independent SDK generators run with the build host's Python.
++glib_codegen_install_dir = glib_bindir
++glib_codegen_pkg_dir = '${bindir}'
++glib_codegen_install_tag = 'bin-devel'
++if host_system == 'mochios'
++  glib_codegen_install_dir = glib_datadir / 'glib-2.0' / 'codegen'
++  glib_codegen_pkg_dir = '${datadir}' / 'glib-2.0' / 'codegen'
++  glib_codegen_install_tag = 'devel'
++endif
++
+ python_version = python.language_version()
+ python_version_req = '>=3.7'
+ python_test_libraries_path = meson.project_source_root() / 'tests' / 'lib'

@@ -23,7 +23,8 @@
   ],
   "licenses": [
     "COPYING",
-    "subprojects/gvdb/COPYING"
+    "subprojects/gvdb/COPYING",
+    "LICENSES/GPL-2.0-or-later.txt"
   ],
   "shared_libraries": [
     "libglib-2.0.so*",

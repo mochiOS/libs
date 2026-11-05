@@ -143,6 +143,17 @@
         ],
         "dependency_note": "Reused previously target-built ABI-1 dependency prefix; GLib/GIO rebuilt from fixed sources with downloaded shared.3 SDK.",
         "sdk_source_pins_verified": true
+      },
+      "development_codegen": {
+        "status": "configured-and-host-executed",
+        "tools": [
+          "glib-mkenums",
+          "glib-genmarshal"
+        ],
+        "install_directory": "usr/share/glib-2.0/codegen",
+        "interpreter": "/usr/bin/env python3",
+        "runtime_binaries_changed": false,
+        "note": "Portable upstream Python generators are development data, not target ELF helpers; pkg-config resolves them within the dependency prefix."
       }
     },
     "webkit": {
