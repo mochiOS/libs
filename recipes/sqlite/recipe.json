@@ -1,0 +1,29 @@
+{
+  "format": 1,
+  "backend": "autotools",
+  "configure": [
+    "--disable-tcl",
+    "--disable-readline",
+    "--disable-load-extension"
+  ],
+  "build_targets": [
+    "libsqlite3.so"
+  ],
+  "licenses": [
+    "LICENSE.md",
+    "autosetup/LICENSE"
+  ],
+  "patches": [
+    "mochios.patch"
+  ],
+  "shared_libraries": [
+    "libsqlite3.so*"
+  ],
+  "link_libraries": [
+    "sqlite3"
+  ],
+  "pkg_config_modules": [
+    "sqlite3"
+  ],
+  "probe": "probe.c"
+}

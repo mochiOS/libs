@@ -196,6 +196,30 @@
         "production_container_build_tested": false,
         "checked_libraries": 1
       }
+    },
+    "sqlite": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "libsoup persistent cookie storage",
+      "limitations": [
+        "Target filesystem durability, locking and WAL behavior have not been executed on mochiOS.",
+        "Runtime extension loading is disabled; command-line tools are not packaged."
+      ],
+      "verification": {
+        "format": 1,
+        "library": "sqlite",
+        "source": {
+          "tag": "version-3.54.1",
+          "version": "3.54.1",
+          "commit": "57520227c95396ce39ba6ecaac8d475b78dd3964"
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "checked_libraries": 1
+      }
     }
   }
 }

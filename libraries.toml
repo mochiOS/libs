@@ -116,6 +116,14 @@ enabled = true
 recipe = "recipes/nghttp2/recipe.json"
 dependencies = []
 
+[libraries.sqlite]
+git = "https://github.com/sqlite/sqlite.git"
+tag_pattern = '^version-(?P<version>3\.[0-9]+\.[0-9]+)$'
+revision = 1
+enabled = true
+recipe = "recipes/sqlite/recipe.json"
+dependencies = []
+
 # Planned ports are visible but never advertised as buildable/published.
 [libraries.webkit]
 git = "https://github.com/WebKit/WebKit.git"

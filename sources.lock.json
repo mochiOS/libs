@@ -77,6 +77,11 @@
         "url": "https://github.com/nghttp2/nghttp2/archive/refs/tags/v1.71.0.tar.gz",
         "sha256": "81c3702fdaee37145c875cb6d1288698e4f755558341fc85335d9750fb718f33"
       }
+    },
+    "sqlite": {
+      "tag": "version-3.54.1",
+      "version": "3.54.1",
+      "commit": "57520227c95396ce39ba6ecaac8d475b78dd3964"
     }
   }
 }
