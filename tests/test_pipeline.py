@@ -132,6 +132,13 @@ class SchedulingTests(unittest.TestCase):
 
 
 class SDKContractTests(unittest.TestCase):
+    def setUp(self):
+        # These fixtures contain bytes, not an SDK/source distribution. Their
+        # security assertions must not depend on the developer's free space.
+        budget = patch.object(shutil, 'disk_usage', return_value=shutil._ntuple_diskusage(16*1024**3, 0, 16*1024**3))
+        budget.start()
+        self.addCleanup(budget.stop)
+
     def test_sdk_archives_support_root_and_one_enclosing_directory(self):
         for prefix in ['.', 'sdk']:
             with self.subTest(prefix=prefix), tempfile.TemporaryDirectory() as tmp:
@@ -400,6 +407,13 @@ class CrossBackendTests(unittest.TestCase):
 
 
 class SourceDistributionTests(unittest.TestCase):
+    def setUp(self):
+        # These fixtures contain bytes, not an SDK/source distribution. Their
+        # security assertions must not depend on the developer's free space.
+        budget = patch.object(shutil, 'disk_usage', return_value=shutil._ntuple_diskusage(16*1024**3, 0, 16*1024**3))
+        budget.start()
+        self.addCleanup(budget.stop)
+
     def test_reviewed_distribution_hash_is_preserved_and_cannot_be_changed(self):
         import source_archives
         library = {'source_archive': 'https://example.invalid/library-{version}.tar.gz'}
