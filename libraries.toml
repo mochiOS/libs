@@ -61,8 +61,7 @@ dependencies = ["libiconv"]
 git = "https://gitlab.gnome.org/GNOME/glib.git"
 tag_pattern = '^(?P<version>2\.[0-9]*[02468]\.[0-9]+)$'
 revision = 3
-enabled = false
-reason = "GLib/GIO res_query compile/link validation is pending against the published shared.3 SDK"
+enabled = true
 recipe = "recipes/glib/recipe.json"
 dependencies = ["zlib", "pcre2", "libffi", "libiconv", "gettext-runtime"]
 submodules = { "subprojects/gvdb" = { git = "https://gitlab.gnome.org/GNOME/gvdb.git", commit = "2b42fc75f09dbe1cd1057580b5782b08f2dcb400" } }

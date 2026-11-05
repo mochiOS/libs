@@ -1,13 +1,13 @@
 {
   "format": 1,
   "target": "x86_64-unknown-mochios",
-  "baseline_sdk": "27.0-dp.1-shared.2",
-  "status": "requirements-under-review",
+  "baseline_sdk": "27.0-dp.1-shared.3",
+  "status": "ports-in-progress",
   "ports": {
     "glib": {
       "upstream_version": "2.90.1",
       "upstream_commit": "e05063ccc6c8f222465a1080927f4c14349f3de6",
-      "status": "compiled-with-private-sdk-not-enabled-for-distribution",
+      "status": "published-sdk-compile-link-verified-build-enabled",
       "current_native_dns": [
         "A",
         "AAAA",
@@ -62,7 +62,6 @@
         "Keep new query types explicitly scoped; reject unknown kinds, malformed replies and oversized results."
       ],
       "further_limitations": [
-        "Published shared.2 does not contain the new APIs; update reviewed source locks/version and build a new SDK before enabling distribution.",
         "Startup-linked DSOs only: GModule runtime loading is unsupported.",
         "GIO native volume monitoring and FD-to-path queries are unsupported; no mount list is fabricated.",
         "Exact pending-byte count for native streams is unavailable; GSocket reports an error.",
@@ -70,23 +69,6 @@
         "No GIO TLS backend or WebKit platform integration has been added.",
         "Target execution, network operation and browser integration remain unverified."
       ],
-      "published_sdk_missing": {
-        "headers": [
-          "arpa/nameser.h",
-          "resolv.h"
-        ],
-        "functions": [
-          "res_query",
-          "dn_expand"
-        ],
-        "record_types": [
-          "NS",
-          "SOA",
-          "MX",
-          "TXT",
-          "SRV"
-        ]
-      },
       "native_implementation": {
         "syscalls_commit": "6a9a3dd2142012d4624f2decef570fcb522917f6",
         "services_commit": "c4584afa8b676211566d601ff756eb5c76dd0e50",
@@ -99,7 +81,7 @@
           "inet_aton",
           "utime"
         ],
-        "note": "Component checkout commits; no SDK/library release published"
+        "note": "Native APIs are included in the manually published shared.3 SDK; library releases remain manual."
       },
       "private_candidate_verification": {
         "glib_version": "2.90.1",
@@ -119,6 +101,48 @@
         ],
         "note": "Private SDK copy with rebuilt native runtime, headers, selected newlib fnmatch and updated driver; published shared.2 remains unchanged",
         "checked_libraries": 13
+      },
+      "resolved_sdk_requirements": {
+        "headers": [
+          "arpa/nameser.h",
+          "resolv.h"
+        ],
+        "functions": [
+          "res_query",
+          "dn_expand"
+        ],
+        "record_types": [
+          "NS",
+          "SOA",
+          "MX",
+          "TXT",
+          "SRV"
+        ]
+      },
+      "published_sdk_verification": {
+        "format": 1,
+        "sdk_version": "27.0-dp.1-shared.3",
+        "sdk_url": "https://github.com/mochiOS/devkit/releases/download/sdk-27.0-dp.1-shared.3/x86_64-mochios-sdk-27.0-dp.1-shared.3.tar.gz",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "glib_version": "2.90.1",
+        "glib_commit": "e05063ccc6c8f222465a1080927f4c14349f3de6",
+        "build": true,
+        "runtime_devel_install": true,
+        "consumer_executable_link": true,
+        "actual_imports_and_elf_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "checked_libraries": 13,
+        "shared_libraries": [
+          "libgio-2.0.so.0.9000.1",
+          "libgirepository-2.0.so.0.9000.1",
+          "libglib-2.0.so.0.9000.1",
+          "libgmodule-2.0.so.0.9000.1",
+          "libgobject-2.0.so.0.9000.1",
+          "libgthread-2.0.so.0.9000.1"
+        ],
+        "dependency_note": "Reused previously target-built ABI-1 dependency prefix; GLib/GIO rebuilt from fixed sources with downloaded shared.3 SDK.",
+        "sdk_source_pins_verified": true
       }
     },
     "webkit": {
