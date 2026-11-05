@@ -172,6 +172,30 @@
         "Compiling dependency libraries does not constitute a working WebKit port."
       ],
       "publication": "No SDK or library release is created by this porting work."
+    },
+    "nghttp2": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "HTTP/2 framing and HPACK; TLS and transport are provided separately.",
+      "verification": {
+        "format": 1,
+        "library": "nghttp2",
+        "source": {
+          "tag": "v1.71.0",
+          "version": "1.71.0",
+          "commit": "80dcb8140af050fac91a7e6af4fc6dd013404bd1",
+          "archive": {
+            "url": "https://github.com/nghttp2/nghttp2/archive/refs/tags/v1.71.0.tar.gz",
+            "sha256": "81c3702fdaee37145c875cb6d1288698e4f755558341fc85335d9750fb718f33"
+          }
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "checked_libraries": 1
+      }
     }
   }
 }

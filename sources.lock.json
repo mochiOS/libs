@@ -68,6 +68,15 @@
       "tag": "VER-2-15-0",
       "version": "2.15.0",
       "commit": "37515cf56ba3349656049edbed89ffc6f6466f2d"
+    },
+    "nghttp2": {
+      "tag": "v1.71.0",
+      "version": "1.71.0",
+      "commit": "80dcb8140af050fac91a7e6af4fc6dd013404bd1",
+      "archive": {
+        "url": "https://github.com/nghttp2/nghttp2/archive/refs/tags/v1.71.0.tar.gz",
+        "sha256": "81c3702fdaee37145c875cb6d1288698e4f755558341fc85335d9750fb718f33"
+      }
     }
   }
 }

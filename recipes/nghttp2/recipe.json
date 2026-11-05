@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "options": {
+    "ENABLE_LIB_ONLY": true,
+    "ENABLE_APP": false,
+    "ENABLE_HPACK_TOOLS": false,
+    "ENABLE_EXAMPLES": false,
+    "ENABLE_FAILMALLOC": false,
+    "ENABLE_DOC": false,
+    "BUILD_TESTING": false,
+    "BUILD_STATIC_LIBS": false
+  },
+  "licenses": [
+    "COPYING"
+  ],
+  "shared_libraries": [
+    "libnghttp2.so*"
+  ],
+  "link_libraries": [
+    "nghttp2"
+  ],
+  "pkg_config_modules": [
+    "libnghttp2"
+  ],
+  "probe": "probe.c"
+}
