@@ -271,6 +271,30 @@
         "actual_needed_closure_verified": true,
         "checked_libraries": 3
       }
+    },
+    "libpsl": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "Cookie public-suffix boundaries with full IDNA runtime conversion",
+      "verification": {
+        "format": 1,
+        "library": "libpsl",
+        "source": {
+          "tag": "0.23.3",
+          "version": "0.23.3",
+          "commit": "c486db8d221cbac55f87508d4da4db4497760997"
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "actual_needed_closure_verified": true,
+        "checked_libraries": 4,
+        "list_commit": "e1b8015c3b2f0f4f8c18659c2480fc1a22c07b20",
+        "list_timestamp": 1784989194,
+        "generation_independent_of_checkout_mtime": true
+      }
     }
   }
 }

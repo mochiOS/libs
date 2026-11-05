@@ -100,6 +100,11 @@
         "url": "https://ftp.gnu.org/gnu/libidn/libidn2-2.3.8.tar.gz",
         "sha256": "f557911bf6171621e1f72ff35f5b1825bb35b52ed45325dcdee931e5d3c0787a"
       }
+    },
+    "libpsl": {
+      "tag": "0.23.3",
+      "version": "0.23.3",
+      "commit": "c486db8d221cbac55f87508d4da4db4497760997"
     }
   }
 }

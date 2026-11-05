@@ -26,7 +26,7 @@ UNAVAILABLE_SDK = dict(format=1, available=False, target=libs.TARGET, abi=libs.A
 class RegistryTests(unittest.TestCase):
     def test_real_catalog_and_offline_plan_follow_the_sdk_lock(self):
         catalog = libs.read_catalog()
-        self.assertEqual(libs.order(catalog), ['zlib', 'libpng', 'pcre2', 'libffi', 'libiconv', 'gettext-runtime', 'glib', 'libjpeg-turbo', 'libwebp', 'brotli', 'libxml2', 'freetype', 'nghttp2', 'sqlite', 'libunistring', 'libidn2'])
+        self.assertEqual(libs.order(catalog), ['zlib', 'libpng', 'pcre2', 'libffi', 'libiconv', 'gettext-runtime', 'glib', 'libjpeg-turbo', 'libwebp', 'brotli', 'libxml2', 'freetype', 'nghttp2', 'sqlite', 'libunistring', 'libidn2', 'libpsl'])
         self.assertFalse(catalog['libraries']['webkit']['enabled'])
         self.assertTrue(catalog['libraries']['glib']['enabled'])
         plan = libs.make_plan(ROOT)

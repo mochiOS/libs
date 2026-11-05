@@ -1,0 +1,32 @@
+--- a/meson.build
++++ b/meson.build
+@@ -182,7 +182,7 @@
+ 
+ subdir('include')
+ subdir('src')
+-subdir('tools')
++# The SDK package builds the library; command-line applications are separate.
+ if get_option('tests')
+   subdir('tests')
+   subdir('fuzz')
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -53,5 +53,5 @@
+   include_directories : includedir,
+   compile_args : interface_cargs)
+ 
+-install_data('psl-make-dafsa', install_dir : get_option('bindir'))
++# Keep the build-time Python generator out of the library SDK.
+ install_man('psl-make-dafsa.1')
+--- a/src/psl-make-dafsa
++++ b/src/psl-make-dafsa
+@@ -513,7 +513,8 @@
+ def to_cxx_plus(data, codecs):
+   """Generates C/C++ code from a word list plus some variable assignments as needed by libpsl"""
+   text = to_cxx(data, codecs)
+-  text += b'static time_t _psl_file_time = %d;\n' % os.stat(psl_input_file).st_mtime
++  # Immutable list snapshot e1b8015c3b2f0f4f8c18659c2480fc1a22c07b20.
++  text += b'static time_t _psl_file_time = %d;\n' % 1784989194
+   text += b'static int _psl_nsuffixes = %d;\n' % psl_nsuffixes
+   text += b'static int _psl_nexceptions = %d;\n' % psl_nexceptions
+   text += b'static int _psl_nwildcards = %d;\n' % psl_nwildcards
