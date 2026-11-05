@@ -9,7 +9,7 @@ prerelease = true
 [libraries.zlib]
 git = "https://github.com/madler/zlib.git"
 tag_pattern = '^v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
-revision = 3
+revision = 4
 enabled = true
 recipe = "recipes/zlib/recipe.json"
 dependencies = []
@@ -17,7 +17,7 @@ dependencies = []
 [libraries.libpng]
 git = "https://github.com/pnggroup/libpng.git"
 tag_pattern = '^v(?P<version>1\.6\.[0-9]+)$'
-revision = 3
+revision = 4
 enabled = true
 recipe = "recipes/libpng/recipe.json"
 dependencies = ["zlib"]
@@ -25,7 +25,7 @@ dependencies = ["zlib"]
 [libraries.pcre2]
 git = "https://github.com/PCRE2Project/pcre2.git"
 tag_pattern = '^pcre2-(?P<version>[0-9]+\.[0-9]+)$'
-revision = 1
+revision = 2
 enabled = true
 recipe = "recipes/pcre2/recipe.json"
 dependencies = []
@@ -34,7 +34,7 @@ submodules = { "deps/sljit" = { git = "https://github.com/zherczeg/sljit.git", c
 [libraries.libffi]
 git = "https://github.com/libffi/libffi.git"
 tag_pattern = '^v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
-revision = 1
+revision = 2
 enabled = true
 recipe = "recipes/libffi/recipe.json"
 dependencies = []
@@ -43,7 +43,7 @@ dependencies = []
 git = "https://https.git.savannah.gnu.org/git/libiconv.git"
 tag_pattern = '^v(?P<version>[0-9]+\.[0-9]+(?:\.[0-9]+)?)$'
 source_archive = "https://ftp.gnu.org/gnu/libiconv/libiconv-{version}.tar.gz"
-revision = 1
+revision = 2
 enabled = true
 recipe = "recipes/libiconv/recipe.json"
 dependencies = []
@@ -52,7 +52,7 @@ dependencies = []
 git = "https://https.git.savannah.gnu.org/git/gettext.git"
 tag_pattern = '^v(?P<version>[0-9]+\.[0-9]+(?:\.[0-9]+)?)$'
 source_archive = "https://ftp.gnu.org/gnu/gettext/gettext-{version}.tar.gz"
-revision = 1
+revision = 2
 enabled = true
 recipe = "recipes/gettext-runtime/recipe.json"
 dependencies = ["libiconv"]
@@ -62,7 +62,7 @@ git = "https://gitlab.gnome.org/GNOME/glib.git"
 tag_pattern = '^(?P<version>2\.[0-9]*[02468]\.[0-9]+)$'
 revision = 3
 enabled = false
-reason = "Published SDK shared.2 lacks res_query and the native resolver API; a private candidate compiled GLib/GIO, but a new source-pinned SDK and runtime validation are still required"
+reason = "GLib/GIO res_query compile/link validation is pending against the published shared.3 SDK"
 recipe = "recipes/glib/recipe.json"
 dependencies = ["zlib", "pcre2", "libffi", "libiconv", "gettext-runtime"]
 submodules = { "subprojects/gvdb" = { git = "https://gitlab.gnome.org/GNOME/gvdb.git", commit = "2b42fc75f09dbe1cd1057580b5782b08f2dcb400" } }
@@ -70,7 +70,7 @@ submodules = { "subprojects/gvdb" = { git = "https://gitlab.gnome.org/GNOME/gvdb
 [libraries.libjpeg-turbo]
 git = "https://github.com/libjpeg-turbo/libjpeg-turbo.git"
 tag_pattern = '^(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
-revision = 1
+revision = 2
 enabled = true
 recipe = "recipes/libjpeg-turbo/recipe.json"
 dependencies = []
@@ -78,7 +78,7 @@ dependencies = []
 [libraries.libwebp]
 git = "https://github.com/webmproject/libwebp.git"
 tag_pattern = '^v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
-revision = 1
+revision = 2
 enabled = true
 recipe = "recipes/libwebp/recipe.json"
 dependencies = []
@@ -86,7 +86,7 @@ dependencies = []
 [libraries.brotli]
 git = "https://github.com/google/brotli.git"
 tag_pattern = '^v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
-revision = 1
+revision = 2
 enabled = true
 recipe = "recipes/brotli/recipe.json"
 dependencies = []
@@ -94,7 +94,7 @@ dependencies = []
 [libraries.libxml2]
 git = "https://gitlab.gnome.org/GNOME/libxml2.git"
 tag_pattern = '^v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
-revision = 1
+revision = 2
 enabled = true
 recipe = "recipes/libxml2/recipe.json"
 dependencies = ["libiconv"]
@@ -102,7 +102,7 @@ dependencies = ["libiconv"]
 [libraries.freetype]
 git = "https://github.com/freetype/freetype.git"
 tag_pattern = '^VER-(?P<version>[0-9]+-[0-9]+-[0-9]+)$'
-revision = 1
+revision = 2
 enabled = true
 recipe = "recipes/freetype/recipe.json"
 dependencies = ["zlib", "libpng", "brotli"]
