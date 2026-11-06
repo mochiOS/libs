@@ -527,6 +527,48 @@
         "production_container_build_tested": false,
         "payload_and_pkgconfig_checked": true
       }
+    },
+    "libgcrypt": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "WebKit cryptographic primitives using the upstream implementation and native SDK entropy.",
+      "entropy": "Use only the upstream getentropy collector through the existing SDK RandomFill interface. No /dev/random fallback, jitter collector, direct hardware DRNG source, fake entropy or additional capability grants. Upstream entropy errors remain fatal.",
+      "threading": "Probe pthread_create in libc before searching for a separate pthread library; use libgpg-error native locks.",
+      "verification": {
+        "format": 1,
+        "library": "libgcrypt",
+        "source": {
+          "git": "https://github.com/gpg/libgcrypt.git",
+          "tag": "libgcrypt-1.12.4",
+          "version": "1.12.4",
+          "commit": "9a53b01742be48c50c3f4340b8e839010bc55d92",
+          "archive": {
+            "url": "https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.12.4.tar.bz2",
+            "sha256": "d77f68f48879510e79a2f65977ccc68981781ea0923e5bdffac2a193ea3d660e"
+          }
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "c_and_cpp_consumers_linked": true,
+        "payload_and_pkgconfig_checked": true,
+        "host_reference_tests": [
+          "SHA-256 known vector",
+          "AES-128-GCM encryption/decryption known vectors",
+          "modified authentication tag rejected",
+          "native getentropy-backed random request",
+          "upstream basic",
+          "upstream random",
+          "upstream t-lock",
+          "upstream t-secmem"
+        ]
+      },
+      "limitations": [
+        "The pinned SDK does not expose mlock; the upstream secure allocator cannot provide OS-backed locked memory on this target.",
+        "Target execution and native entropy/locking behavior remain unverified; Linux reference tests do not establish mochiOS runtime behavior."
+      ]
     }
   },
   "build_infrastructure": {

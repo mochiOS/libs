@@ -1,0 +1,137 @@
+--- a/build-aux/config.sub
++++ b/build-aux/config.sub
+@@ -1754,7 +1754,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* )
++	     | mochios* | fiwix* )
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+--- a/configure
++++ b/configure
+@@ -8035,6 +8035,9 @@
+ # whether 'pass_all' will *always* work, you probably want this one.
+ 
+ case $host_os in
++mochios*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
+ aix[4-9]*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+@@ -12379,6 +12382,14 @@
+   else
+     # PORTME fill in a description of your system's linker (not GNU ld)
+     case $host_os in
++    mochios*)
++      archive_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname,$soname -o $lib'
++      archive_expsym_cmds=
++      hardcode_libdir_flag_spec=
++      hardcode_direct=no
++      hardcode_shlibpath_var=no
++      archive_cmds_need_lc=no
++      ;;
+     aix3*)
+       allow_undefined_flag=unsupported
+       always_export_symbols=yes
+@@ -13585,6 +13596,21 @@
+ 
+ 
+ case $host_os in
++mochios*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  dynamic_linker='mochiOS startup package loader'
++  shlibpath_var=
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=no
++  hardcode_libdir_flag_spec=
++  sys_lib_search_path_spec=
++  sys_lib_dlsearch_path_spec=
++  finish_cmds=
++  ;;
+ aix3*)
+   version_type=linux # correct to gnu/linux during the next big refactor
+   library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
+@@ -16963,6 +16989,14 @@
+ #
+ # gpg-error is required.
+ #
++case "$host_os" in
++  mochios*)
++    test -n "$PKG_CONFIG_SYSROOT_DIR" || { echo "missing target dependency sysroot" >&2; exit 1; }
++    GPGRT_CONFIG="$PKG_CONFIG_SYSROOT_DIR/usr/bin/gpgrt-config"
++    test -x "$GPGRT_CONFIG" || { echo "missing target gpgrt-config" >&2; exit 1; }
++    ;;
++esac
++
+   gpg_error_config_prefix=""
+ 
+ # Check whether --with-libgpg-error-prefix was given.
+@@ -17282,6 +17316,12 @@
+ #
+ # Check whether pthreads is available
+ #
++case "$host_os" in
++  mochios*)
++    ac_fn_c_check_func "$LINENO" "pthread_create" "ac_cv_func_pthread_create"
++    if test "$ac_cv_func_pthread_create" = yes; then have_pthread=yes; fi
++    ;;
++esac
+ if test "$have_w32_system" != yes && test "$have_pthread" != yes; then
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lpthread" >&5
+ printf %s "checking for pthread_create in -lpthread... " >&6; }
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -111,7 +111,7 @@
+ POST_UNINSTALL = :
+ build_triplet = @build@
+ host_triplet = @host@
+-bin_PROGRAMS = dumpsexp$(EXEEXT) hmac256$(EXEEXT) mpicalc$(EXEEXT)
++bin_PROGRAMS =
+ @USE_HMAC_BINARY_CHECK_TRUE@am__append_1 = libgcrypt.so.hmac
+ subdir = src
+ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -36,7 +36,7 @@
+ nodist_include_HEADERS = gcrypt.h
+ 
+ lib_LTLIBRARIES = libgcrypt.la
+-bin_PROGRAMS = dumpsexp hmac256 mpicalc
++bin_PROGRAMS =
+ 
+ AM_CFLAGS = $(GPG_ERROR_CFLAGS)
+ AM_CCASFLAGS = $(NOEXECSTACK_FLAGS)
+--- a/configure.ac
++++ b/configure.ac
+@@ -827,6 +827,14 @@
+ #
+ # gpg-error is required.
+ #
++case "$host_os" in
++  mochios*)
++    test -n "$PKG_CONFIG_SYSROOT_DIR" || { echo "missing target dependency sysroot" >&2; exit 1; }
++    GPGRT_CONFIG="$PKG_CONFIG_SYSROOT_DIR/usr/bin/gpgrt-config"
++    test -x "$GPGRT_CONFIG" || { echo "missing target gpgrt-config" >&2; exit 1; }
++    ;;
++esac
++
+ AM_PATH_GPG_ERROR("$NEED_GPG_ERROR_VERSION")
+ if test "x$GPG_ERROR_LIBS" = "x"; then
+   AC_MSG_ERROR([libgpg-error is needed.
+@@ -842,6 +850,9 @@
+ #
+ # Check whether pthreads is available
+ #
++case "$host_os" in
++  mochios*) AC_CHECK_FUNC([pthread_create], [have_pthread=yes]) ;;
++esac
+ if test "$have_w32_system" != yes && test "$have_pthread" != yes; then
+   AC_CHECK_LIB(pthread,pthread_create,have_pthread=yes)
+ fi

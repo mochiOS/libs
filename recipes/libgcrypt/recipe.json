@@ -1,0 +1,42 @@
+{
+  "format": 1,
+  "backend": "autotools",
+  "configure": [
+    "--disable-doc",
+    "--disable-dev-random",
+    "--enable-random=getentropy",
+    "--disable-jent-support",
+    "--disable-drng-support"
+  ],
+  "build_subdirs": [
+    "compat",
+    "mpi",
+    "cipher",
+    "random",
+    "src"
+  ],
+  "install_subdirs": [
+    "src"
+  ],
+  "licenses": [
+    "COPYING",
+    "COPYING.LIB",
+    "LICENSES"
+  ],
+  "shared_libraries": [
+    "libgcrypt.so*"
+  ],
+  "link_libraries": [
+    "gcrypt"
+  ],
+  "pkg_config_modules": [
+    "libgcrypt"
+  ],
+  "config_scripts": [
+    "usr/bin/libgcrypt-config"
+  ],
+  "probe": "probe.c",
+  "patches": [
+    "mochios.patch"
+  ]
+}

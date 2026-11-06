@@ -152,6 +152,15 @@
         "url": "https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.61.tar.bz2",
         "sha256": "7a85413f2bc354f4f8aa832b718af122e48965e9e0eb9012ee659c13c6385c93"
       }
+    },
+    "libgcrypt": {
+      "tag": "libgcrypt-1.12.4",
+      "version": "1.12.4",
+      "commit": "9a53b01742be48c50c3f4340b8e839010bc55d92",
+      "archive": {
+        "url": "https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.12.4.tar.bz2",
+        "sha256": "d77f68f48879510e79a2f65977ccc68981781ea0923e5bdffac2a193ea3d660e"
+      }
     }
   }
 }

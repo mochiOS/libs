@@ -220,3 +220,12 @@ revision = 1
 enabled = true
 recipe = "recipes/libgpg-error/recipe.json"
 dependencies = []
+
+[libraries.libgcrypt]
+git = "https://github.com/gpg/libgcrypt.git"
+tag_pattern = '^libgcrypt-(?P<version>1\.[0-9]*[02468]\.[0-9]+)$'
+source_archive = "https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-{version}.tar.bz2"
+revision = 1
+enabled = true
+recipe = "recipes/libgcrypt/recipe.json"
+dependencies = ["libgpg-error"]
