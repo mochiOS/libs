@@ -177,3 +177,11 @@ enabled = false
 recipe = "recipes/glib-networking/recipe.json"
 dependencies = ["glib"]
 reason = "Native TLS provider cross-linked and host-tested; requires an unpublished SDK TLS archive and mochiOS runtime verification."
+
+[libraries.expat]
+git = "https://github.com/libexpat/libexpat.git"
+tag_pattern = '^R_(?P<version>[0-9]+_[0-9]+_[0-9]+)$'
+revision = 1
+enabled = true
+recipe = "recipes/expat/recipe.json"
+dependencies = []

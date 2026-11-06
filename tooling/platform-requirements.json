@@ -396,6 +396,27 @@
         "Bounded to 16 concurrent native sessions per linked provider; fork children invalidate inherited sessions.",
         "New SDK/archive distribution and mochiOS execution are required before enabling this port."
       ]
+    },
+    "expat": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "XML parser for Fontconfig configuration.",
+      "entropy": "Use the SDK arc4random_buf implementation; Linux SYS_getrandom and /dev/urandom fallback paths are disabled.",
+      "verification": {
+        "format": 1,
+        "library": "expat",
+        "source": {
+          "git": "https://github.com/libexpat/libexpat.git",
+          "tag": "R_2_10_0",
+          "version": "2.10.0",
+          "commit": "a70841d9ffa64ddde29ab824ed6305035ebe4c47"
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false
+      }
     }
   },
   "build_infrastructure": {

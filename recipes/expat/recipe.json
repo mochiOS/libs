@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "subdirectory": "expat",
+  "options": {
+    "EXPAT_BUILD_TOOLS": false,
+    "EXPAT_BUILD_EXAMPLES": false,
+    "EXPAT_BUILD_TESTS": false,
+    "EXPAT_BUILD_DOCS": false,
+    "EXPAT_BUILD_FUZZERS": false,
+    "EXPAT_SHARED_LIBS": true,
+    "EXPAT_BUILD_PKGCONFIG": true,
+    "EXPAT_WITH_ARC4RANDOM_BUF": "ON",
+    "EXPAT_WITH_ARC4RANDOM": "OFF",
+    "EXPAT_WITH_GETENTROPY": "OFF",
+    "EXPAT_WITH_GETRANDOM": "OFF",
+    "EXPAT_WITH_SYS_GETRANDOM": "OFF",
+    "EXPAT_DEV_URANDOM": false
+  },
+  "licenses": [
+    "expat/COPYING"
+  ],
+  "shared_libraries": [
+    "libexpat.so*"
+  ],
+  "link_libraries": [
+    "expat"
+  ],
+  "pkg_config_modules": [
+    "expat"
+  ],
+  "probe": "probe.c"
+}
