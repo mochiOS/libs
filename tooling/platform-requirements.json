@@ -173,6 +173,38 @@
         ],
         "scope": "No new TLS engine, certificate store, AppCore API or service was introduced by this dependency port.",
         "runtime_tested": false
+      },
+      "library_only_install": {
+        "excluded_command_line_tools": [
+          "gi-compile-repository",
+          "gi-decompile-typelib",
+          "gi-inspect-typelib"
+        ],
+        "upstream_install_tag": "bin-devel",
+        "selected_install_tags": [
+          "runtime",
+          "devel"
+        ],
+        "verification": {
+          "format": 1,
+          "library": "glib",
+          "source": {
+            "git": "https://gitlab.gnome.org/GNOME/glib.git",
+            "tag": "2.90.1",
+            "version": "2.90.1",
+            "commit": "e05063ccc6c8f222465a1080927f4c14349f3de6"
+          },
+          "sdk": "27.0-dp.1-shared.3",
+          "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+          "compile_link_passed": true,
+          "elf_and_actual_imports_verified": true,
+          "runtime_tested": false,
+          "production_container_build_tested": false,
+          "all_installed_elf_validated_as_shared": true,
+          "installed_shared_elf_count": 6,
+          "full_payload_inventory_checked": true
+        },
+        "ci_failure_evidence": "https://github.com/mochiOS/libs/actions/runs/42218364025"
       }
     },
     "webkit": {

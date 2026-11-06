@@ -326,6 +326,16 @@ class ArtifactTests(unittest.TestCase):
             binary=root/'host.so'; subprocess.run(['cc','-shared','-fPIC',str(source),'-o',str(binary)],check=True)
             with self.assertRaisesRegex(ValueError,'glibc'): container_build.validate_elf(binary,shared=True)
 
+    def test_target_cli_cannot_be_accepted_as_a_shared_library(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=root/'command.c';program=root/'gi-compile-repository'
+            source.write_text('void fixture_entry(void) { for (;;) {} }\n')
+            # Build an executable ELF without any glibc dependency; do not run it.
+            subprocess.run(['cc','-nostdlib','-no-pie','-fno-pie','-Wl,-e,fixture_entry',
+                            str(source),'-o',str(program)],check=True)
+            with self.assertRaisesRegex(ValueError,'Not a shared library'):
+                container_build.validate_elf(program,shared=True)
+
     @patch.object(libs, 'sdk_lock', return_value=UNAVAILABLE_SDK)
     def test_no_sdk_means_publish_does_not_call_github(self, _sdk):
         with tempfile.TemporaryDirectory() as tmp, patch.object(releases,'release_metadata') as github:

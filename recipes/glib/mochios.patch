@@ -238,3 +238,31 @@
  python_version = python.language_version()
  python_version_req = '>=3.7'
  python_test_libraries_path = meson.project_source_root() / 'tests' / 'lib'
+--- a/girepository/compiler/meson.build
++++ b/girepository/compiler/meson.build
+@@ -23,6 +23,7 @@
+     app_profile_dep,
+   ],
+   install: true,
++  install_tag: 'bin-devel',
+   c_args: custom_c_args,
+ )
+ 
+--- a/girepository/decompiler/meson.build
++++ b/girepository/decompiler/meson.build
+@@ -23,5 +23,6 @@
+     app_profile_dep,
+   ],
+   install: true,
++  install_tag: 'bin-devel',
+   c_args: custom_c_args,
+ )
+--- a/girepository/inspector/meson.build
++++ b/girepository/inspector/meson.build
+@@ -22,5 +22,6 @@
+     app_profile_dep,
+   ],
+   install: true,
++  install_tag: 'bin-devel',
+   c_args: custom_c_args,
+ )

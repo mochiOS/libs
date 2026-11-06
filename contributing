@@ -163,6 +163,10 @@ platform-integration requirements are satisfied.
 See tooling/platform-requirements.json for each port's verification evidence
 and limitations. mochiOS uses startup-linked shared libraries; successful
 cross-compilation does not establish runtime loading or native OS behavior.
+GLib's runtime/devel install contains libraries, headers and code generators.
+The gi-compile-repository, gi-decompile-typelib and gi-inspect-typelib command
+line tools are bin-devel targets and are excluded from this library-only
+package. Installed ELF validation still rejects executables.
 Libgcrypt uses the SDK getentropy interface and native libgpg-error locks.
 The pinned SDK does not provide mlock, so OS-backed locked memory is not
 available in this port. Linux reference tests do not verify mochiOS runtime.

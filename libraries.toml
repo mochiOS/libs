@@ -60,7 +60,7 @@ dependencies = ["libiconv"]
 [libraries.glib]
 git = "https://gitlab.gnome.org/GNOME/glib.git"
 tag_pattern = '^(?P<version>2\.[0-9]*[02468]\.[0-9]+)$'
-revision = 9
+revision = 10
 enabled = true
 recipe = "recipes/glib/recipe.json"
 dependencies = ["zlib", "pcre2", "libffi", "libiconv", "gettext-runtime"]
@@ -207,7 +207,7 @@ dependencies = []
 git = "https://github.com/harfbuzz/harfbuzz.git"
 tag_pattern = '^(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
 source_archive = "https://github.com/harfbuzz/harfbuzz/releases/download/{version}/harfbuzz-{version}.tar.xz"
-revision = 4
+revision = 5
 enabled = true
 recipe = "recipes/harfbuzz/recipe.json"
 dependencies = ["freetype", "glib", "icu"]
