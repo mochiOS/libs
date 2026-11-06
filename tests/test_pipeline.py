@@ -432,12 +432,18 @@ class SourceDistributionTests(unittest.TestCase):
         library = {'source_archive': 'https://github.com/unicode-org/icu/releases/download/release-{version_dash}/icu4c-{version_underscore}-src.tgz'}
         self.assertEqual(source_archives.release_url(library, '77.1', libs),
                          'https://github.com/unicode-org/icu/releases/download/release-77-1/icu4c-77_1-src.tgz')
-        for token in ['{version.__class__}', '{version[0]}', '{version!r}', '{version:10}', '{token}', '{version}/{version}']:
+        for token in ['{version.__class__}', '{version[0]}', '{version!r}', '{version:10}', '{token}']:
             with self.subTest(token=token), self.assertRaises(ValueError):
                 source_archives.release_url({'source_archive': 'https://example.invalid/'+token}, '77.1', libs)
         for version in ['../77.1', '77.1?secret=1', '77_1', 'v77.1']:
             with self.subTest(version=version), self.assertRaises(ValueError):
                 source_archives.release_url(library, version, libs)
+
+    def test_official_archive_can_repeat_a_numeric_version(self):
+        import source_archives
+        library = {'source_archive': 'https://github.com/harfbuzz/harfbuzz/releases/download/{version}/harfbuzz-{version}.tar.xz'}
+        self.assertEqual(source_archives.release_url(library, '15.1.0', libs),
+                         'https://github.com/harfbuzz/harfbuzz/releases/download/15.1.0/harfbuzz-15.1.0.tar.xz')
 
     def test_distribution_cache_is_checked_against_its_complete_inventory(self):
         import source_archives

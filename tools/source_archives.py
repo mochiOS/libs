@@ -28,7 +28,7 @@ def release_url(library, version, helpers):
     for _, field, spec, conversion in string.Formatter().parse(template):
         if field is None:
             continue
-        if field not in values or spec or conversion or field in fields:
+        if field not in values or spec or conversion:
             raise ValueError('Invalid source archive version placeholder')
         fields.append(field)
     if not fields:
