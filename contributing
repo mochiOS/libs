@@ -265,3 +265,10 @@ Settings -> Actions -> General -> Workflow permissions -> enable
 "Allow GitHub Actions to create and approve pull requests". Keep default
 workflow permissions read-only; only the PR job requests contents, pull-request
 and commit-status writes. The automation never submits approving PR reviews.
+
+The organization policy must also allow this combined GitHub setting. A 409
+response stating that the organization forbids PR creation/approval cannot be
+resolved at repository level. An organization administrator must enable the
+same option in mochiOS organization Settings -> Actions -> General before
+the repository option can be enabled. This is an organization-wide policy;
+the automation does not change it or substitute a personal access token.
