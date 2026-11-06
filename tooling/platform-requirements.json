@@ -468,6 +468,38 @@
         "c_and_cpp_header_consumers_linked": true,
         "payload_inventory_and_pkgconfig_paths_checked": true
       }
+    },
+    "harfbuzz": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "WebKit text shaping with the required separate ICU integration library.",
+      "features": {
+        "glib": true,
+        "freetype": true,
+        "icu": true,
+        "icu_builtin": false,
+        "optional_gpu_raster_utilities_tests_and_language_bindings": false
+      },
+      "verification": {
+        "format": 1,
+        "library": "harfbuzz",
+        "source": {
+          "tag": "15.1.0",
+          "version": "15.1.0",
+          "commit": "3df40d9b98d6b32f0e4288d4ecfbb158ddb3a372",
+          "archive": {
+            "url": "https://github.com/harfbuzz/harfbuzz/releases/download/15.1.0/harfbuzz-15.1.0.tar.xz",
+            "sha256": "0fc7c565443a5f4be7da65ac5ee5bd737d9b158dc908708b7689a0a5796b0c8d"
+          },
+          "git": "https://github.com/harfbuzz/harfbuzz.git"
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "payload_inventory_and_pkgconfig_paths_checked": true
+      }
     }
   },
   "build_infrastructure": {

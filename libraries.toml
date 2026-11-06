@@ -202,3 +202,12 @@ revision = 1
 enabled = true
 recipe = "recipes/icu/recipe.json"
 dependencies = []
+
+[libraries.harfbuzz]
+git = "https://github.com/harfbuzz/harfbuzz.git"
+tag_pattern = '^(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
+source_archive = "https://github.com/harfbuzz/harfbuzz/releases/download/{version}/harfbuzz-{version}.tar.xz"
+revision = 1
+enabled = true
+recipe = "recipes/harfbuzz/recipe.json"
+dependencies = ["freetype", "glib", "icu"]
