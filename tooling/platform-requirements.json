@@ -417,6 +417,28 @@
         "runtime_tested": false,
         "production_container_build_tested": false
       }
+    },
+    "fontconfig": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "Native font discovery and Expat-based font configuration for the WebKit text stack.",
+      "platform": "Only declared optional APIs are enabled; the random-state backend requires random/initstate/setstate together.",
+      "configuration": "Use the existing /system/libraries/fonts directory. Do not execute target cache tools while cross-building.",
+      "verification": {
+        "format": 1,
+        "library": "fontconfig",
+        "source": {
+          "git": "https://gitlab.freedesktop.org/fontconfig/fontconfig.git",
+          "tag": "2.18.3",
+          "version": "2.18.3",
+          "commit": "0f236723a3c26bd9745e32ba2b3ee21e5f809295"
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false
+      }
     }
   },
   "build_infrastructure": {

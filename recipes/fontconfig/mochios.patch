@@ -1,0 +1,19 @@
+--- a/meson.build
++++ b/meson.build
+@@ -278,6 +278,16 @@
+   extra_deps = opts.get('dependencies', [])
+   prefix = opts.get('prefix', '')
+ 
++  # A linkable optional symbol does not establish its public C declaration.
++  # Some SDKs export these extensions without exposing them in stdlib.h.
++  if name in ['getexecname', 'getprogname'] and not cc.has_header_symbol('stdlib.h', name)
++    continue
++  endif
++  # This backend saves and restores the process random state. All three
++  # functions are required before fccompat.c can use the random() branch.
++  if name == 'random' and (not cc.has_function('initstate') or not cc.has_function('setstate'))
++    continue
++  endif
+   if cc.has_function(name, dependencies: extra_deps, prefix: prefix)
+     conf.set('HAVE_@0@'.format(name.to_upper()), 1)
+   endif

@@ -120,6 +120,11 @@
       "tag": "R_2_10_0",
       "version": "2.10.0",
       "commit": "a70841d9ffa64ddde29ab824ed6305035ebe4c47"
+    },
+    "fontconfig": {
+      "tag": "2.18.3",
+      "version": "2.18.3",
+      "commit": "0f236723a3c26bd9745e32ba2b3ee21e5f809295"
     }
   }
 }

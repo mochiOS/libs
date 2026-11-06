@@ -1,0 +1,43 @@
+{
+  "format": 1,
+  "backend": "meson",
+  "options": {
+    "doc": "disabled",
+    "doc-txt": "disabled",
+    "doc-man": "disabled",
+    "doc-pdf": "disabled",
+    "doc-html": "disabled",
+    "nls": "disabled",
+    "tests": "disabled",
+    "tests-bwrap": "disabled",
+    "tests-external-fonts": "disabled",
+    "tools": "disabled",
+    "cache-build": "disabled",
+    "iconv": "disabled",
+    "fontations": "disabled",
+    "xml-backend": "expat",
+    "default-fonts-dirs": "['/system/libraries/fonts']",
+    "additional-fonts-dirs": "[]",
+    "sysconfdir": "share/fontconfig"
+  },
+  "install_tags": [
+    "runtime",
+    "devel"
+  ],
+  "licenses": [
+    "COPYING"
+  ],
+  "shared_libraries": [
+    "libfontconfig.so*"
+  ],
+  "link_libraries": [
+    "fontconfig"
+  ],
+  "pkg_config_modules": [
+    "fontconfig"
+  ],
+  "probe": "probe.c",
+  "patches": [
+    "mochios.patch"
+  ]
+}
