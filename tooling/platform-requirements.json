@@ -569,6 +569,40 @@
         "The pinned SDK does not expose mlock; the upstream secure allocator cannot provide OS-backed locked memory on this target.",
         "Target execution and native entropy/locking behavior remain unverified; Linux reference tests do not establish mochiOS runtime behavior."
       ]
+    },
+    "libtasn1": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "ASN.1 DER parser required by WebKit.",
+      "platform": "Use native ELF/PIC library rules. Skip test-locale runtime discovery during cross-configure; no target executable is needed for the final cross build.",
+      "packaging": "Install only libtasn1 and its public headers/pkg-config metadata; no target ASN.1 CLI tools.",
+      "verification": {
+        "format": 1,
+        "library": "libtasn1",
+        "source": {
+          "git": "https://gitlab.com/gnutls/libtasn1.git",
+          "tag": "v4.21.0",
+          "version": "4.21.0",
+          "commit": "4c9554ea0307678abc7952ee301aa5f68aa64aad",
+          "archive": {
+            "url": "https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.21.0.tar.gz",
+            "sha256": "1d8a444a223cc5464240777346e125de51d8e6abf0b8bac742ac84609167dc87"
+          }
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "payload_and_pkgconfig_checked": true,
+        "host_der_probe_passed": true,
+        "host_upstream_tests": {
+          "total": 31,
+          "passed": 31,
+          "failed": 0,
+          "skipped": 0
+        }
+      }
     }
   },
   "build_infrastructure": {

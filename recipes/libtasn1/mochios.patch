@@ -1,0 +1,69 @@
+--- a/build-aux/config.sub
++++ b/build-aux/config.sub
+@@ -2010,7 +2010,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
+-	| fiwix* \
++	| mochios* | fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \
+ 	| genix* \
+--- a/configure
++++ b/configure
+@@ -9194,6 +9194,9 @@
+ # whether 'pass_all' will *always* work, you probably want this one.
+ 
+ case $host_os in
++mochios*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
+ aix[4-9]*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+@@ -13583,6 +13586,14 @@
+   else
+     # PORTME fill in a description of your system's linker (not GNU ld)
+     case $host_os in
++    mochios*)
++      archive_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname,$soname -o $lib'
++      archive_expsym_cmds=
++      hardcode_libdir_flag_spec=
++      hardcode_direct=no
++      hardcode_shlibpath_var=no
++      archive_cmds_need_lc=no
++      ;;
+     aix3*)
+       allow_undefined_flag=unsupported
+       always_export_symbols=yes
+@@ -14793,6 +14804,21 @@
+ 
+ 
+ case $host_os in
++mochios*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  dynamic_linker='mochiOS startup package loader'
++  shlibpath_var=
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=no
++  hardcode_libdir_flag_spec=
++  sys_lib_search_path_spec=
++  sys_lib_dlsearch_path_spec=
++  finish_cmds=
++  ;;
+ aix3*)
+   version_type=linux # correct to gnu/linux during the next big refactor
+   library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
+@@ -19938,6 +19964,8 @@
+ 
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for an english Unicode locale" >&5
+ printf %s "checking for an english Unicode locale... " >&6; }
++# A target test locale cannot be discovered by executing target binaries here.
++if test "$cross_compiling" = yes; then gt_cv_locale_en_utf8=none; fi
+ if test ${gt_cv_locale_en_utf8+y}
+ then :
+   printf %s "(cached) " >&6

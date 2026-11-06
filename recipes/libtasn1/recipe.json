@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "backend": "autotools",
+  "configure": [
+    "--disable-doc",
+    "--disable-gtk-doc",
+    "--disable-valgrind-tests"
+  ],
+  "build_subdirs": [
+    "lib"
+  ],
+  "install_subdirs": [
+    "lib"
+  ],
+  "licenses": [
+    "COPYING",
+    "COPYING.LESSERv2"
+  ],
+  "shared_libraries": [
+    "libtasn1.so*"
+  ],
+  "link_libraries": [
+    "tasn1"
+  ],
+  "pkg_config_modules": [
+    "libtasn1"
+  ],
+  "probe": "probe.c",
+  "patches": [
+    "mochios.patch"
+  ]
+}
