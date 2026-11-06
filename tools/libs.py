@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Track upstream Git tags, freeze inputs, build isolated target libraries and publish verified releases."""
 import argparse
+import codecs
 import configparser
 import gzip
 import hashlib
@@ -16,6 +17,7 @@ import tempfile
 import tomllib
 import urllib.request
 import urllib.parse
+import uuid
 
 import source_archives
 
@@ -232,13 +234,36 @@ def clean_environment():
 
 
 def run(args, *, cwd=None, log=None, env=None):
-    """Run a command without shell interpolation, retaining complete failures when a log is supplied."""
-    if log:
-        log.parent.mkdir(parents=True, exist_ok=True)
-        with log.open('a') as output:
-            subprocess.run([str(a) for a in args], cwd=cwd, env=env or clean_environment(), stdout=output, stderr=subprocess.STDOUT, check=True)
-    else:
-        return subprocess.check_output([str(a) for a in args], cwd=cwd, env=env or clean_environment(), text=True).strip()
+    """Stream logged stdout/stderr to the console and an exact append-only log; preserve failures."""
+    argv = [str(arg) for arg in args]
+    if not log:
+        return subprocess.check_output(argv, cwd=cwd, env=env or clean_environment(), text=True).strip()
+    log.parent.mkdir(parents=True, exist_ok=True)
+    # Upstream output is data, not GitHub workflow commands. The resume token
+    # exists only in this host process and is never passed into build containers.
+    stop_token = uuid.uuid4().hex if os.environ.get('GITHUB_ACTIONS', '').lower() == 'true' else None
+    with log.open('ab') as output:
+        if stop_token:
+            print(f'::stop-commands::{stop_token}', flush=True)
+        try:
+            decoder = codecs.getincrementaldecoder('utf-8')(errors='replace')
+            with subprocess.Popen(argv, cwd=cwd, env=env or clean_environment(),
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as process:
+                # read1 emits available bytes without waiting for a newline or
+                # process exit. Chunking bounds memory even for very long lines.
+                while chunk := process.stdout.read1(16 * 1024):
+                    output.write(chunk)
+                    output.flush()
+                    sys.stdout.write(decoder.decode(chunk))
+                    sys.stdout.flush()
+                sys.stdout.write(decoder.decode(b'', final=True))
+                sys.stdout.flush()
+                status = process.wait()
+            if status:
+                raise subprocess.CalledProcessError(status, argv)
+        finally:
+            if stop_token:
+                print(f'\n::{stop_token}::', flush=True)
 
 
 def sdk_lock(root=ROOT):
@@ -624,16 +649,20 @@ def build(root, plan, output, image):
     if not shutil.which('docker'): raise Blocked('Docker is required; host builds are deliberately unsupported')
     image = image or plan['sdk']['builder_image']
     if image != plan['sdk']['builder_image']: raise ValueError('Builder must match the SDK-pinned image digest')
+    print('Preparing pinned builder image...', flush=True)
     run(['docker', 'pull', image])
     labels = json.loads(run(['docker', 'image', 'inspect', image, '--format', '{{json .Config.Labels}}']))
     if not labels or labels.get('org.mochios.libs.runner-sha256') != runner_identity(root):
         raise ValueError('Builder contains a different runner/probe; publish and pin the matching image')
     builder_id = run(['docker', 'image', 'inspect', image, '--format', '{{.Id}}'])
     if not re.fullmatch(r'sha256:[0-9a-f]{64}', builder_id): raise ValueError('Invalid builder image identity')
+    print('Preparing SDK ' + plan['sdk']['version'] + '...', flush=True)
     sdk = install_sdk(root, output, plan['sdk']); validate_sdk(sdk, plan['sdk'])
     from releases import restore_existing, verify_bundle
     installed = {}
-    for package in plan['packages']:
+    total = len(plan['packages'])
+    for index, package in enumerate(plan['packages'], start=1):
+        print(f'[{index}/{total}] {package["release"]}: checking verified caches', flush=True)
         name = package['name']; library = catalog['libraries'][name]
         work = output / 'builds' / package['input_id']
         release_directory = output / 'releases' / package['release']
@@ -642,12 +671,12 @@ def build(root, plan, output, image):
             if inventory(work / 'stage') != cached['files']:
                 raise ValueError('Completed build cache was modified')
             installed[name] = work / 'stage'
-            print('Reusing verified local build: ' + package['release'])
+            print('Reusing verified local build: ' + package['release'], flush=True)
             continue
         restored = restore_existing(root, package, plan, output)
         if restored is not None:
             installed[name] = restored
-            print('Reusing verified release: ' + package['release'])
+            print('Reusing verified release: ' + package['release'], flush=True)
             continue
         ownership = output / 'builds' / (package['input_id'] + '.owner.json')
         expected_owner = dict(input_id=package['input_id'], builder_id=builder_id)
@@ -658,6 +687,7 @@ def build(root, plan, output, image):
         if (work / 'complete.json').exists(): (work / 'complete.json').unlink()
         dependencies = output / 'dependencies' / package['input_id']; dependencies.mkdir(parents=True, exist_ok=True)
         for dependency in transitive_dependencies(catalog, name): merge_dependency(installed[dependency], dependencies)
+        print(f'[{index}/{total}] {package["release"]}: fetching and verifying source', flush=True)
         source = checkout_source(output, library, package['source'])
         specification = recipe(root, library)
         write_json(work / 'recipe.json', specification)
@@ -666,6 +696,7 @@ def build(root, plan, output, image):
             target = relative(work / 'recipe-assets', patch)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(relative(relative(root, library['recipe']).parent, patch), target)
+        print(f'[{index}/{total}] {package["release"]}: building and checking target links; log: {work / "container.log"}', flush=True)
         run(docker_command(builder_id, sdk, source, dependencies, work), log=work / 'container.log')
         verified = json.loads((work / 'verified.json').read_text())
         if verified.get('format') != 1 or verified.get('target') != TARGET or verified.get('abi') != ABI:
@@ -673,6 +704,7 @@ def build(root, plan, output, image):
         stage = work / 'stage'
         if stage.is_symlink() or not stage.is_dir() or not stage.resolve().is_relative_to(work.resolve()):
             raise ValueError('Container install escaped its output directory')
+        print(f'[{index}/{total}] {package["release"]}: verifying and packaging artifacts', flush=True)
         inventory(stage)
         for license_path in specification['licenses']:
             original = relative(source, license_path)
@@ -682,6 +714,7 @@ def build(root, plan, output, image):
         package_build(root, package, stage, dict(sdk=plan['sdk'], registry_commit=run(['git', '-C', root, 'rev-parse', 'HEAD']), builder=dict(image=builder_id, reference=image, tools=verified['tools'])), output / 'releases')
         installed[name] = stage
         write_json(work / 'complete.json', dict(input_id=package['input_id'], verified=verified))
+        print(f'[{index}/{total}] {package["release"]}: complete', flush=True)
 
 
 def main():

@@ -272,3 +272,13 @@ resolved at repository level. An organization administrator must enable the
 same option in mochiOS organization Settings -> Actions -> General before
 the repository option can be enabled. This is an organization-wide policy;
 the automation does not change it or substitute a personal access token.
+
+Build output
+-----------------------------------------
+Build jobs stream compiler/configure output and stderr into the Actions log
+while retaining the exact output in out/builds/<input_id>/container.log.
+The host reports the library name, package index and stage (source fetch,
+container build/link checks, artifact verification/packaging, completion).
+Partial lines are shown before process exit, and nonzero exits fail the job.
+The failure-evidence artifact still retains the full per-library log files.
+Upstream console output is not interpreted as GitHub workflow commands.
