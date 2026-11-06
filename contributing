@@ -290,3 +290,14 @@ starting in the read-only root would make those probes fail. The root, SDK,
 source input and dependency mounts retain their read-only protections.
 The failure-evidence artifact still retains the full per-library log files.
 Upstream console output is not interpreted as GitHub workflow commands.
+
+libxml2 dependency headers
+-----------------------------------------
+The libxml2 recipe sets NO_SYSTEM_FROM_IMPORTED on its LibXml2 target. CMake
+otherwise emits the imported Iconv header directory as -isystem, after the
+SDK driver's libc compatibility headers. The SDK iconv.h declares iconv_*;
+GNU libiconv's header maps those names to its exported libiconv_* symbols.
+Selecting the library without its matching header fails strict import checks.
+Keep this override target-local; do not disable SDK import validation or add
+ambient host include paths. The regression fixture reproduces the conflicting
+headers and verifies that the unpatched build fails and the patched build links.

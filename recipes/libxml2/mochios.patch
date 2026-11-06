@@ -1,0 +1,13 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -332,6 +332,10 @@
+ add_library(LibXml2 ${LIBXML2_HDRS} ${LIBXML2_SRCS} ${LIBXML2_PRIVATE_HDRS})
+ add_library(LibXml2::LibXml2 ALIAS LibXml2)
+ 
++# Keep the external iconv header ahead of the SDK libc compatibility header.
++# Imported includes otherwise become -isystem and lose to SDK system headers.
++set_property(TARGET LibXml2 PROPERTY NO_SYSTEM_FROM_IMPORTED TRUE)
++
+ target_include_directories(
+     LibXml2
+     PUBLIC

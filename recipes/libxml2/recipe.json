@@ -23,5 +23,8 @@
   "pkg_config_modules": [
     "libxml-2.0"
   ],
-  "probe": "probe.c"
+  "probe": "probe.c",
+  "patches": [
+    "mochios.patch"
+  ]
 }
