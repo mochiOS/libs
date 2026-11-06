@@ -155,12 +155,78 @@ and are rejected if modified. No build commands are run while fetching sources.
 
 Known platform requirements
 -----------------------------------------
-The GLib recipe is retained but unavailable while the SDK lacks the resolver
-interfaces required by GIO. The native DNS authority currently covers A, AAAA,
-and PTR; GIO also needs record queries such as SRV, MX, TXT, SOA, and NS.
-Do not substitute host headers or fabricate successful resolver results.
+GLib is enabled with the published SDK 27.0-dp.1-shared.3. Its resolver
+interfaces cover the record types required by GIO. The native GIO TLS port,
+libsoup and WebKit remain disabled until their separate SDK/runtime and
+platform-integration requirements are satisfied.
 
-See tooling/platform-requirements.json for the existing implementation owners,
-authority constraints, and the audited WebKit dependency baseline. The SDK's
-startup-only shared-loading model also limits dynamic GModule loading. A
-successful build of independent libraries does not mean GLib/WebKit is ported.
+See tooling/platform-requirements.json for each port's verification evidence
+and limitations. mochiOS uses startup-linked shared libraries; successful
+cross-compilation does not establish runtime loading or native OS behavior.
+Libgcrypt uses the SDK getentropy interface and native libgpg-error locks.
+The pinned SDK does not provide mlock, so OS-backed locked memory is not
+available in this port. Linux reference tests do not verify mochiOS runtime.
+
+Manual library releases
+-----------------------------------------
+Library releases belong to mochiOS/libs, separately from the mochiOS SDK.
+Each upstream library version has its own release tag, such as
+libgcrypt-1.12.4. Build revisions are part of asset filenames, not that tag.
+These are development prereleases verified by cross-compilation and linking;
+only claim native runtime testing when it has actually been performed.
+
+1. Commit the reviewed recipes and source locks, run the checks below, and
+   push the intended commit yourself. Keep sdk.lock.toml pinned to a published
+   SDK with its reviewed archive hash and builder image digest.
+
+     python3 tools/libs.py check
+     python3 -m unittest discover -s tests -v
+     git push origin main
+
+2. In GitHub Actions for mochiOS/libs, manually run
+   "Track, build and release libraries" on main with refresh=false.
+   The current workflow builds and verifies artifacts; it does not publish
+   GitHub releases. Leave refresh disabled to use the reviewed source lock.
+   A scheduled run may select newer tags, so use a successful manual run for
+   this release. Every build uses the pinned isolated container; the existing
+   mochiOS workspace and host libraries are not mounted into it.
+
+3. From that same successful run, download both frozen-plan and
+   verified-libraries. Keep a clean checkout of the workflow's exact commit
+   when verifying them locally. Python 3.12+ and readelf are required.
+   For example, from the repository root:
+
+     gh run download RUN_ID --repo mochiOS/libs --name frozen-plan --dir out/release-plan
+     gh run download RUN_ID --repo mochiOS/libs --name verified-libraries --dir out/release-assets
+     python3 tools/releases.py verify --plan out/release-plan/plan.json --artifacts out/release-assets
+
+   Expect one directory per release under out/release-assets. For every
+   package, upload all three files with the same stem:
+
+     <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.tar.gz
+     <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.json
+     <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.sha256
+
+   The archive contains the target sysroot and an embedded manifest; the
+   external JSON records source, SDK, recipe, verification and file hashes.
+   The .sha256 file covers the archive and JSON and acts as a completion
+   marker. Download the outer Actions ZIP and extract it; do not upload the
+   Actions ZIP or rename the three library files.
+
+4. On the mochiOS/libs Releases page, create a release for each new library
+   tag using the workflow's exact commit. Mark it as a prerelease, finish
+   uploading all three files, review the notes, then publish manually.
+   For an existing tag, add the new revision's archive and JSON first and its
+   .sha256 file last. Preserve all older revisions and never overwrite an
+   existing asset with different bytes. If an existing revision's inputs or
+   bytes changed, increment revision in libraries.toml and rebuild it and
+   affected dependents before publication.
+
+The scripts stop on failed builds, failed import checks or changed immutable
+release inputs. Do not bypass those checks or turn locally compiled test
+prefixes into release packages: they have not passed the isolated production
+pipeline and its provenance/path controls. Local out/text-port files are
+port-development evidence, not release assets.
+
+The tools/releases.py publish subcommand publishes the complete selected
+plan. It is intentionally not used in the manual steps above.
