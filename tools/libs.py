@@ -575,11 +575,11 @@ def merge_dependency(source, destination):
 
 
 def docker_command(image, sdk, source, dependencies, work):
-    """Mount only isolated inputs/output; the existing mochiOS workspace is never mounted."""
+    """Mount isolated inputs/output and run tools in writable /work with a read-only root."""
     for path in [sdk, source, dependencies, work]:
         if ',' in str(path): raise ValueError('Docker bind paths cannot contain commas')
     command = ['docker', 'run', '--rm', '--network=none', '--read-only', '--cap-drop=ALL', '--security-opt=no-new-privileges',
-               '--user', f'{os.getuid()}:{os.getgid()}', '--tmpfs', '/tmp:rw,nosuid,nodev,size=1g']
+               '--user', f'{os.getuid()}:{os.getgid()}', '--workdir', '/work', '--tmpfs', '/tmp:rw,nosuid,nodev,size=1g']
     for path, mount, readonly in [(sdk, '/sdk', True), (source, '/source', True), (dependencies, '/deps', True), (work, '/work', False)]:
         command += ['--mount', f'type=bind,src={path},dst={mount}' + (',readonly' if readonly else '')]
     return command + [image]

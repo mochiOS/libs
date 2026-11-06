@@ -203,9 +203,12 @@ class IsolationTests(unittest.TestCase):
         self.assertIn('--network=none', command)
         self.assertIn('--read-only', command)
         self.assertIn('--cap-drop=ALL', command)
+        self.assertEqual(command[command.index('--workdir') + 1], '/work')
         mounts = [command[i+1] for i, item in enumerate(command) if item == '--mount']
         self.assertEqual(len(mounts), 4)
         self.assertEqual(sum(mount.endswith(',readonly') for mount in mounts), 3)
+        self.assertEqual([mount for mount in mounts if not mount.endswith(',readonly')],
+                         [f'type=bind,src={root}/work,dst=/work'])
         self.assertNotIn('/var/run/docker.sock', ' '.join(command))
         self.assertNotIn('/Develop/mochiOS/', ' '.join(command))
 

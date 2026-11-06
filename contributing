@@ -280,5 +280,9 @@ while retaining the exact output in out/builds/<input_id>/container.log.
 The host reports the library name, package index and stage (source fetch,
 container build/link checks, artifact verification/packaging, completion).
 Partial lines are shown before process exit, and nonzero exits fail the job.
+Build containers start in /work, the explicitly writable output mount. Compiler
+and linker detection may create temporary files in their current directory;
+starting in the read-only root would make those probes fail. The root, SDK,
+source input and dependency mounts retain their read-only protections.
 The failure-evidence artifact still retains the full per-library log files.
 Upstream console output is not interpreted as GitHub workflow commands.
