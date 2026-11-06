@@ -439,6 +439,35 @@
         "runtime_tested": false,
         "production_container_build_tested": false
       }
+    },
+    "icu": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "Unicode normalization, segmentation, collation and bidirectional text for WebKit and HarfBuzz.",
+      "platform": "Separate native data generators and mochiOS target builds; reuse ELF/PIC rules while disabling RPATH and dynamic plugin loading. Detect uchar.h for public C headers instead of assuming its availability.",
+      "packaging": "Install common/i18n/data libraries, Unicode data, public headers and relocatable pkg-config files only. Do not distribute host tools or host-specific make fragments.",
+      "verification": {
+        "format": 1,
+        "library": "icu",
+        "source": {
+          "git": "https://github.com/unicode-org/icu.git",
+          "tag": "release-77-1",
+          "version": "77.1",
+          "commit": "457157a92aa053e632cc7fcfd0e12f8a943b2d11",
+          "archive": {
+            "url": "https://github.com/unicode-org/icu/releases/download/release-77-1/icu4c-77_1-src.tgz",
+            "sha256": "588e431f77327c39031ffbb8843c0e3bc122c211374485fa87dc5f3faff24061"
+          }
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "host_unicode_probe_passed": true,
+        "c_and_cpp_header_consumers_linked": true,
+        "payload_inventory_and_pkgconfig_paths_checked": true
+      }
     }
   },
   "build_infrastructure": {

@@ -1,0 +1,123 @@
+--- a/source/config.sub
++++ b/source/config.sub
+@@ -2004,6 +2004,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
++	| mochios* \
+ 	| fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \
+--- a/source/configure
++++ b/source/configure
+@@ -5815,6 +5815,7 @@
+ 	else
+ 		icu_cv_host_frag=mh-linux-va
+ 	fi ;;
++*-*-mochios*) icu_cv_host_frag=mh-mochios ;;
+ *-*-linux*|*-*-gnu|*-*-k*bsd*-gnu|*-*-kopensolaris*-gnu) icu_cv_host_frag=mh-linux ;;
+ i[34567]86-*-cygwin)
+ 	if test "$GCC" = yes; then
+--- a/source/acinclude.m4
++++ b/source/acinclude.m4
+@@ -33,6 +33,7 @@
+ 	else
+ 		icu_cv_host_frag=mh-linux-va
+ 	fi ;;
++*-*-mochios*) icu_cv_host_frag=mh-mochios ;;
+ *-*-linux*|*-*-gnu|*-*-k*bsd*-gnu|*-*-kopensolaris*-gnu) icu_cv_host_frag=mh-linux ;;
+ i[[34567]]86-*-cygwin) 
+ 	if test "$GCC" = yes; then
+--- /dev/null
++++ b/source/config/mh-mochios
+@@ -0,0 +1,7 @@
++## mochiOS uses ELF/PIC rules without Linux runtime or loader assumptions.
++include $(top_srcdir)/config/mh-linux
++LD_RPATH =
++LD_RPATH_PRE =
++LDFLAGSICUDT =
++LD_SOOPTIONS =
++BIR_LDFLAGS =
+--- /dev/null
++++ b/mochios/CMakeLists.txt
+@@ -0,0 +1,43 @@
++cmake_minimum_required(VERSION 3.20)
++project(mochios_icu VERSION 77.1 LANGUAGES C CXX)
++if(NOT CMAKE_CROSSCOMPILING OR NOT CMAKE_SYSTEM_NAME STREQUAL "mochiOS")
++    message(FATAL_ERROR "Use the real mochiOS cross toolchain")
++endif()
++include(ExternalProject)
++find_program(HOST_CC NAMES cc clang gcc REQUIRED NO_CMAKE_FIND_ROOT_PATH)
++find_program(HOST_CXX NAMES c++ clang++ g++ REQUIRED NO_CMAKE_FIND_ROOT_PATH)
++find_program(HOST_MAKE NAMES gmake make REQUIRED NO_CMAKE_FIND_ROOT_PATH)
++set(ICU_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../source")
++set(HOST_BUILD "${CMAKE_CURRENT_BINARY_DIR}/icu-host")
++set(TARGET_BUILD "${CMAKE_CURRENT_BINARY_DIR}/icu-target")
++set(COMMON_OPTIONS --disable-tests --disable-samples --disable-extras
++    --disable-icuio --disable-icu-config --disable-dyload --disable-plugins
++    --disable-rpath --enable-shared --disable-static --with-data-packaging=library)
++# Host executables generate Unicode data. No mochiOS executable is used as a
++# build helper, and this native build is never installed in the target prefix.
++ExternalProject_Add(icu_host
++    SOURCE_DIR "${ICU_SOURCE}" BINARY_DIR "${HOST_BUILD}"
++    DOWNLOAD_COMMAND "" UPDATE_COMMAND "" PATCH_COMMAND ""
++    CONFIGURE_COMMAND "${CMAKE_COMMAND}" -E env
++        "CC=${HOST_CC}" "CXX=${HOST_CXX}" "CFLAGS=-O2 -g0" "CXXFLAGS=-O2 -g0"
++        "CPPFLAGS=" "LDFLAGS=" "${ICU_SOURCE}/configure"
++        "--prefix=${HOST_BUILD}/unused-prefix" ${COMMON_OPTIONS}
++    BUILD_COMMAND "${HOST_MAKE}" -j2
++    INSTALL_COMMAND "")
++set(TARGET_CFLAGS "-O2 -g0 -fPIC -ffile-prefix-map=/work=/build -ffile-prefix-map=/source=/src")
++ExternalProject_Add(icu_target
++    DEPENDS icu_host
++    SOURCE_DIR "${ICU_SOURCE}" BINARY_DIR "${TARGET_BUILD}"
++    DOWNLOAD_COMMAND "" UPDATE_COMMAND "" PATCH_COMMAND ""
++    CONFIGURE_COMMAND "${CMAKE_COMMAND}" -E env
++        "CC=${CMAKE_C_COMPILER}" "CXX=${CMAKE_CXX_COMPILER}"
++        "AR=${CMAKE_AR}" "RANLIB=${CMAKE_RANLIB}"
++        "CFLAGS=${TARGET_CFLAGS}" "CXXFLAGS=${TARGET_CFLAGS}"
++        "CPPFLAGS=" "LDFLAGS=" "${ICU_SOURCE}/configure"
++        --build=x86_64-pc-linux-gnu --host=x86_64-unknown-mochios
++        "--with-cross-build=${HOST_BUILD}" --prefix=/usr --libdir=/usr/lib
++        ${COMMON_OPTIONS} --disable-tools
++    BUILD_COMMAND "${HOST_MAKE}" -j2
++    INSTALL_COMMAND "")
++configure_file(install.cmake.in install-target.cmake @ONLY)
++install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/install-target.cmake")
+--- /dev/null
++++ b/mochios/install.cmake.in
+@@ -0,0 +1,17 @@
++# Install only target libraries, public headers and relocatable pkg-config data.
++# Upstream's top-level install also exposes host-specific build-rule metadata.
++if(NOT DEFINED ENV{DESTDIR} OR "$ENV{DESTDIR}" STREQUAL "")
++    message(FATAL_ERROR "The ICU port must be installed through a private DESTDIR")
++endif()
++foreach(component common i18n data)
++    execute_process(COMMAND "@HOST_MAKE@" -C "@TARGET_BUILD@/${component}" install
++                    RESULT_VARIABLE result)
++    if(NOT result EQUAL 0)
++        message(FATAL_ERROR "ICU ${component} installation failed: ${result}")
++    endif()
++endforeach()
++execute_process(COMMAND "@HOST_MAKE@" -C "@TARGET_BUILD@" install-pkgconfig
++                RESULT_VARIABLE result)
++if(NOT result EQUAL 0)
++    message(FATAL_ERROR "ICU pkg-config installation failed: ${result}")
++endif()
+--- a/source/common/unicode/platform.h
++++ b/source/common/unicode/platform.h
+@@ -735,6 +735,14 @@
+ #       define U_HAVE_CHAR16_T 1
+ #   elif U_PLATFORM_IS_DARWIN_BASED || (U_PLATFORM == U_PF_CYGWIN && CYGWIN_VERSION_DLL_MAJOR < 3005)
+ #       define U_HAVE_CHAR16_T 0
++#   elif defined(__has_include)
++        // The language may support UTF-16 literals without shipping uchar.h.
++        // Use ICU's uint16_t fallback for C consumers when that header is absent.
++#       if __has_include(<uchar.h>)
++#           define U_HAVE_CHAR16_T 1
++#       else
++#           define U_HAVE_CHAR16_T 0
++#       endif
+ #   else
+         // conformant C11
+ #       define U_HAVE_CHAR16_T 1

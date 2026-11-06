@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "subdirectory": "mochios",
+  "options": {},
+  "licenses": [
+    "LICENSE"
+  ],
+  "shared_libraries": [
+    "libicuuc.so*",
+    "libicui18n.so*",
+    "libicudata.so*"
+  ],
+  "link_libraries": [
+    "icui18n",
+    "icuuc",
+    "icudata"
+  ],
+  "pkg_config_modules": [
+    "icu-uc",
+    "icu-i18n"
+  ],
+  "probe": "probe.c",
+  "patches": [
+    "mochios.patch"
+  ]
+}
