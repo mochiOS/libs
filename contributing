@@ -230,3 +230,38 @@ checkout of its exact commit (Python 3.12+ and readelf are required):
   gh run download RUN_ID --repo mochiOS/libs --name frozen-plan --dir out/release-plan
   gh run download RUN_ID --repo mochiOS/libs --name verified-libraries --dir out/release-assets
   python3 tools/releases.py verify --plan out/release-plan/plan.json --artifacts out/release-assets
+
+Upstream update proposals
+-----------------------------------------
+"Propose upstream library updates" checks enabled libraries daily at 04:23 UTC.
+It reads the reviewed upstream repositories, rejects moved baseline tags and
+pins newer source commits and official archive hashes. The scanner does not
+modify main or publish anything. Disabled/incomplete ports are excluded.
+
+When updates exist, an isolated read-only validation job applies the candidate
+registry, runs the infrastructure tests and cross-builds the full dependency
+plan. New upstream versions start at r1; unchanged downstream versions receive
+new revisions when their dependency inputs change.
+
+A separate PR job creates one grouped update branch/PR and mentions
+@mochiOS/devkit-maintainer. Successful candidates are ready for review; failed
+candidates are Draft PRs with a link to the failed run. The exact validation
+outcome is also recorded on the PR commit as library-update-validation.
+The automation neither merges PRs nor publishes releases. After a maintainer
+merges an update, the normal main build and Environment approval flow applies.
+
+GitHub does not start another pull_request workflow for PRs created with the
+repository GITHUB_TOKEN. Candidate validation therefore runs in this same
+scheduled workflow before PR creation, and the PR job attaches its result to
+the commit explicitly. Repository branch rules can require the
+library-update-validation status for these proposals.
+
+Repeated scans reuse the same proposal branch and PR, without repeating the
+team mention. Closed proposals are respected until the candidate changes.
+The bot does not force-push or overwrite unrelated maintainer edits to a PR.
+
+Repository setup for PR automation:
+Settings -> Actions -> General -> Workflow permissions -> enable
+"Allow GitHub Actions to create and approve pull requests". Keep default
+workflow permissions read-only; only the PR job requests contents, pull-request
+and commit-status writes. The automation never submits approving PR reviews.
