@@ -1,0 +1,38 @@
+{
+  "format": 1,
+  "backend": "autotools",
+  "configure": [
+    "--disable-nls",
+    "--disable-rpath",
+    "--disable-doc",
+    "--disable-tests",
+    "--disable-languages",
+    "--disable-install-gpg-error-config"
+  ],
+  "build_subdirs": [
+    "src"
+  ],
+  "install_subdirs": [
+    "src"
+  ],
+  "licenses": [
+    "COPYING",
+    "COPYING.LIB"
+  ],
+  "shared_libraries": [
+    "libgpg-error.so*"
+  ],
+  "link_libraries": [
+    "gpg-error"
+  ],
+  "pkg_config_modules": [
+    "gpg-error"
+  ],
+  "config_scripts": [
+    "usr/bin/gpgrt-config"
+  ],
+  "probe": "probe.c",
+  "patches": [
+    "mochios.patch"
+  ]
+}

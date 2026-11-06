@@ -500,6 +500,33 @@
         "production_container_build_tested": false,
         "payload_inventory_and_pkgconfig_paths_checked": true
       }
+    },
+    "libgpg-error": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "GnuPG runtime/error handling and native pthread locks required by Libgcrypt.",
+      "platform": "Derive the public lock ABI from the SDK pthread_mutex_t and PTHREAD_MUTEX_INITIALIZER, preserving nonzero initialization fields and native alignment. No Linux ABI sizes or thread-unsafe fallback.",
+      "packaging": "Library, headers, pkg-config and the explicitly declared POSIX gpgrt-config helper only; no target CLI executable.",
+      "verification": {
+        "format": 1,
+        "library": "libgpg-error",
+        "source": {
+          "git": "https://github.com/gpg/libgpg-error.git",
+          "tag": "libgpg-error-1.61",
+          "version": "1.61",
+          "commit": "687c9da501c21a64f7dcedfa73146a4670009cea",
+          "archive": {
+            "url": "https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.61.tar.bz2",
+            "sha256": "7a85413f2bc354f4f8aa832b718af122e48965e9e0eb9012ee659c13c6385c93"
+          }
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "payload_and_pkgconfig_checked": true
+      }
     }
   },
   "build_infrastructure": {

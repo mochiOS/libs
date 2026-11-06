@@ -211,3 +211,12 @@ revision = 1
 enabled = true
 recipe = "recipes/harfbuzz/recipe.json"
 dependencies = ["freetype", "glib", "icu"]
+
+[libraries.libgpg-error]
+git = "https://github.com/gpg/libgpg-error.git"
+tag_pattern = '^libgpg-error-(?P<version>[0-9]+\.[0-9]+)$'
+source_archive = "https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-{version}.tar.bz2"
+revision = 1
+enabled = true
+recipe = "recipes/libgpg-error/recipe.json"
+dependencies = []

@@ -1,0 +1,99 @@
+--- a/build-aux/config.sub
++++ b/build-aux/config.sub
+@@ -1754,7 +1754,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* )
++	     | mochios* | fiwix* )
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+--- a/configure
++++ b/configure
+@@ -7210,6 +7210,9 @@
+ # whether 'pass_all' will *always* work, you probably want this one.
+ 
+ case $host_os in
++mochios*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
+ aix[4-9]*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+@@ -11554,6 +11557,14 @@
+   else
+     # PORTME fill in a description of your system's linker (not GNU ld)
+     case $host_os in
++    mochios*)
++      archive_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname,$soname -o $lib'
++      archive_expsym_cmds=
++      hardcode_libdir_flag_spec=
++      hardcode_direct=no
++      hardcode_shlibpath_var=no
++      archive_cmds_need_lc=no
++      ;;
+     aix3*)
+       allow_undefined_flag=unsupported
+       always_export_symbols=yes
+@@ -12760,6 +12771,21 @@
+ 
+ 
+ case $host_os in
++mochios*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  dynamic_linker='mochiOS startup package loader'
++  shlibpath_var=
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=no
++  hardcode_libdir_flag_spec=
++  sys_lib_search_path_spec=
++  sys_lib_dlsearch_path_spec=
++  finish_cmds=
++  ;;
+ aix3*)
+   version_type=linux # correct to gnu/linux during the next big refactor
+   library_names_spec='$libname$release$shared_ext$versuffix $libname.a'
+--- /dev/null
++++ b/src/syscfg/lock-obj-pub.x86_64-unknown-mochios.h
+@@ -0,0 +1,14 @@
++## mochiOS POSIX lock ABI: derive layout and initializer from the target SDK.
++## No Linux sizes, alignment assumptions, or zero-initializer substitution.
++#include <pthread.h>
++typedef struct
++{
++  long _vers;
++  union {
++    pthread_mutex_t _native;
++    volatile char _priv[sizeof (pthread_mutex_t)];
++    long _x_align;
++    long *_xp_align;
++  } u;
++} gpgrt_lock_t;
++#define GPGRT_LOCK_INITIALIZER {1, {PTHREAD_MUTEX_INITIALIZER}}
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -117,7 +117,7 @@
+ POST_UNINSTALL = :
+ build_triplet = @build@
+ host_triplet = @host@
+-bin_PROGRAMS = gpg-error$(EXEEXT)
++bin_PROGRAMS =
+ @HAVE_W32_SYSTEM_FALSE@noinst_PROGRAMS = gen-posix-lock-obj$(EXEEXT)
+ @HAVE_W32_SYSTEM_TRUE@noinst_PROGRAMS = gen-w32-lock-obj$(EXEEXT)
+ @HAVE_W32_SYSTEM_FALSE@libgpg_error_la_DEPENDENCIES =  \
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -26,7 +26,7 @@
+ 
+ localedir = $(datadir)/locale
+ 
+-bin_PROGRAMS = gpg-error
++bin_PROGRAMS =
+ 
+ if HAVE_W32_SYSTEM
+ noinst_PROGRAMS = gen-w32-lock-obj
