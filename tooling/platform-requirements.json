@@ -603,6 +603,38 @@
           "skipped": 0
         }
       }
+    },
+    "gettext-runtime": {
+      "status": "published-sdk-compile-link-verified-build-enabled",
+      "purpose": "Native libintl using the existing iconv dependency.",
+      "configuration_fix": "Honor --disable-libasprintf when selecting configure subdirectories, not only make subdirectories. The disabled helper must not run target locale probes on Linux.",
+      "issue_evidence": "https://github.com/mochiOS/libs/actions/runs/42200718608",
+      "verification": {
+        "format": 1,
+        "library": "gettext-runtime",
+        "source": {
+          "git": "https://https.git.savannah.gnu.org/git/gettext.git",
+          "tag": "v1.0",
+          "version": "1.0",
+          "commit": "53bcae93fbd26e0e816f0e8e6dd3524ebdc67618",
+          "archive": {
+            "url": "https://ftp.gnu.org/gnu/gettext/gettext-1.0.tar.gz",
+            "sha256": "85d99b79c981a404874c02e0342176cf75c7698e2b51fe41031cf6526d974f1a"
+          }
+        },
+        "sdk": "27.0-dp.1-shared.3",
+        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false,
+        "disabled_optional_configure_skipped": true,
+        "source_components_tested": [
+          "gettext-runtime",
+          "top-level build support"
+        ],
+        "license_files_present": true
+      }
     }
   },
   "build_infrastructure": {

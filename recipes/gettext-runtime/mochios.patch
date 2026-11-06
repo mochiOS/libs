@@ -332,3 +332,18 @@
  #elif __GLIBC__ >= 2 && !defined __UCLIBC__
        /* Work around an incorrect definition of the _NL_LOCALE_NAME macro in
           glibc < 2.12.
+--- a/gettext-runtime/configure
++++ b/gettext-runtime/configure
+@@ -64842,7 +64842,11 @@
+ subdirs="$subdirs intl"
+ 
+ 
+-subdirs="$subdirs libasprintf"
++# Honor --disable-libasprintf for configure recursion as well as make.
++# Its optional locale probes must not run when this component is disabled.
++if test -n "$SUBDIR_libasprintf"; then
++  subdirs="$subdirs libasprintf"
++fi
+ 
+ 
+ ac_config_files="$ac_config_files Makefile"
