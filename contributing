@@ -167,66 +167,66 @@ Libgcrypt uses the SDK getentropy interface and native libgpg-error locks.
 The pinned SDK does not provide mlock, so OS-backed locked memory is not
 available in this port. Linux reference tests do not verify mochiOS runtime.
 
-Manual library releases
+Approval-gated library releases
 -----------------------------------------
-Library releases belong to mochiOS/libs, separately from the mochiOS SDK.
-Each upstream library version has its own release tag, such as
-libgcrypt-1.12.4. Build revisions are part of asset filenames, not that tag.
-These are development prereleases verified by cross-compilation and linking;
-only claim native runtime testing when it has actually been performed.
+When reviewed changes reach main, "Build libraries and approve publication"
+automatically tests the infrastructure, freezes the reviewed source/SDK plan,
+builds in the pinned isolated container and verifies all release artifacts.
+The workflow never refreshes upstream source versions directly; source updates
+must be reviewed and merged first.
 
-1. Commit the reviewed recipes and source locks, run the checks below, and
-   push the intended commit yourself. Keep sdk.lock.toml pinned to a published
-   SDK with its reviewed archive hash and builder image digest.
+After the build succeeds, the Publish job waits for the library-release
+GitHub Environment. A member of mochiOS/devkit-maintainer opens the waiting
+run, selects Review deployments, then Approve and deploy. This approves
+publication of the entire verified plan; no workflow-dispatch button, manual
+archive upload, or separate approval for every library is required.
 
-     python3 tools/libs.py check
-     python3 -m unittest discover -s tests -v
-     git push origin main
+The publishing job downloads that same run's frozen-plan and verified-libraries,
+rechecks the Environment policy, revalidates the exact artifacts and publishes
+the selected prereleases. Existing asset bytes are never overwritten. Older
+revisions remain available, and failed build/import/hash checks stop publication.
 
-2. In GitHub Actions for mochiOS/libs, manually run
-   "Track, build and release libraries" on main with refresh=false.
-   The current workflow builds and verifies artifacts; it does not publish
-   GitHub releases. Leave refresh disabled to use the reviewed source lock.
-   A scheduled run may select newer tags, so use a successful manual run for
-   this release. Every build uses the pinned isolated container; the existing
-   mochiOS workspace and host libraries are not mounted into it.
+Environment setup (once per repository)
+-----------------------------------------
+Settings -> Environments -> library-release:
 
-3. From that same successful run, download both frozen-plan and
-   verified-libraries. Keep a clean checkout of the workflow's exact commit
-   when verifying them locally. Python 3.12+ and readelf are required.
-   For example, from the repository root:
+  - Required reviewers: mochiOS/devkit-maintainer only.
+  - Deployment branches and tags: selected branches, main only.
+  - The team needs read access to the repository; code write access is not
+    required for reviewers. Only the publishing job receives contents:write.
+  - If the same team member pushes and approves, Prevent self-review must
+    remain disabled so that person can approve their own workflow run.
 
-     gh run download RUN_ID --repo mochiOS/libs --name frozen-plan --dir out/release-plan
-     gh run download RUN_ID --repo mochiOS/libs --name verified-libraries --dir out/release-assets
-     python3 tools/releases.py verify --plan out/release-plan/plan.json --artifacts out/release-assets
+The read-only release-policy job blocks publication if the Environment is
+missing, unreadable or no longer requires the selected team. Publication
+checks the policy again after approval. Configure protection before enabling
+the workflow; an automatically created, unprotected Environment is insufficient.
 
-   Expect one directory per release under out/release-assets. For every
-   package, upload all three files with the same stem:
+GitHub's approval UI is documented at:
+https://docs.github.com/en/actions/how-tos/managing-workflow-runs-and-deployments/managing-deployments/reviewing-deployments
 
-     <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.tar.gz
-     <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.json
-     <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.sha256
+Release layout and verification
+-----------------------------------------
+Library releases belong to mochiOS/libs, separately from the SDK. Every
+upstream version uses a tag such as libgcrypt-1.12.4. Build revisions appear
+in the three asset names under that release:
 
-   The archive contains the target sysroot and an embedded manifest; the
-   external JSON records source, SDK, recipe, verification and file hashes.
-   The .sha256 file covers the archive and JSON and acts as a completion
-   marker. Download the outer Actions ZIP and extract it; do not upload the
-   Actions ZIP or rename the three library files.
+  <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.tar.gz
+  <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.json
+  <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.sha256
 
-4. On the mochiOS/libs Releases page, create a release for each new library
-   tag using the workflow's exact commit. Mark it as a prerelease, finish
-   uploading all three files, review the notes, then publish manually.
-   For an existing tag, add the new revision's archive and JSON first and its
-   .sha256 file last. Preserve all older revisions and never overwrite an
-   existing asset with different bytes. If an existing revision's inputs or
-   bytes changed, increment revision in libraries.toml and rebuild it and
-   affected dependents before publication.
+The archive contains the target sysroot and embedded manifest. The external
+JSON binds source, SDK, recipe, verification and file hashes. The checksum
+file covers the archive and JSON and is uploaded last as a completion marker.
+Changed inputs under an existing build revision require a new revision and
+rebuild; publication does not clobber assets to bypass this rule.
 
-The scripts stop on failed builds, failed import checks or changed immutable
-release inputs. Do not bypass those checks or turn locally compiled test
-prefixes into release packages: they have not passed the isolated production
-pipeline and its provenance/path controls. Local out/text-port files are
-port-development evidence, not release assets.
+These are development prereleases verified by cross-compilation and linking.
+Only claim native runtime testing when it was actually performed. Local
+out/text-port prefixes are development evidence, not distribution archives.
+For inspection, download both artifacts from the same run and use a clean
+checkout of its exact commit (Python 3.12+ and readelf are required):
 
-The tools/releases.py publish subcommand publishes the complete selected
-plan. It is intentionally not used in the manual steps above.
+  gh run download RUN_ID --repo mochiOS/libs --name frozen-plan --dir out/release-plan
+  gh run download RUN_ID --repo mochiOS/libs --name verified-libraries --dir out/release-assets
+  python3 tools/releases.py verify --plan out/release-plan/plan.json --artifacts out/release-assets
