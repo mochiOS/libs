@@ -3,6 +3,8 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import re
+import string
 import tarfile
 import tempfile
 import urllib.request
@@ -15,9 +17,23 @@ RECEIPT = '.mochios-source.json'
 def release_url(library, version, helpers):
     """Expand only the reviewed release-source template over HTTPS."""
     template = library['source_archive']
-    if template.count('{version}') != 1 or '{' in template.replace('{version}', '') or '}' in template.replace('{version}', ''):
-        raise ValueError('Source archive template must contain only {version}')
-    url = template.format(version=version)
+    # Upstreams such as ICU use different separators in their release tag and
+    # archive filename. Only fixed, numeric version transforms are supported;
+    # Python attribute/index access, conversions and format specs are forbidden.
+    if not re.fullmatch(r'[0-9]+(?:\.[0-9]+)*', version):
+        raise ValueError('Invalid source distribution version')
+    values = {'version': version, 'version_dash': version.replace('.', '-'),
+              'version_underscore': version.replace('.', '_')}
+    fields = []
+    for _, field, spec, conversion in string.Formatter().parse(template):
+        if field is None:
+            continue
+        if field not in values or spec or conversion or field in fields:
+            raise ValueError('Invalid source archive version placeholder')
+        fields.append(field)
+    if not fields:
+        raise ValueError('Source archive template needs a version placeholder')
+    url = template.format(**values)
     if not helpers.https_url(url): raise ValueError('Invalid source distribution URL')
     return url
 
