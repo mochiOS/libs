@@ -5,8 +5,8 @@
   "source_archive_sha256": "f3284e19e47fcb5ac8c63c2e1c113dbd65b2423eb8a545f5b345707829004f56",
   "source_archive_verified_offline": true,
   "python_tests": {
-    "total": 107,
-    "passed": 105,
+    "total": 109,
+    "passed": 107,
     "skipped": 2
   },
   "terra_tools_tests_passed": 3,
@@ -32,5 +32,6 @@
     "engines/webkit/src/abi.c": "44dd972e91da3ba8e156128db2c0e3ec4544dc6a115c991a7b7da3619a577def",
     "engines/webkit/exports.map": "0c981787944ea6d7907c1c9dfdde6ea52a0d36a01296df0332848fe67b8b608e"
   },
-  "note": "A test backend is used only by the ABI test executable/fixture. No libwebkit.so product is produced without the real native backend."
+  "note": "A test backend is used only by the ABI test executable/fixture. No libwebkit.so product is produced without the real native backend.",
+  "native_patch_apply_and_reuse_tests_passed": true
 }

@@ -12,6 +12,28 @@ import container_build
 import webkit
 
 
+def apply_port_patches(engine, source, names, env, logs):
+    """Apply reviewed native patches once, refusing changed inputs in a reused tree."""
+    if not isinstance(names,list) or any(not isinstance(n,str) for n in names) or len(set(names))!=len(names):
+        raise ValueError('Invalid native patch list')
+    patches={}
+    for name in names:
+        relative=Path(name)
+        if relative.is_absolute() or '..' in relative.parts or relative.suffix!='.patch':
+            raise ValueError('Invalid native patch path')
+        path=(engine/relative).resolve()
+        if not path.is_relative_to(engine.resolve()) or not path.is_file():
+            raise ValueError('Native patch escaped engine inputs')
+        patches[name]=webkit.digest(path)
+    state=logs/'native-patches.json'
+    if state.exists():
+        if json.loads(state.read_text())!=patches: raise ValueError('Native patches changed; choose a fresh build directory')
+        return
+    for index,name in enumerate(names):
+        webkit.execute(['patch','--batch','--fuzz=0','-p1','-d',source,'-i',engine/name],env,logs/f'patch-{index}.log')
+    webkit.write_json(state,patches)
+
+
 def main():
     root=Path('/pipeline');work=Path('/work');engine=root/'engines/webkit'
     plan=json.loads((work/'plan.json').read_text())
@@ -23,7 +45,12 @@ def main():
     common=['--target','mochios','--toolchain',str(toolchain),'--deps-prefix','/deps',
             '--cache','/source','--source-root','/work/source','--build-root','/work/engine','--jobs','2']
     # doctor and source extraction enforce resource bounds and actual target links.
-    for step in ['doctor','configure','install']:
+    subprocess.run([sys.executable,root/'tools/webkit.py','doctor',*common],check=True)
+    subprocess.run([sys.executable,root/'tools/webkit.py','prepare',*common],check=True)
+    port=json.loads((engine/'port.json').read_text())
+    apply_port_patches(engine,work/'source'/plan['source']['directory'],port['patches'],
+                       webkit.environment('mochios',Path('/deps')),work/'patch-logs')
+    for step in ['configure','install']:
         subprocess.run([sys.executable,root/'tools/webkit.py',step,*common],check=True)
     receipt=json.loads((work/'engine/mochios/installed.json').read_text())
     installed=Path(receipt['destination'])

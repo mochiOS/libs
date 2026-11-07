@@ -35,6 +35,8 @@ def plan(root=ROOT):
     if not sources: reasons.append('Native WebKit/WPE backend and Capability process/surface integration are not implemented')
     for name in sources:
         if not libs.relative(engine, name).is_file(): reasons.append('Missing native backend source: ' + name)
+    for name in port.get('patches',[]):
+        if not libs.relative(engine,name).is_file(): reasons.append('Missing native patch: '+name)
     helpers=port['required_helpers']
     declarations=port.get('helper_capabilities',{})
     if not helpers or len(set(helpers))!=len(helpers) or any('/' in h or not h for h in helpers):

@@ -78,6 +78,10 @@ hashes, and runs WebKit in the pinned builder image with network disabled, dropp
 capabilities and a read-only root. Only isolated source/SDK/dependency mounts and
 private output are supplied. Only reviewed pipeline files are mounted: no OS
 checkout, Git directory, signing key or GitHub token enters the build container.
+The CI orchestrator applies only the reviewed `port.json` patch list to its
+private native source tree before configuration. Changed patches require a fresh
+build directory; the pinned upstream archive stays unchanged. Direct driver
+commands operate on the supplied source tree and do not imply a completed port.
 All configure/build/install output is streamed into Actions and retained in logs.
 Default downloads, extracted sources and build caches live under ignored
 `out/webkit`, separate from the tracked adapter `src/` directory.

@@ -2,6 +2,7 @@
 import copy
 import importlib.util
 import json
+import os
 import shutil
 from pathlib import Path
 import subprocess
@@ -12,6 +13,7 @@ from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'tools'))
 import webkit_ci
+import webkit_container
 
 class Readiness(unittest.TestCase):
     def test_native_readiness_lists_real_missing_ports_and_never_claims_runtime(self):
@@ -53,6 +55,29 @@ class Readiness(unittest.TestCase):
             self.assertNotEqual(result.returncode,0)
             self.assertIn('host reference builds are not distributable',' '.join((result.stdout+result.stderr).split()))
             self.assertFalse(list(Path(directory).rglob('libwebkit.so*')))
+
+    @unittest.skipUnless(shutil.which('patch'), 'Host patch tool required')
+    def test_native_patches_apply_once_and_changed_inputs_require_a_fresh_tree(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);engine=root/'engine';source=root/'source';logs=root/'logs'
+            engine.mkdir();source.mkdir();(source/'file.txt').write_text('old\n')
+            patchfile=engine/'native.patch'
+            patchfile.write_text('--- a/file.txt\n+++ b/file.txt\n@@ -1 +1 @@\n-old\n+new\n')
+            webkit_container.apply_port_patches(engine,source,['native.patch'],os.environ.copy(),logs)
+            self.assertEqual((source/'file.txt').read_text(),'new\n')
+            webkit_container.apply_port_patches(engine,source,['native.patch'],os.environ.copy(),logs)
+            patchfile.write_text(patchfile.read_text().replace('+new','+changed'))
+            with self.assertRaisesRegex(ValueError,'changed'):
+                webkit_container.apply_port_patches(engine,source,['native.patch'],os.environ.copy(),logs)
+            self.assertEqual((source/'file.txt').read_text(),'new\n')
+
+    def test_native_patches_cannot_read_outside_the_reviewed_engine_tree(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);engine=root/'engine';engine.mkdir()
+            (root/'outside.patch').write_text('not a reviewed patch')
+            with self.assertRaisesRegex(ValueError,'Invalid'):
+                webkit_container.apply_port_patches(engine,root,['../outside.patch'],{},root/'logs')
+            self.assertFalse((root/'logs/native-patches.json').exists())
 
     def test_workflow_has_no_publication_credentials_or_release_command(self):
         text=(ROOT/'.github/workflows/webkit.yml').read_text()
