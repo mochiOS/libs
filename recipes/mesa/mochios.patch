@@ -145,3 +145,14 @@
        { MESA_LOG_CONTROL_SYSLOG, logger_syslog },
  #endif
  #if DETECT_OS_ANDROID
+--- a/include/drm-uapi/drm.h
++++ b/include/drm-uapi/drm.h
+@@ -45,7 +45,7 @@
+ 
+ #include <stdint.h>
+ #include <sys/types.h>
+-#if defined(__GNU__)
++#if defined(__GNU__) || defined(__mochios__)
+ #include <sys/ioctl.h>
+ #else
+ #include <sys/ioccom.h>
