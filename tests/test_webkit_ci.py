@@ -21,7 +21,8 @@ class Readiness(unittest.TestCase):
         self.assertFalse(plan['ready'])
         self.assertEqual(plan['build_status'],'blocked')
         self.assertFalse(plan['runtime_tested'])
-        self.assertTrue({'epoxy','egl'}.issubset(plan['missing_modules']))
+        self.assertIn('epoxy',plan['missing_modules'])
+        self.assertNotIn('egl',plan['missing_modules']) # Recipe exists; runtime remains unverified.
         self.assertNotIn('glib-2.0',plan['missing_modules'])
         self.assertNotIn('libjpeg',plan['missing_modules'])
         self.assertNotIn('xkbcommon',plan['missing_modules'])

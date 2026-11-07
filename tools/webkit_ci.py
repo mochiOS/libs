@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plan/build an independent WebKit candidate; never publish or claim native execution."""
+"""Inspect WebKit readiness for the standard libs pipeline; never claim native execution."""
 import argparse
 import hashlib
 import json
