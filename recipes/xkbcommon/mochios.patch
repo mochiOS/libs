@@ -1,0 +1,70 @@
+--- a/meson.build
++++ b/meson.build
+@@ -865,6 +865,9 @@
+                output: 'xkeyboard-config-test',
+                configuration: xkct_config)
+ 
++# Cross-library packaging can omit target tests, fuzzers and benchmarks.
++has_merge_modes_tests = false
++if get_option('enable-tests')
+ # Tests
+ test_env = environment()
+ test_env.set('XKB_LOG_LEVEL', 'debug')
+@@ -1389,6 +1392,8 @@
+ endif
+ 
+ 
++endif # enable-tests
++
+ # Documentation.
+ if get_option('enable-docs')
+     doxygen = find_program('doxygen', required: false)
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -100,3 +100,5 @@
+     value: true,
+     description: 'Enable installing bash completion scripts',
+ )
++
++option('enable-tests', type: 'boolean', value: true, description: 'Build tests, fuzzers and benchmarks')
+--- a/src/utils.h
++++ b/src/utils.h
+@@ -280,7 +280,10 @@
+ FILE*
+ open_file(const char *path);
+ 
+-#if defined(HAVE_SECURE_GETENV)
++#if defined(__mochios__)
++# include "mochios-secure-env.h"
++# define secure_getenv xkb_mochios_secure_getenv
++#elif defined(HAVE_SECURE_GETENV)
+ # define secure_getenv secure_getenv
+ #elif defined(HAVE___SECURE_GETENV)
+ # define secure_getenv __secure_getenv
+--- /dev/null
++++ b/src/mochios-secure-env.h
+@@ -0,0 +1,24 @@
++/* The SDK declares secure_getenv but shared.4 does not export it. Keep the
++ * upstream secure default using real auxiliary/credential APIs; never silently
++ * substitute getenv when security information is missing or credentials differ. */
++#pragma once
++#include <errno.h>
++#include <stdlib.h>
++#include <sys/auxv.h>
++#include <sys/types.h>
++#include <unistd.h>
++static inline char *xkb_mochios_secure_getenv(const char *name) {
++    if (!name) return NULL;
++    const int saved_errno = errno;
++    errno = 0;
++    const unsigned long secure = getauxval(AT_SECURE);
++    int allowed = errno == 0 && secure == 0;
++    if (allowed) {
++        const uid_t uid = getuid(), euid = geteuid();
++        const gid_t gid = getgid(), egid = getegid();
++        allowed = uid != (uid_t)-1 && euid != (uid_t)-1 &&
++                  gid != (gid_t)-1 && egid != (gid_t)-1 && uid == euid && gid == egid;
++    }
++    errno = saved_errno;
++    return allowed ? getenv(name) : NULL;
++}

@@ -1,0 +1,113 @@
+{
+  "format": 1,
+  "verified_at_utc": "2026-11-07T11:12:21.049786+00:00",
+  "library": "xkbcommon",
+  "version": "1.13.2",
+  "source_commit": "d1442aaa6b635551182e83c3b55037f4c118c962",
+  "compile_link_verified": true,
+  "runtime_smoke_passed": true,
+  "native_tested_library_sha256": "58413b7a4379ac1993e5af945cda9f0f8c0a0013349f9ea234c19b2b7834bdaf",
+  "recipe_sha256": "1cb45b13a52235663ce421e856ee8af3fbea7d5406c195e80a2b675a250e0837",
+  "patch_sha256": "9a6273500283aacd04e5f3600b5fddd3d12c963843d468610a1ec203081112e2",
+  "native_cases": [
+    "keysym-and-unicode",
+    "in-memory-keymap",
+    "shift-modifier",
+    "utf8-compose"
+  ],
+  "native_evidence": {
+    "format": 1,
+    "complete": true,
+    "failed": false,
+    "passed": true,
+    "cases": {
+      "probe": true
+    },
+    "runtime_tested": true,
+    "build": {
+      "format": 1,
+      "sdk_status": "explicit development candidate; not a published SDK verification",
+      "base_sdk_version": "27.0-dp.1-shared.4",
+      "runtime_archive_sha256": "3c2c793c186c6917615b974669c4fdb5bacab10c1b2c2935a691b003db431c32",
+      "candidate": {
+        "format": 1,
+        "status": "unpublished development candidate",
+        "base_sdk_version": "27.0-dp.1-shared.4",
+        "base_archive_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b",
+        "runtime_archive_sha256": "3c2c793c186c6917615b974669c4fdb5bacab10c1b2c2935a691b003db431c32",
+        "runtime_source_commit": "f9f452ba69e56edf3d9f83865d08bdebb6cb52fd",
+        "matching_capability_source_commit": "e0d23095b99894c3fb515d5e0cacdeb6cb874893",
+        "published": false
+      },
+      "library": "xkbcommon",
+      "module_versions": {
+        "xkbcommon": "1.13.2"
+      },
+      "libraries": [
+        "libxkbcommon.so.0"
+      ],
+      "runtime_tested": false,
+      "sources": {
+        "probe.c": "de50d9d41f16d53f8c415f51dbdb4df35f369aaa72d9f7d1439d315b9a5949cc",
+        "wrapper.c": "de3ece069adea31756d031d7209f03f0d9631493144ba70ba17603de880fecb4",
+        "launcher.c": "f922d5e8222e36778105e925a54a011fbb7c89f581219d07f3e67714c5cababf"
+      },
+      "inputs": {
+        "system/applications/PortSmoke.app/entry.elf": "214c8b60bbcc56750b462f431b16929da57bae298156529eddd35c6356b974c8",
+        "system/applications/PortSmoke.app/manifest.toml": "0f5a1807c5ad38489715431d05e4e754f8287da17ba245d92936b50f7ddd4001",
+        "system/applications/PortSmoke.app/setup.json": "4e1dd6a418093e2bcdbc23cb0c27eb80aecc1eff769e9ed5c9119c5d78c94612",
+        "system/bin/port-smoke": "c9c62bf592a83ef6ba934b22b876cfe4c8f8b6beeaa3d9d090bf5ed82ecd7116",
+        "system/libraries/port-smoke/libxkbcommon.so.0": "58413b7a4379ac1993e5af945cda9f0f8c0a0013349f9ea234c19b2b7834bdaf",
+        "system/packages/capability/manifest.toml": "100f9f1ea036e231db232cf859e42a345d158076c8739f4c7cdbc70ca14e6f0c",
+        "system/packages/capability/verification.bin": "942482b52cba042bd24d9c3b0f674629899d600a47a82dc9cc0a1c61877d83bc",
+        "system/packages/port-smoke/manifest.toml": "e2081133f1d2c2b8ed026a8cf42e9db42fc379c67613d44b2f520449f9105ecc",
+        "system/packages/port-smoke/verification.bin": "7e83af4d5dca5267f9b9fe17133aad752ce7e5e26c6fc417c4eca1dca8a4aa7a",
+        "system/services/capability.service": "696822dbeb29e27a5741192e2b8be382856c2956bab771c1dd1ec453aceda6a4",
+        "system/setup/session-startup.json": "f2c04b07b13dbaa559549dd2e6ea8f5baaf24c10b37ebdec0d55288e398c2015"
+      }
+    },
+    "image": {
+      "format": 1,
+      "source_image_sha256": "8193e61678ca4b49e19a645cdc13b364d5de6fa9988fe2f932242b5498dc45e5",
+      "partitions": [
+        {
+          "start": 2048,
+          "size": 393216,
+          "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+          "uuid": "D6DBE4B9-AB8B-4C6E-A2BA-7958EAA898F1",
+          "name": "mochiOS ESP"
+        },
+        {
+          "start": 395264,
+          "size": 1961984,
+          "type": "6D6F6368-694F-5300-8000-6D5061727401",
+          "uuid": "836875B7-AADE-4A4B-86CB-16EF4B859CD0",
+          "name": "mochiOS System"
+        },
+        {
+          "start": 2357248,
+          "size": 262144,
+          "type": "6D6F6368-694F-5300-8000-6D5061727402",
+          "uuid": "5E810B81-CF6A-45F0-9691-2E52FF0D2DF5",
+          "name": "mochiOS Data"
+        }
+      ],
+      "virtual_bytes": 1342177280,
+      "system_sha256": "14ac0a873dd4bfb7bff31b12be31292dc019398e006f3183937d06022ea4ebd0",
+      "kernel_sha256": "c152d9bb7f2a03db89c87b7268662f60012649bfafde9bddf1920ecd007b28e2"
+    },
+    "elapsed_host_seconds": 15.443
+  },
+  "host_tests": {
+    "total": 113,
+    "passed": 111,
+    "skipped": 2
+  },
+  "secure_environment_rejections_tested": true,
+  "limits": [
+    "No xkeyboard-config or locale databases are installed or fabricated.",
+    "No X11/Wayland/xkbregistry/CLI support is claimed.",
+    "Native execution used an unpublished runtime candidate; published shared.4 is unchanged.",
+    "Full upstream tests and production Docker build were not run."
+  ]
+}

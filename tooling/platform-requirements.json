@@ -700,6 +700,25 @@
         ],
         "license_files_present": true
       }
+    },
+    "xkbcommon": {
+      "status": "native-smoke-verified-build-enabled",
+      "upstream_version": "1.13.2",
+      "upstream_commit": "d1442aaa6b635551182e83c3b55037f4c118c962",
+      "runtime_tested": true,
+      "native_scope": [
+        "keysym-and-unicode",
+        "in-memory-keymap",
+        "shift-modifier",
+        "utf8-compose"
+      ],
+      "evidence": "tooling/xkbcommon-verification.json",
+      "limits": [
+        "No xkeyboard-config or locale databases are installed or fabricated.",
+        "No X11/Wayland/xkbregistry/CLI support is claimed.",
+        "Native execution used an unpublished runtime candidate; published shared.4 is unchanged.",
+        "Full upstream tests and production Docker build were not run."
+      ]
     }
   },
   "build_infrastructure": {
