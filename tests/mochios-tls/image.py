@@ -18,6 +18,13 @@ def run(command):
 
 
 def extract(source, target, offset, size):
+    if source.suffix == '.qcow2':
+        if any(c in str(source) for c in [',', '\n']):
+            raise ValueError('Image paths must not contain commas or newlines')
+        options = (f'driver=raw,offset={offset},size={size},file.driver=qcow2,'
+                   f'file.file.driver=file,file.file.filename={source}')
+        run(['qemu-img', 'convert', '--image-opts', options, '-O', 'raw', target])
+        return
     run(['dd', 'if=' + str(source), 'of=' + str(target), 'bs=1M',
          'iflag=skip_bytes,count_bytes', 'skip=' + str(offset), 'count=' + str(size),
          'conv=sparse', 'status=none'])
@@ -40,19 +47,32 @@ def main():
     parser.add_argument('--stage', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--kernel-directory', type=Path)
+    parser.add_argument('--base-image-directory', type=Path,
+                        help='Read-only standalone development qcow2 with image.json from a previous composition')
     args = parser.parse_args()
     root, stage, output = args.os_root.resolve(), args.stage.resolve(), args.output.resolve()
     if output.exists():
         parser.error('Choose a fresh output directory')
     if 'DEVELOPMENT_SYSTEM_SIGNATURES=y' not in (root / '.config').read_text().splitlines():
         parser.error('An existing development configuration is required')
-    source = root / 'out/artifacts/disk.img'
+    if args.base_image_directory:
+        base = args.base_image_directory.resolve()
+        source = base / 'disk.qcow2'
+        metadata = json.loads((base / 'image.json').read_text())
+        parts, virtual_size = metadata['partitions'], metadata['virtual_bytes']
+        info = json.loads(run(['qemu-img', 'info', '--output=json', source]).stdout)
+        if info.get('backing-filename') or info['virtual-size'] != virtual_size:
+            parser.error('Base image must be standalone and match its metadata')
+    else:
+        source = root / 'out/artifacts/disk.img'
+        table = json.loads(run(['sfdisk', '-J', source]).stdout)['partitiontable']
+        parts = [{key: part[key] for key in ['start', 'size', 'type', 'uuid', 'name']}
+                 for part in table['partitions']]
+        if table['sectorsize'] != 512:
+            parser.error('Unsupported image sector size')
+        virtual_size = source.stat().st_size
     source_stat = source.stat()
-    table = json.loads(run(['sfdisk', '-J', source]).stdout)['partitiontable']
-    parts = [{key: part[key] for key in ['start', 'size', 'type', 'uuid', 'name']}
-             for part in table['partitions']]
-    if table['sectorsize'] != 512 or [p.get('name') for p in parts] != [
-            'mochiOS ESP', 'mochiOS System', 'mochiOS Data']:
+    if [p.get('name') for p in parts] != ['mochiOS ESP', 'mochiOS System', 'mochiOS Data']:
         parser.error('This fixture supports the normal ESP/System/Data development layout only')
     files = sorted(stage.rglob('*'))
     if any(p.is_symlink() or not p.relative_to(stage).parts[0] == 'system' for p in files):
@@ -61,7 +81,7 @@ def main():
     disk = output / 'disk.qcow2'
     evidence = {'format': 1, 'runtime_tested': False,
                 'source_image_sha256': hashlib.file_digest(source.open('rb'), 'sha256').hexdigest(),
-                'partitions': parts, 'virtual_bytes': source_stat.st_size}
+                'partitions': parts, 'virtual_bytes': virtual_size}
     with tempfile.TemporaryDirectory(prefix='compose-', dir=output) as temporary:
         work = Path(temporary)
         esp, system, data = parts
@@ -84,7 +104,7 @@ def main():
         digest = work / 'system.sha256'
         digest.write_bytes(hashlib.file_digest(systemimage.open('rb'), 'sha256').digest())
         evidence['system_sha256'] = digest.read_bytes().hex()
-        run(['qemu-img', 'create', '-f', 'qcow2', disk, source_stat.st_size])
+        run(['qemu-img', 'create', '-f', 'qcow2', disk, virtual_size])
         run(['qemu-io', '-f', 'qcow2', '-c',
              f"write -c -s {systemimage} {system['start'] * 512} {system['size'] * 512}", disk])
         systemimage.unlink()
@@ -121,7 +141,7 @@ def main():
         debug(dataimage, 'rm /tmp/native-tls-results.log', allow_missing=True)
         run(['qemu-io', '-f', 'qcow2', '-c',
              f"write -c -s {dataimage} {data['start'] * 512} {data['size'] * 512}", disk])
-        for offset in [0, source_stat.st_size - 1048576]:
+        for offset in [0, virtual_size - 1048576]:
             block = work / 'gpt.bin'
             extract(source, block, offset, 1048576)
             run(['qemu-io', '-f', 'qcow2', '-c', f'write -c -s {block} {offset} 1048576', disk])
