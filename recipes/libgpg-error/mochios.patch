@@ -97,3 +97,35 @@
  
  if HAVE_W32_SYSTEM
  noinst_PROGRAMS = gen-w32-lock-obj
+--- a/configure
++++ b/configure
+@@ -14563,7 +14563,12 @@
+   if test "x$cross_compiling" = "xno"; then
+     CC_FOR_BUILD='$(CC)'
+   else
+-    CC_FOR_BUILD=gcc
++    # The pinned builder provides Clang for native code generators.
++    # CC remains the SDK compiler for all installed mochiOS objects.
++    case "$host_os" in
++      mochios*) CC_FOR_BUILD=clang ;;
++      *) CC_FOR_BUILD=gcc ;;
++    esac
+   fi
+ fi
+ 
+--- a/m4/ax_cc_for_build.m4
++++ b/m4/ax_cc_for_build.m4
+@@ -50,7 +50,12 @@
+   if test "x$cross_compiling" = "xno"; then
+     CC_FOR_BUILD='$(CC)'
+   else
+-    CC_FOR_BUILD=gcc
++    # The pinned builder provides Clang for native code generators.
++    # CC remains the SDK compiler for all installed mochiOS objects.
++    case "$host_os" in
++      mochios*) CC_FOR_BUILD=clang ;;
++      *) CC_FOR_BUILD=gcc ;;
++    esac
+   fi
+ fi
+ AC_SUBST(CC_FOR_BUILD)

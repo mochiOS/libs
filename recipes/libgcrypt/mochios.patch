@@ -135,3 +135,35 @@
  if test "$have_w32_system" != yes && test "$have_pthread" != yes; then
    AC_CHECK_LIB(pthread,pthread_create,have_pthread=yes)
  fi
+--- a/configure
++++ b/configure
+@@ -6845,7 +6845,12 @@
+   if test "x$cross_compiling" = "xno"; then
+     CC_FOR_BUILD='$(CC)'
+   else
+-    CC_FOR_BUILD=gcc
++    # The pinned builder provides Clang for native code generators.
++    # CC remains the SDK compiler for all installed mochiOS objects.
++    case "$host_os" in
++      mochios*) CC_FOR_BUILD=clang ;;
++      *) CC_FOR_BUILD=gcc ;;
++    esac
+   fi
+ fi
+ 
+--- a/m4/ax_cc_for_build.m4
++++ b/m4/ax_cc_for_build.m4
+@@ -50,7 +50,12 @@
+   if test "x$cross_compiling" = "xno"; then
+     CC_FOR_BUILD='$(CC)'
+   else
+-    CC_FOR_BUILD=gcc
++    # The pinned builder provides Clang for native code generators.
++    # CC remains the SDK compiler for all installed mochiOS objects.
++    case "$host_os" in
++      mochios*) CC_FOR_BUILD=clang ;;
++      *) CC_FOR_BUILD=gcc ;;
++    esac
+   fi
+ fi
+ AC_SUBST(CC_FOR_BUILD)
