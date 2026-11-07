@@ -157,9 +157,10 @@ Known platform requirements
 -----------------------------------------
 The registry uses published SDK 27.0-dp.1-shared.4, including its native TLS
 record archive and header. GLib is enabled; its resolver
-interfaces cover the record types required by GIO. The native GIO TLS port,
-libsoup and WebKit remain disabled until their separate SDK/runtime and
-platform-integration requirements are satisfied.
+interfaces cover the record types required by GIO. glib-networking and libsoup
+are enabled after native HTTPS/TLS 1.3/HTTP2, certificate rejection and
+cancellation verification. WebKit remains disabled pending platform integration.
+See tooling/gio-tls.md and tests/mochios-tls/reproduce.md for scope and reproduction.
 
 See tooling/platform-requirements.json for each port's verification evidence
 and limitations. mochiOS uses startup-linked shared libraries; successful

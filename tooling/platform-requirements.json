@@ -359,7 +359,7 @@
       }
     },
     "libsoup": {
-      "status": "published-sdk-cross-linked-native-runtime-pending",
+      "status": "published-sdk-cross-linked-native-runtime-verified-build-enabled",
       "verification": {
         "format": 1,
         "library": "libsoup",
@@ -373,29 +373,29 @@
         "sdk_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b",
         "compile_link_passed": true,
         "elf_and_actual_imports_verified": true,
-        "runtime_tested": false,
-        "production_container_build_tested": false
+        "runtime_tested": true,
+        "production_container_build_tested": false,
+        "native_runtime_evidence": "tooling/native-tls-verification.json"
       },
       "tls_backend": "Startup-linked libgiomochios.so using the native mochiOS verifier; no GnuTLS or alternate trust store.",
       "limitations": [
-        "Native GIO TLS is cross-linked and host-tested; HTTPS through libsoup and HTTP/2 on mochiOS remain unverified.",
-        "The configure tls_check=false setting permits cross-building a component; it does not provide TLS and the catalog remains disabled.",
+        "Only the native client HTTPS/TLS 1.3/HTTP2, certificate rejection and cancellation integration cases were executed; the complete upstream suites were not run.",
         "IPv6-only server listeners report unsupported when IPV6_V6ONLY is unavailable.",
         "Brotli, Zstandard, GSSAPI, NTLM, introspection, example applications and runtime tests are not enabled."
       ],
-      "tls_candidate_verification": {
-        "sdk_candidate": "27.0-dp.1-shared.4",
+      "tls_verification": {
         "native_compile_link": true,
         "native_consumer_link": true,
         "needed_contains_libgiomochios": true,
-        "runtime_tested": false
-      }
+        "runtime_tested": true,
+        "sdk": "27.0-dp.1-shared.4"
+      },
+      "cross_configuration": "tls_check=false disables a configure-time target execution probe only. The native TLS provider remains a required strong link dependency."
     },
     "glib-networking": {
       "upstream_version": "2.90.1",
       "upstream_commit": "ece5af2e7ffafe974c5c6ed6195000ff26a82aa5",
-      "status": "published-sdk-cross-linked-native-runtime-pending",
-      "sdk_candidate": "27.0-dp.1-shared.4",
+      "status": "published-sdk-cross-linked-native-runtime-verified-build-enabled",
       "sdk_runtime_baseline": "27.0-dp.1-shared.3",
       "tls_source_commit": "93b83c64fae5d197d4264efecb3fa6f0a97da1c3",
       "sdk_recipe_commit": "9d07b98",
@@ -412,19 +412,36 @@
         "sdk_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b",
         "compile_link_passed": true,
         "elf_and_actual_imports_verified": true,
-        "runtime_tested": false,
-        "production_container_build_tested": false
+        "runtime_tested": true,
+        "production_container_build_tested": false,
+        "native_runtime_evidence": "tooling/native-tls-verification.json"
       },
       "security": "Existing rustls/rustcrypto verifier and production webpki roots; no second TLS engine, trust override, networking capability grant, AppCore API or OS service. Test CA feature is rejected for mochiOS targets.",
       "limitations": [
         "TLS 1.3 client only, following the existing native TLS policy.",
         "Canonical ASCII DNS identities only; raw IP and Unicode identities require explicit future support.",
         "No custom trust stores, verification bypass, client certificates, server TLS or session resumption.",
-        "Bounded to 16 concurrent native sessions per linked provider; fork children invalidate inherited sessions.",
-        "Native mochiOS execution is required before enabling this port; SDK shared.4 is published and pinned."
+        "Bounded to 16 concurrent native sessions per linked provider; fork children invalidate inherited sessions."
       ],
       "sdk_published": true,
-      "sdk_archive_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b"
+      "sdk_archive_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b",
+      "host_reference_verification": {
+        "source_commit": "ad9dd9e",
+        "host_c_ownership_fork_limits": true,
+        "host_tls_tests": [
+          "synchronous handshake and HTTP response",
+          "asynchronous handshake and read",
+          "ALPN",
+          "buffered-input readiness and poll source",
+          "authenticated close_notify in both directions",
+          "hostname mismatch rejected even with accept-certificate handler",
+          "relaxed validation rejected",
+          "in-flight cancellation"
+        ],
+        "private_archive_path_audit": true,
+        "note": "Historical host reference checks; these do not establish native mochiOS runtime behavior."
+      },
+      "sdk": "27.0-dp.1-shared.4"
     },
     "expat": {
       "status": "published-sdk-compile-link-verified-build-enabled",

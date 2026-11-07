@@ -26,13 +26,15 @@ UNAVAILABLE_SDK = dict(format=1, available=False, target=libs.TARGET, abi=libs.A
 class RegistryTests(unittest.TestCase):
     def test_real_catalog_and_offline_plan_follow_the_sdk_lock(self):
         catalog = libs.read_catalog()
-        self.assertEqual(libs.order(catalog), ['zlib', 'libpng', 'pcre2', 'libffi', 'libiconv', 'gettext-runtime', 'glib', 'libjpeg-turbo', 'libwebp', 'brotli', 'libxml2', 'freetype', 'nghttp2', 'sqlite', 'libunistring', 'libidn2', 'libpsl', 'expat', 'fontconfig', 'icu', 'harfbuzz', 'libgpg-error', 'libgcrypt', 'libtasn1'])
+        self.assertEqual(libs.order(catalog), ['zlib', 'libpng', 'pcre2', 'libffi', 'libiconv', 'gettext-runtime', 'glib', 'libjpeg-turbo', 'libwebp', 'brotli', 'libxml2', 'freetype', 'nghttp2', 'sqlite', 'libunistring', 'libidn2', 'libpsl', 'glib-networking', 'libsoup', 'expat', 'fontconfig', 'icu', 'harfbuzz', 'libgpg-error', 'libgcrypt', 'libtasn1'])
         self.assertFalse(catalog['libraries']['webkit']['enabled'])
         self.assertTrue(catalog['libraries']['glib']['enabled'])
         plan = libs.make_plan(ROOT)
         libs.validate_plan(ROOT, plan)
         self.assertEqual(plan['ready'], libs.sdk_lock(ROOT)['available'])
-        self.assertNotIn('glib', plan['blocked_ports'])
+        self.assertEqual(set(plan['blocked_ports']), {'webkit'})
+        self.assertTrue(catalog['libraries']['glib-networking']['enabled'])
+        self.assertTrue(catalog['libraries']['libsoup']['enabled'])
         if not plan['ready']: self.assertTrue(plan['blocked_reason'])
 
     def test_annotated_tags_are_peeled_and_versions_sort_numerically(self):

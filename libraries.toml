@@ -155,8 +155,7 @@ submodules = { "list" = { git = "https://github.com/publicsuffix/list", commit =
 git = "https://gitlab.gnome.org/GNOME/libsoup.git"
 tag_pattern = '^(?P<version>3\.[0-9]*[02468]\.[0-9]+)$'
 revision = 2
-enabled = false
-reason = "Native GIO TLS provider cross-links with published SDK shared.4; mochiOS runtime verification is still required"
+enabled = true
 recipe = "recipes/libsoup/recipe.json"
 dependencies = ["glib", "glib-networking", "nghttp2", "sqlite", "libpsl", "zlib"]
 
@@ -173,10 +172,9 @@ dependencies = ["glib", "libpng"]
 git = "https://gitlab.gnome.org/GNOME/glib-networking.git"
 tag_pattern = '^(?P<version>2\.[0-9]*[02468]\.[0-9]+)$'
 revision = 1
-enabled = false
+enabled = true
 recipe = "recipes/glib-networking/recipe.json"
 dependencies = ["glib"]
-reason = "Native TLS provider cross-linked with published SDK shared.4 and host-tested; mochiOS runtime verification is still required."
 
 [libraries.expat]
 git = "https://github.com/libexpat/libexpat.git"

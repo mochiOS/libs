@@ -1,0 +1,13 @@
+NATIVE-TLS WAIT network
+NATIVE-TLS READY network
+NATIVE-TLS START time=1794039108
+NATIVE-TLS backend=MochiTlsBackend
+NATIVE-TLS HTTPS status=200 bytes=577 tls=5 http=2
+NATIVE-TLS PASS mode=https
+NATIVE-TLS START time=1794039111
+NATIVE-TLS backend=MochiTlsBackend
+NATIVE-TLS PASS mode=reject-untrusted
+NATIVE-TLS START time=1794039112
+NATIVE-TLS backend=MochiTlsBackend
+NATIVE-TLS PASS mode=cancel
+NATIVE-TLS SUITE failures=0

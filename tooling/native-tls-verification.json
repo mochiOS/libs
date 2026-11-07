@@ -1,0 +1,65 @@
+{
+  "format": 1,
+  "complete": true,
+  "passed": true,
+  "failed": false,
+  "cases": {
+    "https": true,
+    "reject-untrusted": true,
+    "cancel": true
+  },
+  "sdk": "27.0-dp.1-shared.4",
+  "sdk_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b",
+  "image": {
+    "format": 1,
+    "source_image_sha256": "791f84b09659cb7845ac9150b0e541b2ad10e3c677532b00406bd32822364bff",
+    "virtual_bytes": 1342177280,
+    "system_sha256": "1e32ca6b8c8e02c52fa92e994a3de18be0565dac824d582540294c397e8a5b6d",
+    "kernel_sha256": "c152d9bb7f2a03db89c87b7268662f60012649bfafde9bddf1920ecd007b28e2"
+  },
+  "elapsed_host_seconds": 24.447,
+  "tested_on": "2026-11-07",
+  "scope": "Native GIO TLS and libsoup client integration only; not the complete SDK or upstream test suites.",
+  "transport": {
+    "tls": "1.3",
+    "http": "2",
+    "status": 200,
+    "body_bytes": 577
+  },
+  "secure_boot_verified": true,
+  "runtime_tested": true,
+  "library_sources": {
+    "glib-networking": {
+      "tag": "2.90.1",
+      "version": "2.90.1",
+      "commit": "ece5af2e7ffafe974c5c6ed6195000ff26a82aa5"
+    },
+    "libsoup": {
+      "tag": "3.8.1",
+      "version": "3.8.1",
+      "commit": "2756d0076654b680d2021a08b9f2bd9d36d7ae1b"
+    }
+  },
+  "os_fixes": {
+    "drivers": "07cf6f2e798e4ca86922035d2255681b43dbbfd3",
+    "services_regression_tests": "6b9b6493c3e73550efdbbd88ab5a22ec38f41d9f",
+    "release_startup_diagnostics": "95bcf7c2d2e64b9d1f59f89ff33f3290b977d462",
+    "core_interrupt_safe_physical_offset": "9a5b5cdf97333be2cb46b5a27d0fdd38787ca3d1"
+  },
+  "artifacts": {
+    "client_sha256": "552c9ce855e766921d031448cc1c48d7f9f63faef940d38ca1bc7fd0f94ed529",
+    "libgiomochios_sha256": "787717263b8acd3b3ec9decdda692b19614581784d4a211cc0d15840685a43f5",
+    "libsoup_sha256": "fc4dc552ef154937f6467b86132c34887034583ef539d39cead65ea9d76b08be"
+  },
+  "production_container_build_tested": false,
+  "environment": {
+    "machine": "QEMU q35",
+    "acceleration": "TCG, icount shift=0",
+    "virtual_cpus": 2,
+    "memory_mib": 1024
+  },
+  "limitations": [
+    "The SDK C execv route returned EACCES for a prepared dynamic image; the normal scoped application launch route passed.",
+    "The complete upstream suites and pinned production-container graph were not executed."
+  ]
+}

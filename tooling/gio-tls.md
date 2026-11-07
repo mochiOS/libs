@@ -9,7 +9,7 @@ certificate store is introduced.
 
 ## Linking and ownership
 
-The SDK shared.4 candidate supplies `lib/libmochios_tls_pic.a` and
+Published SDK 27.0-dp.1-shared.4 supplies `lib/libmochios_tls_pic.a` and
 `sysroot/include/mochios/tls.h`. This archive is for a DSO whose version script
 hides all Rust symbols, not for direct linking into a C executable. The process
 continues to own allocation, threading, entropy and time. `libgiomochios.so`
@@ -55,8 +55,30 @@ failure, verification-policy rejection and cancellation. No test CA is
 installed in the host or OS. Rust tests separately check tampering,
 fragmentation, certificate rejection and queue backpressure before nonce use.
 
-Both this port and libsoup remain disabled in the distribution catalog until
-the required SDK is manually released and mochiOS runtime validation passes.
-The SDK TLS component and a final native consumer were cross-built, including
-a build-path audit. A complete shared.4 SDK archive and the full production
-container graph have not been built in this change. No release was published.
+## Native mochiOS verification
+
+Both ports are enabled in the distribution catalog. The published shared.4 SDK
+was pinned by its archive hash and used to compile and cross-link the libraries,
+C executable consumers and DSO consumers. A real SDK C client ran through the
+normal scoped application launcher and authenticated built-in package graph in
+an isolated, Secure Boot verified mochiOS VM. It completed:
+
+- HTTPS GET: TLS 1.3, HTTP/2, status 200 and a nonempty response.
+- Rejection of a self-signed server with G_TLS_ERROR_BAD_CERTIFICATE.
+- Asynchronous handshake cancellation with G_IO_ERROR_CANCELLED.
+
+See `native-tls-verification.json` and `native-tls-verification.log` for the
+exact SDK, library source commits, image/kernel hashes and guest results.
+`tests/mochios-tls/reproduce.md` documents reproduction. These cases do not claim
+that the complete upstream suites or every SDK API passed. In particular, the
+SDK C execv path rejected an already-prepared dynamic image; this fixture uses
+the normal AppCore/Binder scoped launch path and does not bypass authorization.
+
+Validation exposed a driver bug: its empty receive response negated an already
+negative compatibility EAGAIN, returning +11. The strict receiver rejected that
+malformed status and reset the interface. The driver now preserves -11/-5;
+regression tests exercise the actual driver receive/transmit dispatcher.
+
+The full pinned production-container graph has not been run locally (Docker is
+unavailable). The normal build, verification and maintainer approval workflow
+is still required before publication. No release or push was performed here.
