@@ -10,7 +10,7 @@ class MesaPort(unittest.TestCase):
     @unittest.skipUnless(shutil.which('cc') and shutil.which('patch'), 'C preprocessor/patch required')
     def test_target_endian_is_independent_of_build_host(self):
         patch=(ROOT/'recipes/mesa/mochios.patch').read_text()
-        section='--- a/src/util/u_endian.h\n'+patch.split('--- a/src/util/u_endian.h\n',1)[1]
+        section='--- a/src/util/u_endian.h\n'+patch.split('--- a/src/util/u_endian.h\n',1)[1].split('\n--- a/',1)[0].rstrip()+'\n'
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary); header=root/'src/util/u_endian.h';header.parent.mkdir(parents=True)
             shutil.copy2(ROOT/'tests/fixtures/mesa-26.2.6/u_endian.h',header)
