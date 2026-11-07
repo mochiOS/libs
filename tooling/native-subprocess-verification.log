@@ -1,0 +1,8 @@
+GSUBPROCESS START
+GSUBPROCESS PASS mode=pipes-argv-env-cwd
+GSUBPROCESS PASS mode=nonzero-exit
+GSUBPROCESS PASS mode=path-search
+GSUBPROCESS PASS mode=async-wait
+GSUBPROCESS PASS mode=cancelled-wait
+GSUBPROCESS PASS mode=missing-executable
+GSUBPROCESS COMPLETE failures=0

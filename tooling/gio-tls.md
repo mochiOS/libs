@@ -82,3 +82,15 @@ regression tests exercise the actual driver receive/transmit dispatcher.
 The full pinned production-container graph has not been run locally (Docker is
 unavailable). The normal build, verification and maintainer approval workflow
 is still required before publication. No release or push was performed here.
+
+
+## Subsequent child-process validation
+
+An unpublished executable-owned runtime candidate now passes the actual target
+GLib/GIO `GSubprocess` integration cases through ordinary `exec`, including pipes,
+arguments, environment, cwd, exit status, PATH lookup, async waiting, cancellation
+and missing-executable errors. See `native-subprocess-verification.json` and
+`tests/mochios-subprocess/reproduce.md`. Published SDK shared.4 remains unchanged;
+the original TLS result above used its scoped-launch path and is still distinct
+from this candidate-runtime verification. This does not establish WebKit process
+integration or full GLib conformance.

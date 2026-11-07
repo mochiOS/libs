@@ -1,0 +1,97 @@
+{
+  "format": 1,
+  "verified_at_utc": "2026-11-07T09:47:16.413887+00:00",
+  "platform": "mochiOS native, QEMU TCG",
+  "runtime_tested": true,
+  "passed": true,
+  "sdk_candidate": {
+    "format": 1,
+    "status": "unpublished development candidate",
+    "base_sdk_version": "27.0-dp.1-shared.4",
+    "base_archive_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b",
+    "runtime_archive_sha256": "3c2c793c186c6917615b974669c4fdb5bacab10c1b2c2935a691b003db431c32",
+    "runtime_source_commit": "f9f452ba69e56edf3d9f83865d08bdebb6cb52fd",
+    "matching_capability_source_commit": "e0d23095b99894c3fb515d5e0cacdeb6cb874893",
+    "published": false
+  },
+  "glib_version": "2.90.1",
+  "glib_upstream_commit": "e05063ccc6c8f222465a1080927f4c14349f3de6",
+  "native_cases": {
+    "pipes-argv-env-cwd": true,
+    "nonzero-exit": true,
+    "path-search": true,
+    "async-wait": true,
+    "cancelled-wait": true,
+    "missing-executable": true
+  },
+  "elapsed_host_seconds": 128.569,
+  "image": {
+    "source_image_sha256": "8193e61678ca4b49e19a645cdc13b364d5de6fa9988fe2f932242b5498dc45e5",
+    "system_sha256": "51ba2a83b30f4c77dd8d65d5967cc89dec42f3e1bacd09047cbafa742806d0a6",
+    "kernel_sha256": "c152d9bb7f2a03db89c87b7268662f60012649bfafde9bddf1920ecd007b28e2"
+  },
+  "security": {
+    "secure_boot": true,
+    "development_system_signatures": true,
+    "account_and_capability_policy_unchanged": true
+  },
+  "fixture_build": {
+    "format": 1,
+    "sdk_status": "explicit development candidate; not a published SDK verification",
+    "base_sdk_version": "27.0-dp.1-shared.4",
+    "runtime_archive_sha256": "3c2c793c186c6917615b974669c4fdb5bacab10c1b2c2935a691b003db431c32",
+    "libraries": [
+      "libffi.so.8",
+      "libgio-2.0.so.0",
+      "libglib-2.0.so.0",
+      "libgmodule-2.0.so.0",
+      "libgobject-2.0.so.0",
+      "libiconv.so.2",
+      "libintl.so.8",
+      "libpcre2-8.so.0",
+      "libz.so.1"
+    ],
+    "runtime_tested": false,
+    "sources": {
+      "client.c": "a1ea20ad1ac2bfcc5dd005fefb89f8c7f232225ba3e769c343c324343eff6570",
+      "launcher.c": "798f637d271ba21ecf602321ba215d7090868db4913bb8f949dfb6f8ed148b1c"
+    },
+    "inputs": {
+      "system/applications/SubprocessTest.app/entry.elf": "4b55c34d8a6c80c55fa60f8b38871bc7a685b0e6351bc03cc757f1ab1858f57f",
+      "system/applications/SubprocessTest.app/manifest.toml": "758cfacac4e984f127206485abb0f260cad4431d8a87a65d0e7ddb2e7ce1a39b",
+      "system/applications/SubprocessTest.app/setup.json": "4e1dd6a418093e2bcdbc23cb0c27eb80aecc1eff769e9ed5c9119c5d78c94612",
+      "system/bin/gsubprocess-smoke": "d1dd4eba54b485fce1a7cc3b10b23ae1e3083adfdcabbce35243c7bddeb0eb4c",
+      "system/libraries/gsubprocess-smoke/libffi.so.8": "499f6b64ea154ab770b976d4268a66c2637152f5b36db2071b0e78e72bbecb9f",
+      "system/libraries/gsubprocess-smoke/libgio-2.0.so.0": "15303e0140780e8588940a48e2286f94d83679fb944f1ac2accfc08a2cf0cf96",
+      "system/libraries/gsubprocess-smoke/libglib-2.0.so.0": "640ea2742a5fe0c1558a05400d8110905d1ce5fdfb12519a8b3b25cdfbaa5b07",
+      "system/libraries/gsubprocess-smoke/libgmodule-2.0.so.0": "e5e12504be52030e33e327811054ab5b18b0e00c799dc20c993d61485e12b35b",
+      "system/libraries/gsubprocess-smoke/libgobject-2.0.so.0": "1320ede6e0256d9dc672cb4c9b97210e19449fd45b3e0d0ccceb711b3598854f",
+      "system/libraries/gsubprocess-smoke/libiconv.so.2": "63bf3ead328f8a1e4b1e9765e495e19d45ef2b3f9f8fd1f69c41ad269bda2582",
+      "system/libraries/gsubprocess-smoke/libintl.so.8": "75f4668c999858629e62d45b1a0e76452c14b256b68fa7b5f50975091511441b",
+      "system/libraries/gsubprocess-smoke/libpcre2-8.so.0": "52294ea3ed0ae0f25c39f6dcba9f9e3327d78882b017f9b27d3a164f1ae7243a",
+      "system/libraries/gsubprocess-smoke/libz.so.1": "2eef14a795724304cdadb961d4b049f270eb570bcdd1691bb08223c75e4ba8f3",
+      "system/packages/capability/manifest.toml": "100f9f1ea036e231db232cf859e42a345d158076c8739f4c7cdbc70ca14e6f0c",
+      "system/packages/capability/verification.bin": "942482b52cba042bd24d9c3b0f674629899d600a47a82dc9cc0a1c61877d83bc",
+      "system/packages/gsubprocess-test/manifest.toml": "a8138bf548d66644bfd95c9cc5e29e5b062aeebbaf6a2f48cc4c091fdc8f4458",
+      "system/packages/gsubprocess-test/verification.bin": "053a4d8c4e57405299f3a5db023bc8a9ca2a94e9ae83dea719a27a25747aa51c",
+      "system/services/capability.service": "696822dbeb29e27a5741192e2b8be382856c2956bab771c1dd1ec453aceda6a4",
+      "system/setup/session-startup.json": "652fc7de1465e81211b276b641d8ac641f5e2141507660ef3200f405a9435ff0"
+    }
+  },
+  "fixture_scripts": {
+    "build.py": "16740df4eb166bfc927185e82de4f8e410fe33006d5c871105bc68213a3d53b1",
+    "run.py": "4bd2b2d9ce1edd598a71f9281b3f33c38998e51761a3f210ab223a885f6355b6"
+  },
+  "host_tests": {
+    "python_total": 92,
+    "python_passed": 90,
+    "python_skipped": 2,
+    "linux_reference_glib": "2.80.0",
+    "linux_reference_cases": 6
+  },
+  "limits": [
+    "Target integration cases only; not the complete upstream GLib or SDK suites.",
+    "Published shared.4 SDK is unchanged; this result requires the explicit runtime candidate and matching capability service.",
+    "WebKit process integration and sandboxing remain unverified."
+  ]
+}

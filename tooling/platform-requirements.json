@@ -66,8 +66,8 @@
         "GIO native volume monitoring and FD-to-path queries are unsupported; no mount list is fabricated.",
         "Exact pending-byte count for native streams is unavailable; GSocket reports an error.",
         "Optional IP/TCP options are declared for source compatibility but fail explicitly when unsupported by the native provider.",
-        "The native GIO TLS provider is implemented as a separate port, but is not yet distributed or executed on mochiOS; WebKit platform integration is pending.",
-        "Target execution, network operation and browser integration remain unverified."
+        "GIO TLS has targeted native integration verification; complete upstream-suite coverage and WebKit integration remain unverified.",
+        "Only the recorded native integration cases are verified; browser integration remains unverified."
       ],
       "native_implementation": {
         "syscalls_commit": "6a9a3dd2142012d4624f2decef570fcb522917f6",
@@ -205,6 +205,25 @@
           "full_payload_inventory_checked": true
         },
         "ci_failure_evidence": "https://github.com/mochiOS/libs/actions/runs/42218364025"
+      },
+      "native_subprocess_verification": {
+        "status": "native-integration-passed-with-unpublished-runtime-candidate",
+        "runtime_tested": true,
+        "published_sdk_unchanged": true,
+        "runtime_archive_sha256": "3c2c793c186c6917615b974669c4fdb5bacab10c1b2c2935a691b003db431c32",
+        "user_commit": "f9f452ba69e56edf3d9f83865d08bdebb6cb52fd",
+        "services_commit": "e0d23095b99894c3fb515d5e0cacdeb6cb874893",
+        "cases": [
+          "pipes-argv-env-cwd",
+          "nonzero-exit",
+          "path-search",
+          "async-wait",
+          "cancelled-wait",
+          "missing-executable"
+        ],
+        "evidence": "tooling/native-subprocess-verification.json",
+        "reproduce": "tests/mochios-subprocess/reproduce.md",
+        "scope": "Actual GLib/GIO APIs and normal authenticated exec; not the full upstream suite or WebKit integration."
       }
     },
     "webkit": {
