@@ -1,0 +1,4 @@
+MOCHIOS_WEBKIT_1 {
+    global: mwk_get_api;
+    local: *;
+};
