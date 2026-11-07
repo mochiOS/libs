@@ -1,7 +1,7 @@
 {
   "format": 1,
   "target": "x86_64-unknown-mochios",
-  "baseline_sdk": "27.0-dp.1-shared.3",
+  "baseline_sdk": "27.0-dp.1-shared.4",
   "status": "ports-in-progress",
   "ports": {
     "glib": {
@@ -359,23 +359,22 @@
       }
     },
     "libsoup": {
-      "status": "native-tls-wired-cross-linked-distribution-disabled",
+      "status": "published-sdk-cross-linked-native-runtime-pending",
       "verification": {
         "format": 1,
         "library": "libsoup",
         "source": {
+          "git": "https://gitlab.gnome.org/GNOME/libsoup.git",
           "tag": "3.8.1",
           "version": "3.8.1",
           "commit": "2756d0076654b680d2021a08b9f2bd9d36d7ae1b"
         },
-        "sdk": "27.0-dp.1-shared.3",
-        "sdk_sha256": "9b37eb63731fc280ae152ead9b3a9878285dc80d4492b8cfeeda896da55607fc",
+        "sdk": "27.0-dp.1-shared.4",
+        "sdk_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b",
         "compile_link_passed": true,
         "elf_and_actual_imports_verified": true,
         "runtime_tested": false,
-        "production_container_build_tested": false,
-        "actual_needed_closure_verified": true,
-        "checked_libraries": 15
+        "production_container_build_tested": false
       },
       "tls_backend": "Startup-linked libgiomochios.so using the native mochiOS verifier; no GnuTLS or alternate trust store.",
       "limitations": [
@@ -395,30 +394,26 @@
     "glib-networking": {
       "upstream_version": "2.90.1",
       "upstream_commit": "ece5af2e7ffafe974c5c6ed6195000ff26a82aa5",
-      "status": "native-cross-linked-host-interoperability-tested-distribution-disabled",
+      "status": "published-sdk-cross-linked-native-runtime-pending",
       "sdk_candidate": "27.0-dp.1-shared.4",
       "sdk_runtime_baseline": "27.0-dp.1-shared.3",
       "tls_source_commit": "93b83c64fae5d197d4264efecb3fa6f0a97da1c3",
       "sdk_recipe_commit": "9d07b98",
       "verification": {
-        "native_compile_link": true,
-        "native_consumer_link": true,
-        "actual_import_closure": true,
-        "private_archive_path_audit": true,
-        "host_c_ownership_fork_limits": true,
-        "host_tls_tests": [
-          "synchronous handshake and HTTP response",
-          "asynchronous handshake and read",
-          "ALPN",
-          "buffered-input readiness and poll source",
-          "authenticated close_notify in both directions",
-          "hostname mismatch rejected even with accept-certificate handler",
-          "relaxed validation rejected",
-          "in-flight cancellation"
-        ],
-        "mochios_runtime_tested": false,
-        "production_container_build_tested": false,
-        "full_sdk_archive_built": false
+        "format": 1,
+        "library": "glib-networking",
+        "source": {
+          "git": "https://gitlab.gnome.org/GNOME/glib-networking.git",
+          "tag": "2.90.1",
+          "version": "2.90.1",
+          "commit": "ece5af2e7ffafe974c5c6ed6195000ff26a82aa5"
+        },
+        "sdk": "27.0-dp.1-shared.4",
+        "sdk_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b",
+        "compile_link_passed": true,
+        "elf_and_actual_imports_verified": true,
+        "runtime_tested": false,
+        "production_container_build_tested": false
       },
       "security": "Existing rustls/rustcrypto verifier and production webpki roots; no second TLS engine, trust override, networking capability grant, AppCore API or OS service. Test CA feature is rejected for mochiOS targets.",
       "limitations": [
@@ -426,8 +421,10 @@
         "Canonical ASCII DNS identities only; raw IP and Unicode identities require explicit future support.",
         "No custom trust stores, verification bypass, client certificates, server TLS or session resumption.",
         "Bounded to 16 concurrent native sessions per linked provider; fork children invalidate inherited sessions.",
-        "New SDK/archive distribution and mochiOS execution are required before enabling this port."
-      ]
+        "Native mochiOS execution is required before enabling this port; SDK shared.4 is published and pinned."
+      ],
+      "sdk_published": true,
+      "sdk_archive_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b"
     },
     "expat": {
       "status": "published-sdk-compile-link-verified-build-enabled",

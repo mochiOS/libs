@@ -155,7 +155,8 @@ and are rejected if modified. No build commands are run while fetching sources.
 
 Known platform requirements
 -----------------------------------------
-GLib is enabled with the published SDK 27.0-dp.1-shared.3. Its resolver
+The registry uses published SDK 27.0-dp.1-shared.4, including its native TLS
+record archive and header. GLib is enabled; its resolver
 interfaces cover the record types required by GIO. The native GIO TLS port,
 libsoup and WebKit remain disabled until their separate SDK/runtime and
 platform-integration requirements are satisfied.
