@@ -156,3 +156,14 @@
  #include <sys/ioctl.h>
  #else
  #include <sys/ioccom.h>
+--- a/include/c99_alloca.h
++++ b/include/c99_alloca.h
+@@ -35,7 +35,7 @@
+ 
+ #  define alloca _alloca
+ 
+-#elif defined(__sun) || defined(__CYGWIN__)
++#elif defined(__sun) || defined(__CYGWIN__) || defined(__mochios__)
+ 
+ #  include <alloca.h>
+ 
