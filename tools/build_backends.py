@@ -36,6 +36,24 @@ def cross_file(sdk, sysroot, dependencies, destination):
     return destination
 
 
+def apply_overlays(recipe, source, assets):
+    """Copy reviewed port files, refusing escapes and stale/upstream collisions."""
+    for original, relative in recipe.get('overlays', {}).items():
+        for value in (original, relative):
+            if not isinstance(value,str) or not value or Path(value).is_absolute() or '..' in Path(value).parts or '\\' in value:
+                raise ValueError('Invalid source overlay path')
+        selected=assets/original
+        destination=source/relative
+        if not selected.resolve().is_relative_to(assets.resolve()) or not selected.is_file():
+            raise ValueError('Source overlay escapes recipe assets')
+        if not destination.resolve().is_relative_to(source.resolve()):
+            raise ValueError('Source overlay escapes disposable source')
+        if destination.exists() or destination.is_symlink():
+            raise ValueError('Source overlay collides with existing source; use a fresh tree')
+        destination.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copyfile(selected,destination)
+
+
 def build(recipe, source, work, sdk, sysroot, dependencies, common, env):
     """Build into one private prefix; SDK import checks and caller ELF/link probes remain mandatory."""
     backend = recipe['backend']
@@ -45,6 +63,7 @@ def build(recipe, source, work, sdk, sysroot, dependencies, common, env):
         invoke(['autoreconf', '--install'], env, cwd=source)
     for patch in recipe.get('patches', []):
         invoke(['patch', '--batch', '--fuzz=0', '-p1', '-i', work/'recipe-assets'/patch], env, cwd=source)
+    apply_overlays(recipe,source,work/'recipe-assets')
     source = source/recipe.get('subdirectory', '.')
     if backend == 'cmake':
         options = [f'-D{name}=' + (('ON' if value else 'OFF') if isinstance(value, bool) else str(value))

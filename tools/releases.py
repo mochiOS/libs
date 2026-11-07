@@ -42,6 +42,7 @@ def verify_bundle(directory, package, plan, root=libs.ROOT):
     library = libs.read_catalog(root)['libraries'][package['name']]
     path = libs.relative(root, library['recipe']); specification = libs.recipe(root, library)
     expected_recipe = dict(path=library['recipe'], sha256=libs.hash_file(path), probe_sha256=libs.hash_file(libs.relative(path.parent, specification['probe'])), patches={name: libs.hash_file(libs.relative(path.parent, name)) for name in specification.get('patches', [])})
+    if specification.get('overlays'): expected_recipe['overlays']={name:libs.hash_file(libs.relative(path.parent,name)) for name in specification['overlays']}
     if manifest.get('source_repository') != library['git'] or manifest.get('recipe') != expected_recipe or not libs.SHA.fullmatch(manifest.get('registry_commit', '')):
         raise ValueError('Missing/mismatched source and recipe provenance')
     if manifest.get('runtime_tested') is not False or manifest.get('verification') != 'compile-and-link-only':
@@ -63,6 +64,9 @@ def verify_bundle(directory, package, plan, root=libs.ROOT):
         elif not libs.SHA256.fullmatch(entry['sha256']) or entry['mode'] & 0o7000:
             raise ValueError('Invalid payload file binding')
         expected['sysroot/' + entry['path']] = entry
+    for helper in specification.get('executables',[]):
+        entry=expected.get('sysroot/'+helper)
+        if not entry or 'link' in entry:raise ValueError('Missing/nonregular native helper: '+helper)
     seen = set()
     elf_count = 0
     with tarfile.open(directory / archive_name) as tar:
@@ -87,7 +91,9 @@ def verify_bundle(directory, package, plan, root=libs.ROOT):
                     if entry['path'] in specification.get('config_scripts', []):
                         if not libs.config_script_header(stream.read(128)):raise ValueError('Configuration helper is not a POSIX script')
                         stream.seek(0)
+                    helper=entry['path'] in specification.get('executables',[])
                     magic = stream.read(4)
+                    if helper and magic!=b'\x7fELF':raise ValueError('Declared native helper is not ELF')
                     if magic != b'\x7fELF' and re.fullmatch(r'.+\.so(?:\.[0-9]+)*', PurePosixPath(member.name).name):
                         raise ValueError('Shared-library output is not ELF')
                     if magic == b'\x7fELF':
@@ -96,7 +102,7 @@ def verify_bundle(directory, package, plan, root=libs.ROOT):
                         with tempfile.TemporaryDirectory(prefix='libs-elf-') as temporary:
                             binary = Path(temporary) / 'library.so'
                             with binary.open('wb') as output: shutil.copyfileobj(stream, output)
-                            container_build.validate_elf(binary, shared=True)
+                            container_build.validate_elf(binary, shared=not helper, executable=helper)
     if seen != set(expected) | {'manifest.json'}: raise ValueError('Incomplete archive')
     if not elf_count or not any(path.endswith('.so') or '.so.' in path for path in expected):
         raise ValueError('Library archive has no shared-library output')

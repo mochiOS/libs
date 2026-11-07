@@ -139,6 +139,19 @@ def recipe(root, library):
         for original, target in value.get('install_headers', {}).items():
             relative(root, original); relative(root, target)
             if not target.startswith('usr/include/'): raise ValueError('Header install must stay in usr/include')
+    overlays=value.get('overlays',{})
+    if not isinstance(overlays,dict):raise ValueError('Source overlays must be a path map')
+    destinations=[]
+    for original,destination in overlays.items():
+        if not relative(path.parent,original).is_file():raise ValueError('Missing source overlay asset')
+        relative(root,destination)
+        destinations.append(destination)
+    if len(set(destinations))!=len(destinations):raise ValueError('Duplicate source overlay destination')
+    executables=value.get('executables',[])
+    if not isinstance(executables,list) or any(not isinstance(item,str) for item in executables) or len(set(executables))!=len(executables):raise ValueError('Invalid executable helper inventory')
+    for executable in executables:
+        relative(root,executable)
+        if not re.fullmatch(r'usr/libexec/[A-Za-z0-9_+./-]+',executable):raise ValueError('Executable helpers must stay under usr/libexec')
     for license_path in value['licenses']:
         relative(root, license_path)  # Lexical validation; source location is checked after checkout.
     relative(path.parent, value['probe']).read_text()
@@ -320,6 +333,7 @@ def make_plan(root, refresh=False):
         inputs = dict(name=name, source=selected, library=library, sdk=sdk, dependencies=deps, common=common,
                       recipe=specification, probe_sha256=hash_file(relative(recipe_path.parent, specification['probe'])),
                       patches={name: hash_file(relative(recipe_path.parent, name)) for name in specification.get('patches', [])})
+        if specification.get('overlays'): inputs['overlays']={name:hash_file(relative(recipe_path.parent,name)) for name in specification['overlays']}
         stem = f'{name}-{selected["version"]}-r{library["revision"]}-{TARGET}-{ABI}'
         packages.append(dict(name=name, source=selected, release=f'{name}-{selected["version"]}-r{library["revision"]}', stem=stem,
                              input_id=identity(inputs), dependencies=deps))
@@ -359,6 +373,7 @@ def validate_plan(root, plan):
         inputs = dict(name=name, source=selected, library=library, sdk=sdk, dependencies=deps, common=common,
                       recipe=specification, probe_sha256=hash_file(relative(path.parent, specification['probe'])),
                       patches={name: hash_file(relative(path.parent, name)) for name in specification.get('patches', [])})
+        if specification.get('overlays'): inputs['overlays']={name:hash_file(relative(path.parent,name)) for name in specification['overlays']}
         expected = dict(name=name, source=selected, release=f'{name}-{selected["version"]}-r{library["revision"]}',
                         stem=f'{name}-{selected["version"]}-r{library["revision"]}-{TARGET}-{ABI}', input_id=identity(inputs), dependencies=deps)
         if package != expected:
@@ -587,7 +602,7 @@ def docker_command(image, sdk, source, dependencies, work):
 
 def allowed_payload(path, specification):
     """Allow library data and explicitly declared configuration scripts, never arbitrary executables."""
-    return any(path.startswith(prefix) for prefix in ['usr/lib/','usr/include/','usr/share/']) or path in specification.get('config_scripts', [])
+    return any(path.startswith(prefix) for prefix in ['usr/lib/','usr/include/','usr/share/']) or path in specification.get('config_scripts', []) or path in specification.get('executables', [])
 
 
 def config_script_header(header):
@@ -617,6 +632,7 @@ def package_build(root, package, stage, metadata, destination):
     specification = recipe(root, library)
     recipe_identity = dict(path=library['recipe'], sha256=hash_file(recipe_path), probe_sha256=hash_file(relative(recipe_path.parent, specification['probe'])),
                       patches={name: hash_file(relative(recipe_path.parent, name)) for name in specification.get('patches', [])})
+    if specification.get('overlays'): recipe_identity['overlays']={name:hash_file(relative(recipe_path.parent,name)) for name in specification['overlays']}
     manifest = dict(format=1, package=package, sdk=metadata['sdk'], builder=metadata['builder'], target=TARGET, abi=ABI,
                     source_repository=library['git'], recipe=recipe_identity, registry_commit=metadata['registry_commit'],
                     verification='compile-and-link-only', runtime_tested=False, files=files)
@@ -696,6 +712,10 @@ def build(root, plan, output, image):
             target = relative(work / 'recipe-assets', patch)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(relative(relative(root, library['recipe']).parent, patch), target)
+        for asset in specification.get('overlays', {}):
+            target=relative(work/'recipe-assets',asset)
+            target.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(relative(relative(root,library['recipe']).parent,asset),target)
         print(f'[{index}/{total}] {package["release"]}: building and checking target links; log: {work / "container.log"}', flush=True)
         run(docker_command(builder_id, sdk, source, dependencies, work), log=work / 'container.log')
         verified = json.loads((work / 'verified.json').read_text())

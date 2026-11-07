@@ -19,23 +19,40 @@ def command(args, env=None):
     subprocess.run(list(map(str, args)), env=env, check=True)
 
 
-def validate_elf(path, shared=False):
-    """Reject host/glibc artifacts, the wrong architecture, executable helpers and build RPATHs."""
+def validate_elf(path, shared=False, executable=False):
+    """Reject host runtimes, the wrong architecture/ELF kind and embedded build RPATHs."""
     with path.open('rb') as stream: header = stream.read(64)
     if len(header) < 64 or header[:6] != b'\x7fELF\x02\x01' or struct.unpack_from('<H', header, 18)[0] != 62:
         raise ValueError(f'Not an x86-64 ELF: {path}')
     if shared and struct.unpack_from('<H', header, 16)[0] != 3:
         raise ValueError(f'Not a shared library: {path}')
+    if executable and struct.unpack_from('<H',header,16)[0]!=2:
+        raise ValueError(f'Not a native executable: {path}')
     program = subprocess.check_output(['readelf', '-l', str(path)], text=True)
     versions = subprocess.check_output(['readelf', '--version-info', str(path)], text=True)
     dynamic = subprocess.check_output(['readelf', '-d', str(path)], text=True)
-    if shared and 'INTERP' in program:
+    if (shared or executable) and 'INTERP' in program:
         raise ValueError('Library output has an executable interpreter')
     if 'GLIBC_' in versions or any(name in dynamic for name in ['libc.so.6', 'ld-linux-x86-64', 'libpthread.so.0']):
         raise ValueError('Host glibc dependency is forbidden')
     if '(RPATH)' in dynamic or '(RUNPATH)' in dynamic:
         raise ValueError('Library output contains an unreviewed runtime search path')
     return dynamic
+
+
+def validate_installed_tree(stage, recipe):
+    """Only declared native helpers may accompany DSOs; inspect, never execute."""
+    expected=set(recipe.get('executables',[]))
+    found=set()
+    for path in stage.rglob('*'):
+        if path.is_file() and not path.is_symlink():
+            with path.open('rb') as stream:magic=stream.read(4)
+            name=path.relative_to(stage).as_posix()
+            if name in expected:
+                if magic!=b'\x7fELF':raise ValueError('Declared native helper is not ELF: '+name)
+                validate_elf(path,executable=True);found.add(name)
+            elif magic==b'\x7fELF':validate_elf(path,shared=True)
+    if found!=expected:raise ValueError('Missing declared native helpers: '+', '.join(sorted(expected-found)))
 
 
 def safe_sdk_path(sdk, relative):
@@ -121,10 +138,7 @@ def main():
     command(['cmake', '--build', work / 'library-probe', '--parallel', '2'], consumer_env)
     validate_elf(work / 'library-probe/library_probe')
     # Validate every ELF installed by the recipe, not just the declared primary library.
-    for path in (work / 'stage').rglob('*'):
-        if path.is_file() and not path.is_symlink():
-            with path.open('rb') as stream: magic = stream.read(4)
-            if magic == b'\x7fELF': validate_elf(path, shared=True)
+    validate_installed_tree(work/'stage',recipe)
     tools = dict(cmake=subprocess.check_output(['cmake', '--version'], text=True).splitlines()[0],
                  ninja=subprocess.check_output(['ninja', '--version'], text=True).strip(),
                  host_packages=Path('/usr/share/libs-builder-packages.txt').read_text())
