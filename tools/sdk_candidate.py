@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import sys
@@ -57,6 +58,28 @@ def validate_artifact(directory, policy):
     return archive, manifest
 
 
+def activate_ports(root, names):
+    """Enable only reviewed registry entries in the disposable candidate checkout."""
+    if not isinstance(names, list) or len(set(names)) != len(names):
+        raise ValueError('Invalid candidate library list')
+    catalog = libs.read_catalog(root)
+    path = root / 'libraries.toml'
+    text = path.read_text()
+    for name in names:
+        if name not in catalog['libraries'] or not libs.NAME.fullmatch(name):
+            raise ValueError('Unknown candidate library')
+        # Reuse the ordinary recipe validator; no separate recipe/build path exists.
+        libs.recipe(root, catalog['libraries'][name])
+        pattern = r'(?ms)(^\[libraries\.' + re.escape(name) + r'\]\n)(.*?)(?=^\[|\Z)'
+        def enable(match):
+            body, count = re.subn(r'^enabled = (?:true|false)$', 'enabled = true', match[2], flags=re.M)
+            if count != 1: raise ValueError('Ambiguous candidate enabled flag')
+            return match[1] + body
+        text, count = re.subn(pattern, enable, text)
+        if count != 1: raise ValueError('Missing candidate library section')
+    path.write_text(text)
+
+
 def prepare(root, directory, fetch=False):
     """Preseed the ordinary SDK hash cache and freeze a non-publishable temporary SDK lock."""
     policy = json.loads((root / 'tooling/sdk-candidate.json').read_text())
@@ -80,6 +103,7 @@ def prepare(root, directory, fetch=False):
     text = ''.join(k + ' = ' + ('true' if v is True else 'false' if v is False else json.dumps(v)) + '\n'
                    for k, v in lock.items())
     (root / 'sdk.lock.toml').write_text(text)
+    activate_ports(root, policy.get('enable_libraries', []))
     return lock
 
 

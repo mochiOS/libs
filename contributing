@@ -323,6 +323,8 @@ by the workflow and the publisher. The normal production SDK pin stays in
 disposable checkout. Advancing the candidate requires reviewing a new source
 commit and successful SDK build, then updating the tracked candidate policy.
 
+The candidate policy enables Mesa from the ordinary registry only in its
+disposable runner checkout. The published SDK build keeps it disabled.
 Mesa currently supplies surfaceless EGL/GLES2 through softpipe for port
 verification. It requires the candidate shared.5 SDK and is not yet runtime
 validated. It does not provide a GPU, window-system backend or a working WebKit

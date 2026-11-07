@@ -45,6 +45,15 @@
  typedef void *EGLNativePixmapType;
 --- a/src/util/os_misc.c
 +++ b/src/util/os_misc.c
+@@ -60,7 +60,7 @@
+ #  include <unistd.h>
+ #  include <android/log.h>
+ #  include <sys/system_properties.h>
+-#elif DETECT_OS_LINUX || DETECT_OS_CYGWIN || DETECT_OS_SOLARIS || DETECT_OS_HURD || DETECT_OS_MANAGARM
++#elif DETECT_OS_LINUX || DETECT_OS_CYGWIN || DETECT_OS_SOLARIS || DETECT_OS_HURD || DETECT_OS_MANAGARM || DETECT_OS_MOCHIOS
+ #  include <unistd.h>
+ #elif DETECT_OS_OPENBSD || DETECT_OS_FREEBSD
+ #  include <sys/resource.h>
 @@ -229,7 +229,7 @@
  {
     const char *opt;
@@ -54,3 +63,27 @@
        opt = secure_getenv(name);
  #else
        opt = getenv(name);
+--- a/src/util/u_endian.h
++++ b/src/util/u_endian.h
+@@ -27,7 +27,20 @@
+ #ifndef U_ENDIAN_H
+ #define U_ENDIAN_H
+ 
+-#ifdef HAVE_ENDIAN_H
++#if defined(__mochios__)
++/* Use the target compiler's byte order, never the build host's headers. */
++#if !defined(__BYTE_ORDER__) || !defined(__ORDER_LITTLE_ENDIAN__) || !defined(__ORDER_BIG_ENDIAN__)
++# error "Missing target compiler byte order macros"
++#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
++# define UTIL_ARCH_LITTLE_ENDIAN 1
++# define UTIL_ARCH_BIG_ENDIAN 0
++#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
++# define UTIL_ARCH_LITTLE_ENDIAN 0
++# define UTIL_ARCH_BIG_ENDIAN 1
++#else
++# error "Unsupported mochiOS target byte order"
++#endif
++#elif defined(HAVE_ENDIAN_H)
+ #include <endian.h>
+ 
+ /* glibc */

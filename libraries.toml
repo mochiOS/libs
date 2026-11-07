@@ -11,7 +11,8 @@ git = "https://gitlab.freedesktop.org/mesa/mesa.git"
 tag_pattern = '^mesa-(?P<version>[0-9]+\.[0-9]*[02468]\.[0-9]+)$'
 source_archive = "https://archive.mesa3d.org/mesa-{version}.tar.xz"
 revision = 1
-enabled = true
+enabled = false
+reason = "Requires shared.5 private loader and secure_getenv; built only with the reviewed development SDK until that SDK is released"
 recipe = "recipes/mesa/recipe.json"
 dependencies = []
 

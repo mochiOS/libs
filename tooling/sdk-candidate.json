@@ -18,5 +18,8 @@
     "dlclose",
     "dlerror",
     "secure_getenv"
+  ],
+  "enable_libraries": [
+    "mesa"
   ]
 }

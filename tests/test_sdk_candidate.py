@@ -2,6 +2,7 @@
 import copy
 import io
 import json
+import shutil
 from pathlib import Path
 import sys
 import tarfile
@@ -23,6 +24,22 @@ class CandidateSDKTests(unittest.TestCase):
                         event='workflow_dispatch', status='completed', conclusion='success',
                         path='.github/workflows/sdk.yml',
                         repository={'full_name': 'mochiOS/devkit'}, head_repository={'full_name': 'mochiOS/devkit'})
+
+    def test_candidate_enables_only_declared_ports_without_changing_recipe(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            shutil.copytree(ROOT / 'recipes', root / 'recipes')
+            shutil.copy2(ROOT / 'libraries.toml', root / 'libraries.toml')
+            before = (root / 'libraries.toml').read_text()
+            self.assertFalse(libs.read_catalog(root)['libraries']['mesa']['enabled'])
+            sdk_candidate.activate_ports(root, ['mesa'])
+            catalog = libs.read_catalog(root)
+            self.assertTrue(catalog['libraries']['mesa']['enabled'])
+            self.assertFalse(catalog['libraries']['epoxy']['enabled'])
+            sdk_candidate.activate_ports(root, ['mesa'])
+            for names in [['unknown'], ['mesa', 'mesa'], ['../mesa']]:
+                with self.assertRaises(ValueError): sdk_candidate.activate_ports(root, names)
+            self.assertNotEqual(before, (root / 'libraries.toml').read_text())
 
     def test_only_reviewed_successful_non_fork_sdk_run_is_accepted(self):
         sdk_candidate.validate_run(self.run, self.policy)
