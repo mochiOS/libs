@@ -3,6 +3,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      sdk_candidate:
+        description: Verify ports using the reviewed unpublished SDK artifact (cannot publish)
+        type: boolean
+        default: false
 concurrency:
   group: library-releases
   cancel-in-progress: false
@@ -10,7 +15,10 @@ permissions:
   contents: read
 jobs:
   plan:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-24.04
     outputs:
       sdk_ready: ${{ steps.plan.outputs.sdk_ready }}
@@ -28,6 +36,11 @@ jobs:
           python3 tools/prepare_meson.py
       - run: python3 tools/libs.py check
       - run: python3 -m unittest discover -s tests -v
+      - name: Prepare reviewed development SDK
+        if: inputs.sdk_candidate == true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/sdk_candidate.py fetch
       - id: plan
         env:
           GH_TOKEN: ${{ github.token }}
@@ -48,7 +61,9 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: frozen-plan
-          path: out/plan.json
+          path: |
+            out/plan.json
+            out/sdk-candidate
           if-no-files-found: error
           retention-days: 7
   build:
@@ -70,6 +85,9 @@ jobs:
         with:
           name: frozen-plan
           path: out
+      - name: Restore reviewed development SDK
+        if: inputs.sdk_candidate == true
+        run: python3 tools/sdk_candidate.py restore
       - name: Authenticate only the host runner for the pinned builder image
         env:
           GH_TOKEN: ${{ github.token }}
@@ -101,7 +119,7 @@ jobs:
   release-policy:
     name: Verify release approval policy
     needs: plan
-    if: needs.plan.outputs.sdk_ready == 'true' && needs.plan.outputs.needs_build == 'true'
+    if: inputs.sdk_candidate != true && github.ref == 'refs/heads/main' && needs.plan.outputs.sdk_ready == 'true' && needs.plan.outputs.needs_build == 'true'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -121,7 +139,7 @@ jobs:
   release:
     name: Publish verified libraries after approval
     needs: [plan, build, release-policy]
-    if: github.repository == 'mochiOS/libs' && github.ref == 'refs/heads/main' && needs.plan.outputs.needs_build == 'true'
+    if: inputs.sdk_candidate != true && github.repository == 'mochiOS/libs' && github.ref == 'refs/heads/main' && needs.plan.outputs.needs_build == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:

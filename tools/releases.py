@@ -130,6 +130,7 @@ def read_published_manifest(package):
 def needs_build(plan):
     """Detect new complete build revisions and reject changed inputs under an existing revision."""
     if not plan['sdk']['available']: return False
+    if plan['sdk'].get('development_only'): return True
     pending = False
     for package in plan['packages']:
         metadata = release_metadata(package['release'])
@@ -144,6 +145,7 @@ def needs_build(plan):
 
 def restore_existing(root, package, plan, output):
     """Reuse the exact published dependency artifact rather than silently rebuilding its bytes."""
+    if plan['sdk'].get('development_only'): return None
     cache = output / 'restored' / package['input_id']
     if cache.exists():
         manifest = verify_bundle(cache, package, plan, root=root)
@@ -180,6 +182,8 @@ def restore_existing(root, package, plan, output):
 
 def publish(root, plan, artifacts):
     """Verify all inputs before creating drafts; never overwrite differing existing release assets."""
+    if plan['sdk'].get('development_only'):
+        raise libs.Blocked('Development SDK builds cannot be published')
     catalog = libs.validate_plan(root, plan)
     if not plan['sdk']['available']: raise libs.Blocked(plan['sdk']['reason'])
     # Verify the complete graph before making any remote mutation.

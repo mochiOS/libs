@@ -1,0 +1,22 @@
+{
+  "format": 1,
+  "repository": "mochiOS/devkit",
+  "run_id": 42375655547,
+  "head_sha": "3fc70b9fbc760ba63442c78fdcfd75dfe5cbd43f",
+  "version": "27.0-dp.1-shared.5",
+  "sources": {
+    "user": "f63dae1ade2b4f53c7e533001e5dee3f520c8e9e",
+    "mnu": "2bc6db753901b8b9fcc2d42cf7cf8e234dde211b"
+  },
+  "features": [
+    "private-dlopen",
+    "secure-getenv"
+  ],
+  "exports": [
+    "dlopen",
+    "dlsym",
+    "dlclose",
+    "dlerror",
+    "secure_getenv"
+  ]
+}
