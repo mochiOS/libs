@@ -1,0 +1,226 @@
+{
+  "format": 1,
+  "verified_at_utc": "2026-11-07T11:26:52.738367+00:00",
+  "library": "epoxy",
+  "version": "1.5.10",
+  "source_commit": "c84bc9459357a40e46e2fec0408d04fbdde2c973",
+  "compile_link_verified": true,
+  "sdk_scope": "Unpublished authenticated-exec SDK candidate plus measured loader exports and target dlfcn.h; not published shared.4",
+  "public_sdk_unchanged": true,
+  "sdk_reproduction_verified": true,
+  "probe_library_sha256": "f8816789cfa2440eeeaf505a4e677aeaba65fbf2d956d4117450db601195baf4",
+  "recipe_sha256": "759a5bd4e56270377cbb6f262a2fad4544e8ccabcbf115b4e4ac47e74846fcf8",
+  "patch_sha256": "5efe4a38fbd28f09031b76b24fdea619925da48eefb3b2ea11e2a7b0d587a43e",
+  "sdk_preparation_script_sha256": "01220c89676ebb53a6ccb75cf257af77e417ed1d15bba9e04e2dcd7e093d577c",
+  "runtime_smoke_passed": false,
+  "native_tested": false,
+  "native_attempts": [
+    {
+      "termination": "Manually stopped after no test marker; boot reached secure-ui creation",
+      "evidence": {
+        "format": 1,
+        "complete": false,
+        "failed": false,
+        "passed": false,
+        "cases": {
+          "probe": false
+        },
+        "runtime_tested": false,
+        "build": {
+          "format": 1,
+          "sdk_status": "explicit development candidate; not a published SDK verification",
+          "base_sdk_version": "27.0-dp.1-shared.4",
+          "runtime_archive_sha256": "3c2c793c186c6917615b974669c4fdb5bacab10c1b2c2935a691b003db431c32",
+          "candidate": {
+            "format": 1,
+            "status": "unpublished development candidate",
+            "base_sdk_version": "27.0-dp.1-shared.4",
+            "base_archive_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b",
+            "runtime_archive_sha256": "3c2c793c186c6917615b974669c4fdb5bacab10c1b2c2935a691b003db431c32",
+            "runtime_source_commit": "f9f452ba69e56edf3d9f83865d08bdebb6cb52fd",
+            "matching_capability_source_commit": "e0d23095b99894c3fb515d5e0cacdeb6cb874893",
+            "published": false,
+            "additional_headers": {
+              "dlfcn.h": "b3c1455488baacae4c40e0c34c3748c0b489f127a3ce9ead2c5a12387a746df8"
+            },
+            "additional_runtime_exports": [
+              "dlopen",
+              "dlsym",
+              "dlclose",
+              "dlerror"
+            ]
+          },
+          "library": "epoxy",
+          "module_versions": {
+            "epoxy": "1.5.10"
+          },
+          "libraries": [
+            "libepoxy.so.0"
+          ],
+          "runtime_tested": false,
+          "sources": {
+            "probe.c": "08ef5f4108d0135eba135623ecb01bb88b021fb8b062401a51cb907391757566",
+            "wrapper.c": "de3ece069adea31756d031d7209f03f0d9631493144ba70ba17603de880fecb4",
+            "launcher.c": "f922d5e8222e36778105e925a54a011fbb7c89f581219d07f3e67714c5cababf"
+          },
+          "inputs": {
+            "system/applications/PortSmoke.app/entry.elf": "985b09aea15ed8f9c055c61f972abdeec236f93832ea4308c2ff34a04a9dca50",
+            "system/applications/PortSmoke.app/manifest.toml": "be11f1a985d000bf5c2be7f4a82578755d24dd675e26d04275ee5c5729cf5be2",
+            "system/applications/PortSmoke.app/setup.json": "4e1dd6a418093e2bcdbc23cb0c27eb80aecc1eff769e9ed5c9119c5d78c94612",
+            "system/bin/port-smoke": "d45a9e0bac213826416237993bf1e4706bc0fc9d48be11da398384ec314e158f",
+            "system/libraries/port-smoke/libepoxy.so.0": "f8816789cfa2440eeeaf505a4e677aeaba65fbf2d956d4117450db601195baf4",
+            "system/packages/capability/manifest.toml": "100f9f1ea036e231db232cf859e42a345d158076c8739f4c7cdbc70ca14e6f0c",
+            "system/packages/capability/verification.bin": "942482b52cba042bd24d9c3b0f674629899d600a47a82dc9cc0a1c61877d83bc",
+            "system/packages/port-smoke/manifest.toml": "41f7c26eda3e4666c928499e723d2b12670525c09dc7ae34418ffa2bfedb9571",
+            "system/packages/port-smoke/verification.bin": "87b6ce0d13562d7edc3993350f17583c1cdb76ff9195d4c6b954fd4124a99d68",
+            "system/services/capability.service": "696822dbeb29e27a5741192e2b8be382856c2956bab771c1dd1ec453aceda6a4",
+            "system/setup/session-startup.json": "f2c04b07b13dbaa559549dd2e6ea8f5baaf24c10b37ebdec0d55288e398c2015"
+          }
+        },
+        "image": {
+          "format": 1,
+          "source_image_sha256": "8193e61678ca4b49e19a645cdc13b364d5de6fa9988fe2f932242b5498dc45e5",
+          "partitions": [
+            {
+              "start": 2048,
+              "size": 393216,
+              "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+              "uuid": "D6DBE4B9-AB8B-4C6E-A2BA-7958EAA898F1",
+              "name": "mochiOS ESP"
+            },
+            {
+              "start": 395264,
+              "size": 1961984,
+              "type": "6D6F6368-694F-5300-8000-6D5061727401",
+              "uuid": "836875B7-AADE-4A4B-86CB-16EF4B859CD0",
+              "name": "mochiOS System"
+            },
+            {
+              "start": 2357248,
+              "size": 262144,
+              "type": "6D6F6368-694F-5300-8000-6D5061727402",
+              "uuid": "5E810B81-CF6A-45F0-9691-2E52FF0D2DF5",
+              "name": "mochiOS Data"
+            }
+          ],
+          "virtual_bytes": 1342177280,
+          "system_sha256": "98e08e92e528c80545305b6cd91a66600c66ac984c58100795c8ed7497d5964c",
+          "kernel_sha256": "c152d9bb7f2a03db89c87b7268662f60012649bfafde9bddf1920ecd007b28e2"
+        },
+        "elapsed_host_seconds": 128.249
+      }
+    },
+    {
+      "termination": "180-second timeout after Binder ready; test start marker not reached; cause unresolved",
+      "evidence": {
+        "format": 1,
+        "complete": false,
+        "failed": false,
+        "passed": false,
+        "cases": {
+          "probe": false
+        },
+        "runtime_tested": false,
+        "build": {
+          "format": 1,
+          "sdk_status": "explicit development candidate; not a published SDK verification",
+          "base_sdk_version": "27.0-dp.1-shared.4",
+          "runtime_archive_sha256": "3c2c793c186c6917615b974669c4fdb5bacab10c1b2c2935a691b003db431c32",
+          "candidate": {
+            "format": 1,
+            "status": "unpublished development candidate",
+            "base_sdk_version": "27.0-dp.1-shared.4",
+            "base_archive_sha256": "f35b429915e5e703eddff984e9775428aea9d6f5d564fe3cf0cd0e56c67e4e5b",
+            "runtime_archive_sha256": "3c2c793c186c6917615b974669c4fdb5bacab10c1b2c2935a691b003db431c32",
+            "runtime_source_commit": "f9f452ba69e56edf3d9f83865d08bdebb6cb52fd",
+            "matching_capability_source_commit": "e0d23095b99894c3fb515d5e0cacdeb6cb874893",
+            "published": false,
+            "additional_headers": {
+              "dlfcn.h": "b3c1455488baacae4c40e0c34c3748c0b489f127a3ce9ead2c5a12387a746df8"
+            },
+            "additional_runtime_exports": [
+              "dlopen",
+              "dlsym",
+              "dlclose",
+              "dlerror"
+            ]
+          },
+          "library": "epoxy",
+          "module_versions": {
+            "epoxy": "1.5.10"
+          },
+          "libraries": [
+            "libepoxy.so.0"
+          ],
+          "runtime_tested": false,
+          "sources": {
+            "probe.c": "08ef5f4108d0135eba135623ecb01bb88b021fb8b062401a51cb907391757566",
+            "wrapper.c": "de3ece069adea31756d031d7209f03f0d9631493144ba70ba17603de880fecb4",
+            "launcher.c": "f922d5e8222e36778105e925a54a011fbb7c89f581219d07f3e67714c5cababf"
+          },
+          "inputs": {
+            "system/applications/PortSmoke.app/entry.elf": "985b09aea15ed8f9c055c61f972abdeec236f93832ea4308c2ff34a04a9dca50",
+            "system/applications/PortSmoke.app/manifest.toml": "be11f1a985d000bf5c2be7f4a82578755d24dd675e26d04275ee5c5729cf5be2",
+            "system/applications/PortSmoke.app/setup.json": "4e1dd6a418093e2bcdbc23cb0c27eb80aecc1eff769e9ed5c9119c5d78c94612",
+            "system/bin/port-smoke": "d45a9e0bac213826416237993bf1e4706bc0fc9d48be11da398384ec314e158f",
+            "system/libraries/port-smoke/libepoxy.so.0": "f8816789cfa2440eeeaf505a4e677aeaba65fbf2d956d4117450db601195baf4",
+            "system/packages/capability/manifest.toml": "100f9f1ea036e231db232cf859e42a345d158076c8739f4c7cdbc70ca14e6f0c",
+            "system/packages/capability/verification.bin": "942482b52cba042bd24d9c3b0f674629899d600a47a82dc9cc0a1c61877d83bc",
+            "system/packages/port-smoke/manifest.toml": "41f7c26eda3e4666c928499e723d2b12670525c09dc7ae34418ffa2bfedb9571",
+            "system/packages/port-smoke/verification.bin": "87b6ce0d13562d7edc3993350f17583c1cdb76ff9195d4c6b954fd4124a99d68",
+            "system/services/capability.service": "696822dbeb29e27a5741192e2b8be382856c2956bab771c1dd1ec453aceda6a4",
+            "system/setup/session-startup.json": "f2c04b07b13dbaa559549dd2e6ea8f5baaf24c10b37ebdec0d55288e398c2015"
+          }
+        },
+        "image": {
+          "format": 1,
+          "source_image_sha256": "8193e61678ca4b49e19a645cdc13b364d5de6fa9988fe2f932242b5498dc45e5",
+          "partitions": [
+            {
+              "start": 2048,
+              "size": 393216,
+              "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+              "uuid": "D6DBE4B9-AB8B-4C6E-A2BA-7958EAA898F1",
+              "name": "mochiOS ESP"
+            },
+            {
+              "start": 395264,
+              "size": 1961984,
+              "type": "6D6F6368-694F-5300-8000-6D5061727401",
+              "uuid": "836875B7-AADE-4A4B-86CB-16EF4B859CD0",
+              "name": "mochiOS System"
+            },
+            {
+              "start": 2357248,
+              "size": 262144,
+              "type": "6D6F6368-694F-5300-8000-6D5061727402",
+              "uuid": "5E810B81-CF6A-45F0-9691-2E52FF0D2DF5",
+              "name": "mochiOS Data"
+            }
+          ],
+          "virtual_bytes": 1342177280,
+          "system_sha256": "d1d4bc0202328cb2625ea531ffdc0193f95c1c67fd151d4de435875355cb599f",
+          "kernel_sha256": "c152d9bb7f2a03db89c87b7268662f60012649bfafde9bddf1920ecd007b28e2"
+        },
+        "elapsed_host_seconds": 180.339
+      }
+    }
+  ],
+  "host_tests": {
+    "total": 115,
+    "passed": 113,
+    "skipped": 2
+  },
+  "production_build_enabled": false,
+  "production_container_build_tested": false,
+  "egl_rendering_tested": false,
+  "actions_executed": false,
+  "published": false,
+  "limits": [
+    "Published shared.4 lacks dlfcn.h and the dynamic loader exports; release recipe remains disabled.",
+    "A compiled dispatch library and Khronos headers do not provide EGL or OpenGL rendering.",
+    "Private dynamic-group loader only: RTLD_NOLOAD/global/default namespace operations remain unsupported.",
+    "Native probe execution remains unverified; neither VM produced a test start marker.",
+    "ViewKit and its public APIs are unchanged."
+  ]
+}

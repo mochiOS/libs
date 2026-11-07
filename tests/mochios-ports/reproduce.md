@@ -40,3 +40,45 @@ mochiOS port helper therefore uses real `AT_SECURE` and current credential APIs,
 fails closed for missing security data or credential mismatches/failures, and
 preserves errno. It does not fall back to an unconditional getenv. Host C tests
 exercise these rejection cases separately from the native keyboard smoke test.
+
+## libepoxy (development SDK only)
+
+The 1.5.10 dispatch library is ported without GLX, X11, tests or documentation
+executables. It supplies **no EGL implementation**. Its private Khronos headers
+retain their complete notices and are pinned to EGL-Registry commit
+`8e56e86e65687697ef54114cdb1afabdfac756bf`. They are installed under
+`epoxy/khronos`, not the public `EGL`/`KHR` namespace. mochiOS uses the existing
+Khronos platform-neutral pointer types; these are not ViewKit native handles.
+
+Published shared.4 has no target `dlfcn.h` or exported dynamic-load ABI. The
+recipe therefore remains disabled in the release catalog. Do not remove the
+gate merely because local development SDK compilation succeeds.
+
+To reproduce the loader-enabled development candidate from the measured
+SDK candidate used above:
+
+```sh
+python3 tests/mochios-ports/prepare-loader-sdk.py \
+  --base "$SDK_CANDIDATE" \
+  --dlfcn-header "$OS_ROOT/user/libc-port/include/dlfcn.h" \
+  --output out/epoxy-sdk
+```
+
+The tool verifies all four functions exist in the actual runtime archive,
+roots them in an actual linked executable, and measures its exported symbols.
+It detaches each modified hardlink before writing. The base and published SDK
+remain unchanged; no release is generated. Use this candidate to cross-build
+the recipe, then run the native fixture commands with `--library epoxy` and the
+resulting target-only prefix. No system EGL package belongs in that prefix.
+
+The probe exercises exact extension-token matching (including false prefixes
+and suffixes) and calls real `epoxy_has_egl()`/`dlopen()` without an installed EGL
+provider. It must report EGL unavailable. This does **not** test rendering,
+context creation or resolution of a function from an actual graphics driver.
+
+The current runtime supports only private dynamic groups with RTLD_LAZY or
+RTLD_NOW and RTLD_LOCAL. Global/default namespace lookup and RTLD_NOLOAD are not
+supported. libepoxy's conservative NOLOAD queries can therefore report false;
+we preserve this behavior rather than broadening load permissions or returning
+invented support. Initial/startup-linked EGL and shared namespace compatibility
+still require implementation and testing before WebKit graphics is usable.

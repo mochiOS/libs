@@ -1,0 +1,115 @@
+Attempt 1: native probe incomplete, not a runtime pass
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x2,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x2,0x0)
+[mBoot] mochiOS bootloader
+[mBoot] Framebuffer: 1280x800 stride=1280
+[mBoot] UEFI Secure Boot verified
+[mBoot] kernel.elf size: 1089904 bytes
+[mBoot] kernel range 0x2000000..0x2196000 -> 0x100000..0x296000 (406 pages)
+[mBoot] applying 941 RELA relocations
+[mBoot] initfs size: 102171655 bytes, reading...
+[mBoot] initfs loaded at 0x34dfc000 (102171655 bytes)
+[mBoot] UEFI RNG seed acquired
+[mBoot] CPU topology: total=2 enabled=2
+[mBoot] BSP APIC ID=0 APIC list count=2
+[mBoot] AP trampoline reserved at 0x2f000 (4096 bytes)
+[mBoot] after AP trampoline
+[mBoot] boot service exit
+[mBoot] memory map
+entry: start
+entry: read stack pointer
+entry: get allocator address
+entry: prepare boot info
+entry: prepare boot info ok
+entry: set SMP boot info address
+entry: enter mnu kernel
+kernel: start
+[BOOT] cext: loaded bundle disk
+kernel: kinit completed
+kernel: kernel_main entered
+[BOOT] exec: boot-selected initial image (1488248 bytes)
+kernel: init exec returned
+[BOOT] init launch result=0x3 threads=4 ready=1
+[BOOT] Kernel initialization complete. Entering idle loop...
+filesystem.service: native System mounted at LBA 395264 (ready)
+service-manager.service: drivers.service native HELLO received
+service-manager.service: mboot-agent.service native process created
+input.service: initializing logger
+input.service: notifying READY
+input.service: READY sent
+service-manager.service: display.driver native READY received
+service-manager.service: compositor.service native process created
+drivers.service: discovery root=/system/bin/drivers/usb entries=1
+drivers.service: native driver creation failed path=/system/bin/drivers/usb/qemu-usb.driver/entry.elf errno=22
+service-manager.service: user.service native process created
+drivers.service: discovery root=/system/bin/drivers/ps2 entries=1
+service-manager.service: user endpoint handed to POSIX
+drivers.service: native driver created path=/system/bin/drivers/ps2/i8042.driver/entry.elf pid=17
+drivers.service: discovery root=/system/bin/drivers/network entries=1
+service-manager.service: checking installation state
+service-manager.service: installation required=false
+service-manager.service: creating secure-ui.service native process
+drivers.service: native driver created path=/system/bin/drivers/network/virtio-net.driver/virtio-net.driver pid=19
+service-manager.service: secure-ui.service native process created
+service-manager.service: Binder.app ready
+input.service: loading IME dictionary
+
+Attempt 2: native probe incomplete, not a runtime pass
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x2,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x2,0x0)
+[mBoot] mochiOS bootloader
+[mBoot] Framebuffer: 1280x800 stride=1280
+[mBoot] UEFI Secure Boot verified
+[mBoot] kernel.elf size: 1089904 bytes
+[mBoot] kernel range 0x2000000..0x2196000 -> 0x100000..0x296000 (406 pages)
+[mBoot] applying 941 RELA relocations
+[mBoot] initfs size: 102171655 bytes, reading...
+[mBoot] initfs loaded at 0x34dfc000 (102171655 bytes)
+[mBoot] UEFI RNG seed acquired
+[mBoot] CPU topology: total=2 enabled=2
+[mBoot] BSP APIC ID=0 APIC list count=2
+[mBoot] AP trampoline reserved at 0x2f000 (4096 bytes)
+[mBoot] after AP trampoline
+[mBoot] boot service exit
+[mBoot] memory map
+entry: start
+entry: read stack pointer
+entry: get allocator address
+entry: prepare boot info
+entry: prepare boot info ok
+entry: set SMP boot info address
+entry: enter mnu kernel
+kernel: start
+[BOOT] cext: loaded bundle disk
+kernel: kinit completed
+kernel: kernel_main entered
+[BOOT] exec: boot-selected initial image (1488248 bytes)
+kernel: init exec returned
+[BOOT] init launch result=0x3 threads=4 ready=1
+[BOOT] Kernel initialization complete. Entering idle loop...
+filesystem.service: native System mounted at LBA 395264 (ready)
+service-manager.service: drivers.service native HELLO received
+service-manager.service: mboot-agent.service native process created
+input.service: initializing logger
+input.service: notifying READY
+input.service: READY sent
+service-manager.service: display.driver native READY received
+service-manager.service: compositor.service native process created
+drivers.service: discovery root=/system/bin/drivers/usb entries=1
+drivers.service: native driver creation failed path=/system/bin/drivers/usb/qemu-usb.driver/entry.elf errno=22
+service-manager.service: user.service native process created
+drivers.service: discovery root=/system/bin/drivers/ps2 entries=1
+service-manager.service: user endpoint handed to POSIX
+drivers.service: native driver created path=/system/bin/drivers/ps2/i8042.driver/entry.elf pid=17
+drivers.service: discovery root=/system/bin/drivers/network entries=1
+drivers.service: native driver created path=/system/bin/drivers/network/virtio-net.driver/virtio-net.driver pid=19
+service-manager.service: checking installation state
+service-manager.service: installation required=false
+service-manager.service: creating secure-ui.service native process
+service-manager.service: secure-ui.service native process created
+service-manager.service: Binder.app ready
+input.service: loading IME dictionary
+service-manager.service: network.service native process created
+service-manager.service: update.service native process created
+service-manager.service: network endpoint handed to POSIX
+

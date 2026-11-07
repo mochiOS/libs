@@ -1,0 +1,529 @@
+--- a/src/gen_dispatch.py
++++ b/src/gen_dispatch.py
+@@ -490,7 +490,11 @@
+         if self.target != "gl":
+             self.outln('#include "epoxy/gl.h"')
+             if self.target == "egl":
++                self.outln('#ifdef __mochios__')
++                self.outln('#include "epoxy/khronos/eglplatform.h"')
++                self.outln('#else')
+                 self.outln('#include "EGL/eglplatform.h"')
++                self.outln('#endif')
+                 # Account for older eglplatform.h, which doesn't define
+                 # the EGL_CAST macro.
+                 self.outln('#ifndef EGL_CAST')
+--- a/include/epoxy/meson.build
++++ b/include/epoxy/meson.build
+@@ -41,3 +41,8 @@
+ epoxy_headers = files(headers) + gen_headers
+ 
+ install_headers(headers, subdir: 'epoxy')
++
++# Private Khronos headers for targets without an installed EGL provider.
++# These are declarations only; they do not supply EGL or an egl.pc module.
++install_headers('khronos/eglplatform.h', 'khronos/khrplatform.h',
++                subdir: 'epoxy/khronos')
+--- /dev/null
++++ b/include/epoxy/khronos/eglplatform.h
+@@ -0,0 +1,175 @@
++#ifndef __eglplatform_h_
++#define __eglplatform_h_
++
++/*
++** Copyright 2007-2020 The Khronos Group Inc.
++** SPDX-License-Identifier: Apache-2.0
++*/
++
++/* Platform-specific types and definitions for egl.h
++ *
++ * Adopters may modify khrplatform.h and this file to suit their platform.
++ * You are encouraged to submit all modifications to the Khronos group so that
++ * they can be included in future versions of this file.  Please submit changes
++ * by filing an issue or pull request on the public Khronos EGL Registry, at
++ * https://www.github.com/KhronosGroup/EGL-Registry/
++ */
++
++#include <epoxy/khronos/khrplatform.h>
++
++/* Macros used in EGL function prototype declarations.
++ *
++ * EGL functions should be prototyped as:
++ *
++ * EGLAPI return-type EGLAPIENTRY eglFunction(arguments);
++ * typedef return-type (EXPAPIENTRYP PFNEGLFUNCTIONPROC) (arguments);
++ *
++ * KHRONOS_APICALL and KHRONOS_APIENTRY are defined in KHR/khrplatform.h
++ */
++
++#ifndef EGLAPI
++#define EGLAPI KHRONOS_APICALL
++#endif
++
++#ifndef EGLAPIENTRY
++#define EGLAPIENTRY  KHRONOS_APIENTRY
++#endif
++#define EGLAPIENTRYP EGLAPIENTRY*
++
++/* The types NativeDisplayType, NativeWindowType, and NativePixmapType
++ * are aliases of window-system-dependent types, such as X Display * or
++ * Windows Device Context. They must be defined in platform-specific
++ * code below. The EGL-prefixed versions of Native*Type are the same
++ * types, renamed in EGL 1.3 so all types in the API start with "EGL".
++ *
++ * Khronos STRONGLY RECOMMENDS that you use the default definitions
++ * provided below, since these changes affect both binary and source
++ * portability of applications using EGL running on different EGL
++ * implementations.
++ */
++
++#if defined(EGL_NO_PLATFORM_SPECIFIC_TYPES) || defined(__mochios__)
++
++typedef void *EGLNativeDisplayType;
++typedef void *EGLNativePixmapType;
++typedef void *EGLNativeWindowType;
++
++#elif defined(_WIN32) || defined(__VC32__) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__) /* Win32 and WinCE */
++#ifndef WIN32_LEAN_AND_MEAN
++#define WIN32_LEAN_AND_MEAN 1
++#endif
++#include <windows.h>
++
++typedef HDC     EGLNativeDisplayType;
++typedef HBITMAP EGLNativePixmapType;
++typedef HWND    EGLNativeWindowType;
++
++#elif defined(__QNX__)
++
++typedef khronos_uintptr_t      EGLNativeDisplayType;
++typedef struct _screen_pixmap* EGLNativePixmapType;  /* screen_pixmap_t */
++typedef struct _screen_window* EGLNativeWindowType;  /* screen_window_t */
++
++#elif defined(__EMSCRIPTEN__)
++
++typedef int EGLNativeDisplayType;
++typedef int EGLNativePixmapType;
++typedef int EGLNativeWindowType;
++
++#elif defined(__WINSCW__) || defined(__SYMBIAN32__)  /* Symbian */
++
++typedef int   EGLNativeDisplayType;
++typedef void *EGLNativePixmapType;
++typedef void *EGLNativeWindowType;
++
++#elif defined(WL_EGL_PLATFORM)
++
++typedef struct wl_display     *EGLNativeDisplayType;
++typedef struct wl_egl_pixmap  *EGLNativePixmapType;
++typedef struct wl_egl_window  *EGLNativeWindowType;
++
++#elif defined(__GBM__)
++
++typedef struct gbm_device  *EGLNativeDisplayType;
++typedef struct gbm_bo      *EGLNativePixmapType;
++typedef void               *EGLNativeWindowType;
++
++#elif defined(__ANDROID__) || defined(ANDROID)
++
++struct ANativeWindow;
++struct egl_native_pixmap_t;
++
++typedef void*                           EGLNativeDisplayType;
++typedef struct egl_native_pixmap_t*     EGLNativePixmapType;
++typedef struct ANativeWindow*           EGLNativeWindowType;
++
++#elif defined(USE_OZONE)
++
++typedef intptr_t EGLNativeDisplayType;
++typedef intptr_t EGLNativePixmapType;
++typedef intptr_t EGLNativeWindowType;
++
++#elif defined(USE_X11)
++
++/* X11 (tentative)  */
++#include <X11/Xlib.h>
++#include <X11/Xutil.h>
++
++typedef Display *EGLNativeDisplayType;
++typedef Pixmap   EGLNativePixmapType;
++typedef Window   EGLNativeWindowType;
++
++#elif defined(__unix__)
++
++typedef void             *EGLNativeDisplayType;
++typedef khronos_uintptr_t EGLNativePixmapType;
++typedef khronos_uintptr_t EGLNativeWindowType;
++
++#elif defined(__APPLE__)
++
++typedef int   EGLNativeDisplayType;
++typedef void *EGLNativePixmapType;
++typedef void *EGLNativeWindowType;
++
++#elif defined(__HAIKU__)
++
++#include <kernel/image.h>
++
++typedef void              *EGLNativeDisplayType;
++typedef khronos_uintptr_t  EGLNativePixmapType;
++typedef khronos_uintptr_t  EGLNativeWindowType;
++
++#elif defined(__Fuchsia__)
++
++typedef void              *EGLNativeDisplayType;
++typedef khronos_uintptr_t  EGLNativePixmapType;
++typedef khronos_uintptr_t  EGLNativeWindowType;
++
++#else
++#error "Platform not recognized"
++#endif
++
++/* EGL 1.2 types, renamed for consistency in EGL 1.3 */
++typedef EGLNativeDisplayType NativeDisplayType;
++typedef EGLNativePixmapType  NativePixmapType;
++typedef EGLNativeWindowType  NativeWindowType;
++
++
++/* Define EGLint. This must be a signed integral type large enough to contain
++ * all legal attribute names and values passed into and out of EGL, whether
++ * their type is boolean, bitmask, enumerant (symbolic constant), integer,
++ * handle, or other.  While in general a 32-bit integer will suffice, if
++ * handles are 64 bit types, then EGLint should be defined as a signed 64-bit
++ * integer type.
++ */
++typedef khronos_int32_t EGLint;
++
++
++/* C++ / C typecast macros for special EGL handle values */
++#if defined(__cplusplus)
++#define EGL_CAST(type, value) (static_cast<type>(value))
++#else
++#define EGL_CAST(type, value) ((type) (value))
++#endif
++
++#endif /* __eglplatform_h */
+--- /dev/null
++++ b/include/epoxy/khronos/khrplatform.h
+@@ -0,0 +1,311 @@
++#ifndef __khrplatform_h_
++#define __khrplatform_h_
++
++/*
++** Copyright (c) 2008-2018 The Khronos Group Inc.
++**
++** Permission is hereby granted, free of charge, to any person obtaining a
++** copy of this software and/or associated documentation files (the
++** "Materials"), to deal in the Materials without restriction, including
++** without limitation the rights to use, copy, modify, merge, publish,
++** distribute, sublicense, and/or sell copies of the Materials, and to
++** permit persons to whom the Materials are furnished to do so, subject to
++** the following conditions:
++**
++** The above copyright notice and this permission notice shall be included
++** in all copies or substantial portions of the Materials.
++**
++** THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++** EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++** MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
++** IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
++** CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
++** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
++** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
++*/
++
++/* Khronos platform-specific types and definitions.
++ *
++ * The master copy of khrplatform.h is maintained in the Khronos EGL
++ * Registry repository at https://github.com/KhronosGroup/EGL-Registry
++ * The last semantic modification to khrplatform.h was at commit ID:
++ *      67a3e0864c2d75ea5287b9f3d2eb74a745936692
++ *
++ * Adopters may modify this file to suit their platform. Adopters are
++ * encouraged to submit platform specific modifications to the Khronos
++ * group so that they can be included in future versions of this file.
++ * Please submit changes by filing pull requests or issues on
++ * the EGL Registry repository linked above.
++ *
++ *
++ * See the Implementer's Guidelines for information about where this file
++ * should be located on your system and for more details of its use:
++ *    http://www.khronos.org/registry/implementers_guide.pdf
++ *
++ * This file should be included as
++ *        #include <KHR/khrplatform.h>
++ * by Khronos client API header files that use its types and defines.
++ *
++ * The types in khrplatform.h should only be used to define API-specific types.
++ *
++ * Types defined in khrplatform.h:
++ *    khronos_int8_t              signed   8  bit
++ *    khronos_uint8_t             unsigned 8  bit
++ *    khronos_int16_t             signed   16 bit
++ *    khronos_uint16_t            unsigned 16 bit
++ *    khronos_int32_t             signed   32 bit
++ *    khronos_uint32_t            unsigned 32 bit
++ *    khronos_int64_t             signed   64 bit
++ *    khronos_uint64_t            unsigned 64 bit
++ *    khronos_intptr_t            signed   same number of bits as a pointer
++ *    khronos_uintptr_t           unsigned same number of bits as a pointer
++ *    khronos_ssize_t             signed   size
++ *    khronos_usize_t             unsigned size
++ *    khronos_float_t             signed   32 bit floating point
++ *    khronos_time_ns_t           unsigned 64 bit time in nanoseconds
++ *    khronos_utime_nanoseconds_t unsigned time interval or absolute time in
++ *                                         nanoseconds
++ *    khronos_stime_nanoseconds_t signed time interval in nanoseconds
++ *    khronos_boolean_enum_t      enumerated boolean type. This should
++ *      only be used as a base type when a client API's boolean type is
++ *      an enum. Client APIs which use an integer or other type for
++ *      booleans cannot use this as the base type for their boolean.
++ *
++ * Tokens defined in khrplatform.h:
++ *
++ *    KHRONOS_FALSE, KHRONOS_TRUE Enumerated boolean false/true values.
++ *
++ *    KHRONOS_SUPPORT_INT64 is 1 if 64 bit integers are supported; otherwise 0.
++ *    KHRONOS_SUPPORT_FLOAT is 1 if floats are supported; otherwise 0.
++ *
++ * Calling convention macros defined in this file:
++ *    KHRONOS_APICALL
++ *    KHRONOS_APIENTRY
++ *    KHRONOS_APIATTRIBUTES
++ *
++ * These may be used in function prototypes as:
++ *
++ *      KHRONOS_APICALL void KHRONOS_APIENTRY funcname(
++ *                                  int arg1,
++ *                                  int arg2) KHRONOS_APIATTRIBUTES;
++ */
++
++#if defined(__SCITECH_SNAP__) && !defined(KHRONOS_STATIC)
++#   define KHRONOS_STATIC 1
++#endif
++
++/*-------------------------------------------------------------------------
++ * Definition of KHRONOS_APICALL
++ *-------------------------------------------------------------------------
++ * This precedes the return type of the function in the function prototype.
++ */
++#if defined(KHRONOS_STATIC)
++    /* If the preprocessor constant KHRONOS_STATIC is defined, make the
++     * header compatible with static linking. */
++#   define KHRONOS_APICALL
++#elif defined(_WIN32)
++#   define KHRONOS_APICALL __declspec(dllimport)
++#elif defined (__SYMBIAN32__)
++#   define KHRONOS_APICALL IMPORT_C
++#elif defined(__ANDROID__)
++#   define KHRONOS_APICALL __attribute__((visibility("default")))
++#else
++#   define KHRONOS_APICALL
++#endif
++
++/*-------------------------------------------------------------------------
++ * Definition of KHRONOS_APIENTRY
++ *-------------------------------------------------------------------------
++ * This follows the return type of the function  and precedes the function
++ * name in the function prototype.
++ */
++#if defined(_WIN32) && !defined(_WIN32_WCE) && !defined(__SCITECH_SNAP__)
++    /* Win32 but not WinCE */
++#   define KHRONOS_APIENTRY __stdcall
++#else
++#   define KHRONOS_APIENTRY
++#endif
++
++/*-------------------------------------------------------------------------
++ * Definition of KHRONOS_APIATTRIBUTES
++ *-------------------------------------------------------------------------
++ * This follows the closing parenthesis of the function prototype arguments.
++ */
++#if defined (__ARMCC_2__)
++#define KHRONOS_APIATTRIBUTES __softfp
++#else
++#define KHRONOS_APIATTRIBUTES
++#endif
++
++/*-------------------------------------------------------------------------
++ * basic type definitions
++ *-----------------------------------------------------------------------*/
++#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__SCO__) || defined(__USLC__)
++
++
++/*
++ * Using <stdint.h>
++ */
++#include <stdint.h>
++typedef int32_t                 khronos_int32_t;
++typedef uint32_t                khronos_uint32_t;
++typedef int64_t                 khronos_int64_t;
++typedef uint64_t                khronos_uint64_t;
++#define KHRONOS_SUPPORT_INT64   1
++#define KHRONOS_SUPPORT_FLOAT   1
++/*
++ * To support platform where unsigned long cannot be used interchangeably with
++ * inptr_t (e.g. CHERI-extended ISAs), we can use the stdint.h intptr_t.
++ * Ideally, we could just use (u)intptr_t everywhere, but this could result in
++ * ABI breakage if khronos_uintptr_t is changed from unsigned long to
++ * unsigned long long or similar (this results in different C++ name mangling).
++ * To avoid changes for existing platforms, we restrict usage of intptr_t to
++ * platforms where the size of a pointer is larger than the size of long.
++ */
++#if defined(__SIZEOF_LONG__) && defined(__SIZEOF_POINTER__)
++#if __SIZEOF_POINTER__ > __SIZEOF_LONG__
++#define KHRONOS_USE_INTPTR_T
++#endif
++#endif
++
++#elif defined(__VMS ) || defined(__sgi)
++
++/*
++ * Using <inttypes.h>
++ */
++#include <inttypes.h>
++typedef int32_t                 khronos_int32_t;
++typedef uint32_t                khronos_uint32_t;
++typedef int64_t                 khronos_int64_t;
++typedef uint64_t                khronos_uint64_t;
++#define KHRONOS_SUPPORT_INT64   1
++#define KHRONOS_SUPPORT_FLOAT   1
++
++#elif defined(_WIN32) && !defined(__SCITECH_SNAP__)
++
++/*
++ * Win32
++ */
++typedef __int32                 khronos_int32_t;
++typedef unsigned __int32        khronos_uint32_t;
++typedef __int64                 khronos_int64_t;
++typedef unsigned __int64        khronos_uint64_t;
++#define KHRONOS_SUPPORT_INT64   1
++#define KHRONOS_SUPPORT_FLOAT   1
++
++#elif defined(__sun__) || defined(__digital__)
++
++/*
++ * Sun or Digital
++ */
++typedef int                     khronos_int32_t;
++typedef unsigned int            khronos_uint32_t;
++#if defined(__arch64__) || defined(_LP64)
++typedef long int                khronos_int64_t;
++typedef unsigned long int       khronos_uint64_t;
++#else
++typedef long long int           khronos_int64_t;
++typedef unsigned long long int  khronos_uint64_t;
++#endif /* __arch64__ */
++#define KHRONOS_SUPPORT_INT64   1
++#define KHRONOS_SUPPORT_FLOAT   1
++
++#elif 0
++
++/*
++ * Hypothetical platform with no float or int64 support
++ */
++typedef int                     khronos_int32_t;
++typedef unsigned int            khronos_uint32_t;
++#define KHRONOS_SUPPORT_INT64   0
++#define KHRONOS_SUPPORT_FLOAT   0
++
++#else
++
++/*
++ * Generic fallback
++ */
++#include <stdint.h>
++typedef int32_t                 khronos_int32_t;
++typedef uint32_t                khronos_uint32_t;
++typedef int64_t                 khronos_int64_t;
++typedef uint64_t                khronos_uint64_t;
++#define KHRONOS_SUPPORT_INT64   1
++#define KHRONOS_SUPPORT_FLOAT   1
++
++#endif
++
++
++/*
++ * Types that are (so far) the same on all platforms
++ */
++typedef signed   char          khronos_int8_t;
++typedef unsigned char          khronos_uint8_t;
++typedef signed   short int     khronos_int16_t;
++typedef unsigned short int     khronos_uint16_t;
++
++/*
++ * Types that differ between LLP64 and LP64 architectures - in LLP64,
++ * pointers are 64 bits, but 'long' is still 32 bits. Win64 appears
++ * to be the only LLP64 architecture in current use.
++ */
++#ifdef KHRONOS_USE_INTPTR_T
++typedef intptr_t               khronos_intptr_t;
++typedef uintptr_t              khronos_uintptr_t;
++#elif defined(_WIN64)
++typedef signed   long long int khronos_intptr_t;
++typedef unsigned long long int khronos_uintptr_t;
++#else
++typedef signed   long  int     khronos_intptr_t;
++typedef unsigned long  int     khronos_uintptr_t;
++#endif
++
++#if defined(_WIN64)
++typedef signed   long long int khronos_ssize_t;
++typedef unsigned long long int khronos_usize_t;
++#else
++typedef signed   long  int     khronos_ssize_t;
++typedef unsigned long  int     khronos_usize_t;
++#endif
++
++#if KHRONOS_SUPPORT_FLOAT
++/*
++ * Float type
++ */
++typedef          float         khronos_float_t;
++#endif
++
++#if KHRONOS_SUPPORT_INT64
++/* Time types
++ *
++ * These types can be used to represent a time interval in nanoseconds or
++ * an absolute Unadjusted System Time.  Unadjusted System Time is the number
++ * of nanoseconds since some arbitrary system event (e.g. since the last
++ * time the system booted).  The Unadjusted System Time is an unsigned
++ * 64 bit value that wraps back to 0 every 584 years.  Time intervals
++ * may be either signed or unsigned.
++ */
++typedef khronos_uint64_t       khronos_utime_nanoseconds_t;
++typedef khronos_int64_t        khronos_stime_nanoseconds_t;
++#endif
++
++/*
++ * Dummy value used to pad enum types to 32 bits.
++ */
++#ifndef KHRONOS_MAX_ENUM
++#define KHRONOS_MAX_ENUM 0x7FFFFFFF
++#endif
++
++/*
++ * Enumerated boolean type
++ *
++ * Values other than zero should be considered to be true.  Therefore
++ * comparisons should not be made against KHRONOS_TRUE.
++ */
++typedef enum {
++    KHRONOS_FALSE = 0,
++    KHRONOS_TRUE  = 1,
++    KHRONOS_BOOLEAN_ENUM_FORCE_SIZE = KHRONOS_MAX_ENUM
++} khronos_boolean_enum_t;
++
++#endif /* __khrplatform_h_ */
+--- a/src/dispatch_common.c
++++ b/src/dispatch_common.c
+@@ -164,7 +164,9 @@
+ #include <windows.h>
+ #else
+ #include <dlfcn.h>
++#ifndef __mochios__
+ #include <err.h>
++#endif
+ #include <pthread.h>
+ #endif
+ #include <string.h>

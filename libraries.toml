@@ -244,3 +244,12 @@ revision = 1
 enabled = true
 recipe = "recipes/xkbcommon/recipe.json"
 dependencies = []
+
+[libraries.epoxy]
+git = "https://github.com/anholt/libepoxy.git"
+tag_pattern = '^(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
+revision = 1
+enabled = false
+reason = "Requires an SDK exporting dlopen/dlsym/dlclose/dlerror and dlfcn.h; published shared.4 does not provide them. Native validation uses an unpublished SDK candidate."
+recipe = "recipes/epoxy/recipe.json"
+dependencies = []

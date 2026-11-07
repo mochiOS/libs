@@ -719,6 +719,23 @@
         "Native execution used an unpublished runtime candidate; published shared.4 is unchanged.",
         "Full upstream tests and production Docker build were not run."
       ]
+    },
+    "epoxy": {
+      "upstream_version": "1.5.10",
+      "upstream_commit": "c84bc9459357a40e46e2fec0408d04fbdde2c973",
+      "status": "development-sdk-compile-link-verified-release-blocked",
+      "native_status": "incomplete-before-first-probe-marker",
+      "public_sdk_missing": [
+        "dlfcn.h",
+        "dlopen",
+        "dlsym",
+        "dlclose",
+        "dlerror"
+      ],
+      "graphics_backend_supplied": false,
+      "evidence": "tooling/epoxy-verification.json",
+      "reproduce": "tests/mochios-ports/reproduce.md",
+      "scope": "GL/EGL dispatch library only; EGL provider and actual native rendering remain unimplemented."
     }
   },
   "build_infrastructure": {
