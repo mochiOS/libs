@@ -1,0 +1,36 @@
+{
+  "format": 1,
+  "verified_at_utc": "2026-11-07T10:20:44.232929+00:00",
+  "scope": "Independent engine build ownership, provisional C ABI and CI readiness; not a working WebKit port",
+  "source_archive_sha256": "f3284e19e47fcb5ac8c63c2e1c113dbd65b2423eb8a545f5b345707829004f56",
+  "source_archive_verified_offline": true,
+  "python_tests": {
+    "total": 107,
+    "passed": 105,
+    "skipped": 2
+  },
+  "terra_tools_tests_passed": 3,
+  "host_c_abi_contract_passed": true,
+  "mochios_c_and_cxx_header_compile": true,
+  "mochios_contract_fixture_shared_link": true,
+  "contract_fixture_only_public_symbol": "mwk_get_api@@MOCHIOS_WEBKIT_1",
+  "real_sdk_rejects_missing_backend": true,
+  "actions_syntax_validated_with": "actionlint 1.7.12",
+  "actions_executed": false,
+  "engine_built": false,
+  "native_engine_runtime_tested": false,
+  "abi_released": false,
+  "current_blockers": [
+    "No enabled target dependency recipe supplies pkg-config module egl",
+    "No enabled target dependency recipe supplies pkg-config module epoxy",
+    "No enabled target dependency recipe supplies pkg-config module xkbcommon",
+    "Native WebKit/WPE backend and Capability process/surface integration are not implemented",
+    "WebKit helper Capability declarations have not been reviewed: WPENetworkProcess, WPEWebProcess"
+  ],
+  "abi_inputs": {
+    "engines/webkit/include/mochios/webkit.h": "fe42da775bc33da915082bd7a14a5291bc301f1e6372c0e00ab16cb13c1035f9",
+    "engines/webkit/src/abi.c": "44dd972e91da3ba8e156128db2c0e3ec4544dc6a115c991a7b7da3619a577def",
+    "engines/webkit/exports.map": "0c981787944ea6d7907c1c9dfdde6ea52a0d36a01296df0332848fe67b8b608e"
+  },
+  "note": "A test backend is used only by the ABI test executable/fixture. No libwebkit.so product is produced without the real native backend."
+}
