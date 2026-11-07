@@ -40,6 +40,16 @@ class RegistryTests(unittest.TestCase):
         selected = libs.parse_tags(text, r'^v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$')
         self.assertEqual(selected, dict(tag='v1.10.0', version='1.10.0', commit='c'*40))
 
+    def test_release_tags_include_build_revision_and_reject_legacy_tags(self):
+        plan=libs.make_plan(ROOT)
+        catalog=libs.read_catalog(ROOT)
+        for package in plan['packages']:
+            self.assertEqual(package['release'],f"{package['name']}-{package['source']['version']}-r{catalog['libraries'][package['name']]['revision']}")
+            self.assertTrue(package['stem'].startswith(package['release']+'-'))
+        altered=copy.deepcopy(plan)
+        altered['packages'][0]['release']=f"{altered['packages'][0]['name']}-{altered['packages'][0]['source']['version']}"
+        with self.assertRaisesRegex(ValueError,'Tampered/stale'):libs.validate_plan(ROOT,altered)
+
     def test_two_component_upstream_versions_are_compared_numerically(self):
         self.assertEqual(libs.version('10.49'), libs.version('10.49.0'))
         self.assertLess(libs.version('10.9'), libs.version('10.49'))

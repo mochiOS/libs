@@ -212,8 +212,8 @@ https://docs.github.com/en/actions/how-tos/managing-workflow-runs-and-deployment
 Release layout and verification
 -----------------------------------------
 Library releases belong to mochiOS/libs, separately from the SDK. Every
-upstream version uses a tag such as libgcrypt-1.12.4. Build revisions appear
-in the three asset names under that release:
+build revision uses its own tag, such as libgcrypt-1.12.4-r6. The matching
+release contains these three assets:
 
   <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.tar.gz
   <library>-<version>-r<revision>-x86_64-unknown-mochios-mochios-1.json
@@ -224,6 +224,12 @@ JSON binds source, SDK, recipe, verification and file hashes. The checksum
 file covers the archive and JSON and is uploaded last as a completion marker.
 Changed inputs under an existing build revision require a new revision and
 rebuild; publication does not clobber assets to bypass this rule.
+Published releases are immutable: later revisions create a new draft and tag,
+never append assets to an existing public release. Historical version-only tags
+remain untouched. An identical, complete published revision is reused; an
+incomplete published revision fails before upload and requires a new revision.
+A partial draft can resume uploads and is published only after read-back digest
+verification. Environment approval is still required for every publication job.
 
 These are development prereleases verified by cross-compilation and linking.
 Only claim native runtime testing when it was actually performed. Local

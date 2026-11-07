@@ -321,7 +321,7 @@ def make_plan(root, refresh=False):
                       recipe=specification, probe_sha256=hash_file(relative(recipe_path.parent, specification['probe'])),
                       patches={name: hash_file(relative(recipe_path.parent, name)) for name in specification.get('patches', [])})
         stem = f'{name}-{selected["version"]}-r{library["revision"]}-{TARGET}-{ABI}'
-        packages.append(dict(name=name, source=selected, release=f'{name}-{selected["version"]}', stem=stem,
+        packages.append(dict(name=name, source=selected, release=f'{name}-{selected["version"]}-r{library["revision"]}', stem=stem,
                              input_id=identity(inputs), dependencies=deps))
     return dict(format=1, catalog_sha256=hash_file(root / 'libraries.toml'), sdk=sdk, sources=sources,
                 packages=packages, ready=sdk['available'], blocked_reason=sdk.get('reason'),
@@ -359,7 +359,7 @@ def validate_plan(root, plan):
         inputs = dict(name=name, source=selected, library=library, sdk=sdk, dependencies=deps, common=common,
                       recipe=specification, probe_sha256=hash_file(relative(path.parent, specification['probe'])),
                       patches={name: hash_file(relative(path.parent, name)) for name in specification.get('patches', [])})
-        expected = dict(name=name, source=selected, release=f'{name}-{selected["version"]}',
+        expected = dict(name=name, source=selected, release=f'{name}-{selected["version"]}-r{library["revision"]}',
                         stem=f'{name}-{selected["version"]}-r{library["revision"]}-{TARGET}-{ABI}', input_id=identity(inputs), dependencies=deps)
         if package != expected:
             raise ValueError(f'Tampered/stale build plan: {name}')

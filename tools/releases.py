@@ -195,6 +195,7 @@ def publish(root, plan, artifacts):
             if not metadata['draft']:
                 if set(filenames(package)).issubset(existing):
                     print('Already published: ' + package['release']); continue
+                raise ValueError('Published release is incomplete for this build revision; choose a new revision, never append to a published release')
         else:
             notes = directory / '.notes.txt'
             notes.write_text(f"Source: {package['source']['tag']} ({package['source']['commit']})\nSDK: {plan['sdk']['version']}\nTarget: {libs.TARGET}; ABI: {libs.ABI}\nVerification: cross compile/link only; runtime has not been tested.\n")
