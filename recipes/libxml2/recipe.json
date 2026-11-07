@@ -26,5 +26,8 @@
   "probe": "probe.c",
   "patches": [
     "mochios.patch"
+  ],
+  "config_scripts": [
+    "usr/bin/xml2-config"
   ]
 }

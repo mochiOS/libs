@@ -295,6 +295,15 @@ class ArtifactTests(unittest.TestCase):
             with self.subTest(helper=helper), tempfile.TemporaryDirectory() as tmp:
                 with self.assertRaises(ValueError):self.fixture(Path(tmp),name='libpng',helpers={helper:content})
 
+    def test_libxml2_config_helper_is_packaged_and_verified(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan,package,directory=self.fixture(Path(tmp),name='libxml2',helpers={'xml2-config':b'#! /bin/sh\nprintf fixture\n'})
+            manifest=releases.verify_bundle(directory,package,plan)
+            self.assertIn('usr/bin/xml2-config',{entry['path'] for entry in manifest['files']})
+        for helper,content in [('unexpected-config',b'#!/bin/sh\n'),('xml2-config',b'\x7fELFnot-a-script')]:
+            with self.subTest(helper=helper), tempfile.TemporaryDirectory() as tmp:
+                with self.assertRaises(ValueError):self.fixture(Path(tmp),name='libxml2',helpers={helper:content})
+
     def test_package_roundtrip_checks_files_links_and_manifests(self):
         with tempfile.TemporaryDirectory() as tmp:
             plan,package,directory=self.fixture(Path(tmp))
