@@ -5,7 +5,7 @@ permissions:
   contents: read
 jobs:
   builder:
-    if: github.ref == 'refs/heads/main'
+    if: github.repository == 'mochiOS/libs' && github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
