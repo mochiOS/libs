@@ -6,6 +6,15 @@ target = "x86_64-unknown-mochios"
 abi = "mochios-1"
 prerelease = true
 
+[libraries.mesa]
+git = "https://gitlab.freedesktop.org/mesa/mesa.git"
+tag_pattern = '^mesa-(?P<version>[0-9]+\.[0-9]*[02468]\.[0-9]+)$'
+source_archive = "https://archive.mesa3d.org/mesa-{version}.tar.xz"
+revision = 1
+enabled = true
+recipe = "recipes/mesa/recipe.json"
+dependencies = []
+
 [libraries.zlib]
 git = "https://github.com/madler/zlib.git"
 tag_pattern = '^v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
@@ -254,12 +263,3 @@ reason = "Requires an SDK exporting dlopen/dlsym/dlclose/dlerror and dlfcn.h; pu
 recipe = "recipes/epoxy/recipe.json"
 dependencies = []
 
-[libraries.mesa]
-git = "https://gitlab.freedesktop.org/mesa/mesa.git"
-tag_pattern = '^mesa-(?P<version>[0-9]+\.[0-9]*[02468]\.[0-9]+)$'
-source_archive = "https://archive.mesa3d.org/mesa-{version}.tar.xz"
-revision = 1
-enabled = false
-reason = "Surfaceless softpipe port requires the shared.5 loader/secure-environment SDK and real target build/runtime verification"
-recipe = "recipes/mesa/recipe.json"
-dependencies = []

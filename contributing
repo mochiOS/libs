@@ -309,3 +309,21 @@ Selecting the library without its matching header fails strict import checks.
 Keep this override target-local; do not disable SDK import validation or add
 ambient host include paths. The regression fixture reproduces the conflicting
 headers and verifies that the unpatched build fails and the patched build links.
+
+
+Unpublished SDK verification
+----------------------------
+The existing libraries workflow can use the reviewed SDK Actions artifact with
+`sdk_candidate=true`. `tooling/sdk-candidate.json` pins the exact successful
+SDK workflow run, source commit, runtime sources and required exports. This is
+an artifact-only verification build, not an SDK or library release. Candidate
+artifacts never reuse published release assets and publication is rejected both
+by the workflow and the publisher. The normal production SDK pin stays in
+`sdk.lock.toml`; candidate preparation changes that file only in the runner's
+disposable checkout. Advancing the candidate requires reviewing a new source
+commit and successful SDK build, then updating the tracked candidate policy.
+
+Mesa currently supplies surfaceless EGL/GLES2 through softpipe for port
+verification. It requires the candidate shared.5 SDK and is not yet runtime
+validated. It does not provide a GPU, window-system backend or a working WebKit
+engine. WebKit ports use the same registry, recipes and libraries workflow.
