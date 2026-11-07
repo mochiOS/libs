@@ -1,0 +1,35 @@
+/* Real surfaceless EGL/GLES2 pixels; no display/window system or fake driver. */
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <GLES2/gl2.h>
+#include <stdio.h>
+#include <stdlib.h>
+int main(void) {
+    EGLDisplay display=EGL_NO_DISPLAY;
+    EGLSurface surface=EGL_NO_SURFACE;
+    EGLContext context=EGL_NO_CONTEXT;
+    const char *stage="surfaceless display";
+    int result=1;
+    display=eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA,EGL_DEFAULT_DISPLAY,NULL);
+    if(display==EGL_NO_DISPLAY)goto done;
+    stage="initialize"; if(!eglInitialize(display,NULL,NULL))goto done;
+    stage="bind GLES";if(!eglBindAPI(EGL_OPENGL_ES_API))goto done;
+    EGLConfig config;EGLint count=0;
+    const EGLint config_attributes[]={EGL_SURFACE_TYPE,EGL_PBUFFER_BIT,EGL_RENDERABLE_TYPE,EGL_OPENGL_ES2_BIT,EGL_RED_SIZE,8,EGL_GREEN_SIZE,8,EGL_BLUE_SIZE,8,EGL_ALPHA_SIZE,8,EGL_NONE};
+    stage="choose config";if(!eglChooseConfig(display,config_attributes,&config,1,&count)||count<1)goto done;
+    const EGLint surface_attributes[]={EGL_WIDTH,4,EGL_HEIGHT,4,EGL_NONE};
+    stage="create pbuffer";surface=eglCreatePbufferSurface(display,config,surface_attributes);if(surface==EGL_NO_SURFACE)goto done;
+    const EGLint context_attributes[]={EGL_CONTEXT_CLIENT_VERSION,2,EGL_NONE};
+    stage="create GLES2 context";context=eglCreateContext(display,config,EGL_NO_CONTEXT,context_attributes);if(context==EGL_NO_CONTEXT)goto done;
+    stage="make current";if(!eglMakeCurrent(display,surface,surface,context))goto done;
+    unsigned char pixel[4]={0};
+    glClearColor(0.25f,0.5f,0.75f,1.0f);glClear(GL_COLOR_BUFFER_BIT);
+    glReadPixels(0,0,1,1,GL_RGBA,GL_UNSIGNED_BYTE,pixel);
+    stage="pixel readback";
+    if(glGetError()!=GL_NO_ERROR||abs((int)pixel[0]-64)>2||abs((int)pixel[1]-128)>2||abs((int)pixel[2]-191)>2||pixel[3]!=255)goto done;
+    result=0;
+done:
+    if(result)fprintf(stderr,"MESA EGL FAIL stage=%s error=0x%x\n",stage,eglGetError());
+    if(display!=EGL_NO_DISPLAY){eglMakeCurrent(display,EGL_NO_SURFACE,EGL_NO_SURFACE,EGL_NO_CONTEXT);if(context!=EGL_NO_CONTEXT)eglDestroyContext(display,context);if(surface!=EGL_NO_SURFACE)eglDestroySurface(display,surface);eglTerminate(display);}
+    puts(result?"MESA EGL FAIL":"MESA EGL PASS real software pixel readback");return result;
+}

@@ -1,0 +1,56 @@
+--- a/meson.build
++++ b/meson.build
+@@ -361,7 +361,7 @@
+ ].contains(true)
+ 
+ with_dri = false
+-if with_gallium and (system_has_kms_drm or (with_gallium_zink and (freedreno_kmds.contains('kgsl') or host_machine.system() == 'darwin')))
++if with_gallium and (system_has_kms_drm or host_machine.system() == 'mochios' or (with_gallium_zink and (freedreno_kmds.contains('kgsl') or host_machine.system() == 'darwin')))
+   _glx = get_option('glx')
+   _egl = get_option('egl')
+   if _glx == 'dri' or _egl.enabled() or (_glx == 'disabled' and _egl.allowed())
+@@ -422,7 +422,7 @@
+   with_dri_platform = 'windows'
+ elif system_has_kms_drm
+   with_dri_platform = 'drm'
+-elif host_machine.system() == 'gnu' or (freedreno_kmds.contains('kgsl') and with_gallium_zink)
++elif ['gnu', 'mochios'].contains(host_machine.system()) or (freedreno_kmds.contains('kgsl') and with_gallium_zink)
+   with_dri_platform = 'pseudo-drm'
+ else
+   # FIXME: haiku doesn't use dri, and xlib doesn't use dri, probably should
+--- a/src/util/detect_os.h
++++ b/src/util/detect_os.h
+@@ -14,6 +14,11 @@
+ 
+ #ifndef DETECT_OS_H
+ #define DETECT_OS_H
++
++#if defined(__mochios__)
++#define DETECT_OS_MOCHIOS 1
++#define DETECT_OS_POSIX 1
++#endif
+ 
+ #if defined(__linux__)
+ #define DETECT_OS_LINUX 1
+--- a/include/EGL/eglplatform.h
++++ b/include/EGL/eglplatform.h
+@@ -48,7 +48,7 @@
+  * implementations.
+  */
+ 
+-#if defined(EGL_NO_PLATFORM_SPECIFIC_TYPES)
++#if defined(EGL_NO_PLATFORM_SPECIFIC_TYPES) || defined(__mochios__)
+ 
+ typedef void *EGLNativeDisplayType;
+ typedef void *EGLNativePixmapType;
+--- a/src/util/os_misc.c
++++ b/src/util/os_misc.c
+@@ -229,7 +229,7 @@
+ {
+    const char *opt;
+    if (use_secure_getenv) {
+-#ifdef HAVE_SECURE_GETENV
++#if defined(HAVE_SECURE_GETENV) || defined(__mochios__)
+       opt = secure_getenv(name);
+ #else
+       opt = getenv(name);

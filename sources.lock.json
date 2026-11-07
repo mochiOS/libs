@@ -180,6 +180,15 @@
       "tag": "1.5.10",
       "version": "1.5.10",
       "commit": "c84bc9459357a40e46e2fec0408d04fbdde2c973"
+    },
+    "mesa": {
+      "tag": "mesa-26.2.6",
+      "version": "26.2.6",
+      "commit": "8e87a503ebd91408c88596d1b9eeb5f4c0b2088d",
+      "archive": {
+        "url": "https://archive.mesa3d.org/mesa-26.2.6.tar.xz",
+        "sha256": "b9436b3e1a8be76fbd4823dc884f90596ab7c6ac5e1867a305e66ffccfb31a92"
+      }
     }
   }
 }
