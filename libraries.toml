@@ -165,7 +165,7 @@ git = "https://github.com/WebKit/WebKit.git"
 tag_pattern = '^wpewebkit-(?P<version>[0-9]+\.[0-9]*[02468]\.[0-9]+)$'
 revision = 2
 enabled = false
-reason = "Independent engine pipeline: engines/webkit; native backend and graphics dependencies are not ported"
+reason = "Uses the standard libs recipe pipeline; native backend and graphics dependencies are not yet ported"
 dependencies = ["glib", "libpng"]
 
 [libraries.glib-networking]

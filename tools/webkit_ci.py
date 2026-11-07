@@ -60,39 +60,10 @@ def plan(root=ROOT):
 
 
 def build(root, output):
-    """Use exact verified library releases, isolated target builds and retained logs."""
-    selected = plan(root)
-    libs.write_json(output/'plan.json', selected)
-    if not selected['ready']: raise ValueError('WebKit build blocked: ' + '; '.join(selected['blockers']))
-    dependency_plan = libs.make_plan(root)
-    cache = output / 'dependencies-cache'
-    libs.build(root, dependency_plan, cache, None)
-    prefix = output/'deps'; prefix.mkdir(parents=True, exist_ok=True)
-    for package in dependency_plan['packages']:
-        manifest = releases.verify_bundle(cache/'releases'/package['release'], package, dependency_plan, root=root)
-        candidates = [cache/'builds'/package['input_id']/'stage', cache/'restored'/package['input_id']/'unpack/sysroot']
-        original = next((p for p in candidates if p.is_dir() and libs.inventory(p)==manifest['files']), None)
-        if original is None: raise ValueError('Verified dependency prefix unavailable')
-        libs.merge_dependency(original, prefix)
-    libs.write_json(prefix/'target.json', {'format':1,'target':'mochios-1'})
-    sdk = libs.install_sdk(root, cache, selected['sdk'])
-    archive = webkit.fetch(selected['source'], output/'downloads', network=True)
-    if plan(root)['identity'] != selected['identity']: raise ValueError('Build inputs changed during dependency preparation')
-    work = output/'work'; work.mkdir(exist_ok=True)
-    libs.write_json(work/'plan.json', selected)
-    image = selected['sdk']['builder_image']
-    # The existing builder image is digest-pinned. Upstream code gets no network,
-    # host checkout, signing key or GitHub credential inside the build container.
-    pipeline = output/'pipeline'
-    shutil.copytree(root/'engines/webkit',pipeline/'engines/webkit')
-    (pipeline/'tools').mkdir()
-    for name in ['webkit.py','webkit_ci.py','webkit_container.py','container_build.py','build_backends.py']:
-        shutil.copyfile(root/'tools'/name,pipeline/'tools'/name)
-    command = libs.docker_command(image, sdk, archive.parent, prefix, work)
-    at = command.index(image)
-    command[at:at] = ['--entrypoint','python3','--mount',f'type=bind,src={pipeline},dst=/pipeline,readonly']
-    command += ['/pipeline/tools/webkit_container.py']
-    libs.run(command, log=output/'container.log')
+    """Reject the retired parallel pipeline; engine builds use the normal registry."""
+    selected=plan(root)
+    libs.write_json(output/'plan.json',selected)
+    raise ValueError('WebKit build blocked: use the standard libraries.toml recipe and tools/libs.py build; no separate engine pipeline is supported')
 
 
 def main():

@@ -80,12 +80,22 @@ class Readiness(unittest.TestCase):
                 webkit_container.apply_port_patches(engine,root,['../outside.patch'],{},root/'logs')
             self.assertFalse((root/'logs/native-patches.json').exists())
 
-    def test_workflow_has_no_publication_credentials_or_release_command(self):
-        text=(ROOT/'.github/workflows/webkit.yml').read_text()
-        self.assertIn("needs.contract.outputs.ready == 'true'",text)
-        self.assertNotIn('contents: write',text)
-        self.assertNotIn('secrets.',text)
-        self.assertNotIn('releases.py publish',text)
-        self.assertIn('if: always()',text)
+    def test_webkit_uses_the_existing_library_pipeline_and_approval_gate(self):
+        self.assertFalse((ROOT/'.github/workflows/webkit.yml').exists())
+        text=(ROOT/'.github/workflows/libraries.yml').read_text()
+        self.assertIn('python3 tools/libs.py build',text)
+        self.assertIn('environment:',text)
+        self.assertIn('library-release',text)
+        self.assertNotIn('tools/webkit_ci.py build',text)
+
+    @unittest.skipUnless(shutil.which('cmake') and shutil.which('c++'), 'Host CMake toolchain required')
+    def test_c_abi_contract_runs_in_the_normal_library_test_suite(self):
+        with tempfile.TemporaryDirectory() as directory:
+            for command in [
+                ['cmake','-S',str(ROOT/'engines/webkit'),'-B',directory,'-DBUILD_TESTING=ON'],
+                ['cmake','--build',directory,'--parallel','2'],
+                ['ctest','--test-dir',directory,'--output-on-failure']]:
+                result=subprocess.run(command,capture_output=True,text=True)
+                self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 
 if __name__=='__main__':unittest.main()
