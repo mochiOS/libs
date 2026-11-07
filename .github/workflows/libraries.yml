@@ -9,7 +9,7 @@ on:
         type: boolean
         default: false
 concurrency:
-  group: library-releases
+  group: library-${{ inputs.sdk_candidate == true && 'verification' || 'releases' }}
   cancel-in-progress: false
 permissions:
   contents: read

@@ -96,6 +96,7 @@ class CandidateSDKTests(unittest.TestCase):
 
     def test_release_workflow_never_approves_or_publishes_candidate_builds(self):
         workflow = (ROOT / '.github/workflows/libraries.yml').read_text()
+        self.assertIn("group: library-${{ inputs.sdk_candidate == true && 'verification' || 'releases' }}", workflow)
         self.assertIn('python3 tools/sdk_candidate.py fetch', workflow)
         self.assertIn('python3 tools/sdk_candidate.py restore', workflow)
         for job in ['release-policy', 'release']:
