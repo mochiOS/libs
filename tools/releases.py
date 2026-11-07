@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path, PurePosixPath
 import shutil
 import subprocess
@@ -87,7 +88,7 @@ def verify_bundle(directory, package, plan, root=libs.ROOT):
                         if not libs.config_script_header(stream.read(128)):raise ValueError('Configuration helper is not a POSIX script')
                         stream.seek(0)
                     magic = stream.read(4)
-                    if magic != b'\x7fELF' and (member.name.endswith('.so') or '.so.' in member.name):
+                    if magic != b'\x7fELF' and re.fullmatch(r'.+\.so(?:\.[0-9]+)*', PurePosixPath(member.name).name):
                         raise ValueError('Shared-library output is not ELF')
                     if magic == b'\x7fELF':
                         elf_count += 1

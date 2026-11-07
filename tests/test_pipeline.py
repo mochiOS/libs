@@ -262,7 +262,7 @@ class IsolationTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which('cc') and shutil.which('readelf'), 'host fixture compiler/readelf required')
 class ArtifactTests(unittest.TestCase):
-    def fixture(self, root, name='zlib', helpers=None, libtool=False):
+    def fixture(self, root, name='zlib', helpers=None, libtool=False, data=None):
         stage=root/'stage'; (stage/'usr/lib').mkdir(parents=True)
         (stage/'usr/include').mkdir(); (stage/'usr/include/zlib.h').write_text('/* fixture only */\n')
         source=root/'fixture.c'; source.write_text('int fixture_only(void) { return 42; }\n')
@@ -274,6 +274,8 @@ class ArtifactTests(unittest.TestCase):
             for helper,content in helpers.items():(stage/'usr/bin'/helper).write_bytes(content)
         if libtool:
             (stage/'usr/lib/libz.la').write_text("dependency_libs='/private/build/libother.la'\n")
+        for name_in_stage,content in (data or {}).items():
+            target=stage/name_in_stage;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(content)
         plan=libs.make_plan(ROOT); package=next(item for item in plan['packages'] if item['name']==name)
         libs.package_build(ROOT,package,stage,dict(sdk=plan['sdk'],registry_commit='0'*40,builder={'fixture_only':True}),root/'releases')
         return plan,package,root/'releases'/package['release']
@@ -303,6 +305,20 @@ class ArtifactTests(unittest.TestCase):
         for helper,content in [('unexpected-config',b'#!/bin/sh\n'),('xml2-config',b'\x7fELFnot-a-script')]:
             with self.subTest(helper=helper), tempfile.TemporaryDirectory() as tmp:
                 with self.assertRaises(ValueError):self.fixture(Path(tmp),name='libxml2',helpers={helper:content})
+
+    def test_gdb_auto_load_script_is_data_not_a_shared_library(self):
+        path='usr/share/gdb/auto-load/usr/lib/libz.so.1.2.3-gdb.py'
+        with tempfile.TemporaryDirectory() as tmp:
+            plan,package,directory=self.fixture(Path(tmp),data={path:b'# GDB fixture; never executed\n'})
+            manifest=releases.verify_bundle(directory,package,plan)
+            self.assertIn(path,{entry['path'] for entry in manifest['files']})
+
+    def test_non_elf_shared_library_payload_is_rejected(self):
+        for name in ['libfake.so','libfake.so.1','libfake.so.1.2.3']:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                plan,package,directory=self.fixture(Path(tmp),data={'usr/lib/'+name:b'not ELF'})
+                with self.assertRaisesRegex(ValueError,'Shared-library output is not ELF'):
+                    releases.verify_bundle(directory,package,plan)
 
     def test_package_roundtrip_checks_files_links_and_manifests(self):
         with tempfile.TemporaryDirectory() as tmp:
