@@ -529,15 +529,6 @@
  #include <string.h>
 --- a/src/dispatch_common.c
 +++ b/src/dispatch_common.c
-@@ -178,7 +178,7 @@
- #define OPENGL_LIB "/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL"
- #define GLES1_LIB "libGLESv1_CM.so"
- #define GLES2_LIB "libGLESv2.so"
--#elif defined(__ANDROID__)
-+#elif defined(__ANDROID__) || (defined(__mochios__) && PLATFORM_HAS_EGL)
- #define GLX_LIB "libGLESv2.so"
- #define EGL_LIB "libEGL.so"
- #define GLES1_LIB "libGLESv1_CM.so"
 @@ -697,31 +697,49 @@
  void *
  epoxy_gl_dlsym(const char *name)
