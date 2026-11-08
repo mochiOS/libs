@@ -25,9 +25,8 @@ def runtime_library_names(names):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    selection=parser.add_mutually_exclusive_group(required=True)
-    selection.add_argument('--library')
-    selection.add_argument('--probe',type=Path,help='Explicit C SDK probe, using the same signed native fixture')
+    parser.add_argument('--library',help='Recipe whose target modules are linked')
+    parser.add_argument('--probe',type=Path,help='Explicit C probe; optionally inherit the selected recipe modules')
     parser.add_argument('--probe-entry',default='main',help='Zero-argument int probe function (default: main)')
     parser.add_argument('--os-root', type=Path, required=True)
     parser.add_argument('--sdk', type=Path, required=True)
@@ -36,6 +35,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--runtime-library', action='append', default=[], help='Explicit additional SONAME loaded through dlopen')
     args = parser.parse_args()
+    if args.library is None and args.probe is None: parser.error('Select a library recipe or an explicit C probe')
     runtime_libraries = runtime_library_names(args.runtime_library)
     root, sdk, prefix, work = (p.resolve() for p in [args.os_root, args.sdk, args.prefix, args.output])
     if work.exists(): parser.error('Choose a fresh output directory')
@@ -57,8 +57,8 @@ def main():
         if args.probe_entry!='main': parser.error('Recipe probes must use main')
         recipe_path=repository/'recipes'/args.library/'recipe.json'
         recipe=json.loads(recipe_path.read_text())
-        probe=(recipe_path.parent/recipe['probe']).resolve()
-        if not probe.is_relative_to(recipe_path.parent.resolve()):
+        probe=args.probe.resolve() if args.probe else (recipe_path.parent/recipe['probe']).resolve()
+        if args.probe is None and not probe.is_relative_to(recipe_path.parent.resolve()):
             parser.error('Recipe probe escapes its assets')
         modules=recipe['pkg_config_modules']
     else:
