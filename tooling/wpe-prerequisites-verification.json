@@ -322,6 +322,13 @@
       "translation_units": 34,
       "sdk_actions_run": 42448524814,
       "kind": "syntax-only using each actual compile_commands entry; official host-generated enum header; no engine object build"
+    },
+    {
+      "component": "JavaScriptCore selected actual unified build units",
+      "translation_units": 168,
+      "sdk_actions_run": 42448524814,
+      "kind": "syntax-only; includes corrected native mincore and code-cache paths; official host-generated tables",
+      "evidence": "tooling/wpe-jsc-unified-verification.json"
     }
   ],
   "machine_context_accessors_syntax_passed": true,
