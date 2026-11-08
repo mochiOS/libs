@@ -121,9 +121,11 @@ int native_gc_suspend_probe(void)
     error = atomic_load(&failure);
     if (error)
         return error;
-    /* Native upcalls must preserve the interrupted SP independently of their
-     * private callback stack; otherwise the original WTF check cannot work. */
-    if (callback_sp >= stack_low && callback_sp < stack_high)
+    /* The SDK enters C handlers on the interrupted application's stack,
+     * below the x86-64 red zone. Its internal upcall frames are private.
+     * This preserves upstream WTF's currentStackPointer/alt-stack check. */
+    if (callback_sp < stack_low || callback_sp >= stack_high ||
+        callback_sp > saved_sp || saved_sp - callback_sp < 128)
         return 22;
     printf("NATIVE GC SUSPEND PASS saved_sp=%lx callback_sp=%lx stack=%lx..%lx\n",
         (unsigned long)saved_sp, (unsigned long)callback_sp,
