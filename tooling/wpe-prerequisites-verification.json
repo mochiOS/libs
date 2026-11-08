@@ -316,6 +316,12 @@
       "translation_units": 12,
       "sdk_actions_run": 42437884358,
       "kind": "syntax-only; no engine object build"
+    },
+    {
+      "component": "WPEPlatform including headless display and shared-memory buffers",
+      "translation_units": 34,
+      "sdk_actions_run": 42448524814,
+      "kind": "syntax-only using each actual compile_commands entry; official host-generated enum header; no engine object build"
     }
   ],
   "machine_context_accessors_syntax_passed": true,
@@ -394,5 +400,177 @@
         "status": 0
       }
     ]
-  }
+  },
+  "wpeplatform_build_unit_syntax_checks": [
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEBuffer.cpp",
+      "compiled_unit": "WPEBuffer.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEBufferAndroid.cpp",
+      "compiled_unit": "WPEBufferAndroid.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEBufferDMABuf.cpp",
+      "compiled_unit": "WPEBufferDMABuf.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEBufferFormats.cpp",
+      "compiled_unit": "WPEBufferFormats.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEBufferSHM.cpp",
+      "compiled_unit": "WPEBufferSHM.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEClipboard.cpp",
+      "compiled_unit": "WPEClipboard.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEColor.cpp",
+      "compiled_unit": "WPEColor.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPECursorTheme.cpp",
+      "compiled_unit": "WPECursorTheme.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEDRMDevice.cpp",
+      "compiled_unit": "WPEDRMDevice.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEDisplay.cpp",
+      "compiled_unit": "WPEDisplay.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEEGLError.cpp",
+      "compiled_unit": "WPEEGLError.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEEvent.cpp",
+      "compiled_unit": "WPEEvent.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEExtensions.cpp",
+      "compiled_unit": "WPEExtensions.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEGamepad.cpp",
+      "compiled_unit": "WPEGamepad.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEGamepadManager.cpp",
+      "compiled_unit": "WPEGamepadManager.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEInputMethodContext.cpp",
+      "compiled_unit": "WPEInputMethodContext.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEInputMethodContextNone.cpp",
+      "compiled_unit": "WPEInputMethodContextNone.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEKeyUnicode.cpp",
+      "compiled_unit": "WPEKeyUnicode.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEKeymap.cpp",
+      "compiled_unit": "WPEKeymap.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEKeymapXKB.cpp",
+      "compiled_unit": "WPEKeymapXKB.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEGestureController.cpp",
+      "compiled_unit": "WPEGestureController.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEGestureControllerImpl.cpp",
+      "compiled_unit": "WPEGestureControllerImpl.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEGestureDetector.cpp",
+      "compiled_unit": "WPEGestureDetector.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPERectangle.cpp",
+      "compiled_unit": "WPERectangle.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEScreen.cpp",
+      "compiled_unit": "WPEScreen.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEScreenSyncObserver.cpp",
+      "compiled_unit": "WPEScreenSyncObserver.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPESettings.cpp",
+      "compiled_unit": "WPESettings.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEToplevel.cpp",
+      "compiled_unit": "WPEToplevel.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEVersion.cpp",
+      "compiled_unit": "WPEVersion.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEView.cpp",
+      "compiled_unit": "WPEView.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/WPEViewAccessible.cpp",
+      "compiled_unit": "WPEViewAccessible.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/headless/WPEDisplayHeadless.cpp",
+      "compiled_unit": "WPEDisplayHeadless.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/headless/WPEToplevelHeadless.cpp",
+      "compiled_unit": "WPEToplevelHeadless.cpp",
+      "status": 0
+    },
+    {
+      "source": "WebKit/WPEPlatform/wpe/headless/WPEViewHeadless.cpp",
+      "compiled_unit": "WPEViewHeadless.cpp",
+      "status": 0
+    }
+  ]
 }
