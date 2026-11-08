@@ -10,6 +10,7 @@ check_c_source_compiles("
 #endif
 #define _GNU_SOURCE 1
 #include <pthread.h>
+#include <mochios/process.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -19,6 +20,8 @@ int main(void) {
     int fd = shm_open(\"/webkit-sdk-contract\", 0, 0600);
     e += ftruncate(fd, 4096);
     e += sendmsg(-1, (const struct msghdr *)0, 0);
+    struct mochios_process_memory_usage usage;
+    e += mochios_process_memory_read(&usage, sizeof(usage));
     return e;
 }" MOCHIOS_NATIVE_WPE_HEADERS)
 if (NOT MOCHIOS_NATIVE_WPE_HEADERS)

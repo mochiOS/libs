@@ -159,3 +159,81 @@ diff --git a/Source/JavaScriptCore/runtime/MachineContext.h b/Source/JavaScriptC
  #if CPU(X86_64)
      return reinterpret_cast<void*&>((uintptr_t&) machineContext.gregs[REG_R8]);
  #elif CPU(ARM)
+diff --git a/Source/WTF/wtf/posix/FileHandlePOSIX.cpp b/Source/WTF/wtf/posix/FileHandlePOSIX.cpp
+--- a/Source/WTF/wtf/posix/FileHandlePOSIX.cpp
++++ b/Source/WTF/wtf/posix/FileHandlePOSIX.cpp
+@@ -179,7 +179,11 @@
+ #endif
+     }
+ 
+-    auto fileData = MmapSpan<uint8_t>::mmap(nullptr, size, pageProtection, MAP_FILE | (mapMode == MappedFileMode::Shared ? MAP_SHARED : MAP_PRIVATE), platformHandle());
++    int flags = mapMode == MappedFileMode::Shared ? MAP_SHARED : MAP_PRIVATE;
++#ifdef MAP_FILE
++    flags |= MAP_FILE;
++#endif
++    auto fileData = MmapSpan<uint8_t>::mmap(nullptr, size, pageProtection, flags, platformHandle());
+     if (!fileData)
+         return { };
+ 
+diff --git a/Source/WTF/wtf/MemoryPressureHandler.h b/Source/WTF/wtf/MemoryPressureHandler.h
+--- a/Source/WTF/wtf/MemoryPressureHandler.h
++++ b/Source/WTF/wtf/MemoryPressureHandler.h
+@@ -98,7 +98,7 @@
+     WTF_EXPORT_PRIVATE void NODELETE setMemoryFootprintPollIntervalForTesting(Seconds);
+     WTF_EXPORT_PRIVATE void setShouldUsePeriodicMemoryMonitor(bool);
+ 
+-#if OS(LINUX) || OS(FREEBSD) || OS(HAIKU) || OS(QNX)
++#if OS(LINUX) || OS(FREEBSD) || OS(HAIKU) || OS(QNX) || OS(MOCHIOS)
+     WTF_EXPORT_PRIVATE void triggerMemoryPressureEvent(bool isCritical);
+ #endif
+ 
+@@ -268,7 +268,7 @@
+     HANDLE m_lowMemoryWaitHandle { nullptr };
+ #endif
+ 
+-#if (OS(LINUX) || OS(FREEBSD) || OS(HAIKU) || OS(QNX)) && !OS(ANDROID)
++#if (OS(LINUX) || OS(FREEBSD) || OS(HAIKU) || OS(QNX) || OS(MOCHIOS)) && !OS(ANDROID)
+     RunLoop::Timer m_holdOffTimer;
+     void holdOffTimerFired();
+ #endif
+diff --git a/Source/WTF/wtf/MemoryPressureHandler.cpp b/Source/WTF/wtf/MemoryPressureHandler.cpp
+--- a/Source/WTF/wtf/MemoryPressureHandler.cpp
++++ b/Source/WTF/wtf/MemoryPressureHandler.cpp
+@@ -67,7 +67,7 @@
+ }
+ 
+ MemoryPressureHandler::MemoryPressureHandler()
+-#if (OS(LINUX) || OS(FREEBSD) || OS(HAIKU) || OS(QNX)) && !OS(ANDROID)
++#if (OS(LINUX) || OS(FREEBSD) || OS(HAIKU) || OS(QNX) || OS(MOCHIOS)) && !OS(ANDROID)
+     : m_holdOffTimer(RunLoop::mainSingleton(), "MemoryPressureHandler::HoldOffTimer"_s, this, &MemoryPressureHandler::holdOffTimerFired)
+ #elif OS(WINDOWS)
+     : m_windowsMeasurementTimer(RunLoop::mainSingleton(), "MemoryPressureHandler::WindowsMeasurementTimer"_s, this, &MemoryPressureHandler::windowsMeasurementTimerFired)
+diff --git a/Source/WTF/wtf/unix/MemoryPressureHandlerUnix.cpp b/Source/WTF/wtf/unix/MemoryPressureHandlerUnix.cpp
+--- a/Source/WTF/wtf/unix/MemoryPressureHandlerUnix.cpp
++++ b/Source/WTF/wtf/unix/MemoryPressureHandlerUnix.cpp
+@@ -129,6 +129,8 @@
+         return 0;
+ 
+     return static_cast<size_t>(info.ki_rssize - info.ki_tsize) * pageSize;
++#elif OS(MOCHIOS)
++    return memoryFootprint();
+ #elif OS(QNX)
+     int fd = open("/proc/self/ctl", O_RDONLY);
+     if (fd == -1)
+diff --git a/Source/WTF/wtf/PlatformWPE.cmake b/Source/WTF/wtf/PlatformWPE.cmake
+--- a/Source/WTF/wtf/PlatformWPE.cmake
++++ b/Source/WTF/wtf/PlatformWPE.cmake
+@@ -112,3 +112,13 @@
+         SysProfCapture::SysProfCapture
+     )
+ endif ()
++
++# Native process accounting and scheduling do not use Linux procfs or rtkit.
++if (CMAKE_SYSTEM_NAME STREQUAL "mochiOS")
++    list(REMOVE_ITEM WTF_SOURCES
++        linux/CurrentProcessMemoryStatus.cpp
++        linux/HighPriorityThreads.cpp
++        linux/MemoryFootprintLinux.cpp
++    )
++    list(APPEND WTF_SOURCES mochios/MemoryFootprintMochiOS.cpp)
++endif ()

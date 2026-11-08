@@ -83,7 +83,8 @@
     "mochios.patch"
   ],
   "overlays": {
-    "OptionsMochiOS.cmake": "Source/cmake/OptionsMochiOS.cmake"
+    "OptionsMochiOS.cmake": "Source/cmake/OptionsMochiOS.cmake",
+    "MemoryFootprintMochiOS.cpp": "Source/WTF/wtf/mochios/MemoryFootprintMochiOS.cpp"
   },
   "executables": [
     "usr/libexec/wpe-webkit-2.0/WPEWebProcess",
