@@ -68,3 +68,94 @@ diff --git a/Source/WTF/wtf/PlatformHave.h b/Source/WTF/wtf/PlatformHave.h
  #define HAVE_PTHREAD_SETSCHEDPARAM 1
  #endif
  
+@@ -237,7 +237,7 @@
+ #define HAVE_MACH_MEMORY_ENTRY 1
+ #endif
+ 
+-#if OS(DARWIN) || OS(FUCHSIA) || ((OS(FREEBSD) || OS(HAIKU) || OS(NETBSD) || OS(OPENBSD) || OS(LINUX) || OS(HURD) || OS(QNX)) && (CPU(X86_64) || CPU(ARM) || CPU(ARM64) || CPU(RISCV64)))
++#if (OS(MOCHIOS) && CPU(X86_64)) || OS(DARWIN) || OS(FUCHSIA) || ((OS(FREEBSD) || OS(HAIKU) || OS(NETBSD) || OS(OPENBSD) || OS(LINUX) || OS(HURD) || OS(QNX)) && (CPU(X86_64) || CPU(ARM) || CPU(ARM64) || CPU(RISCV64)))
+ #define HAVE_MACHINE_CONTEXT 1
+ #endif
+ 
+diff --git a/Source/JavaScriptCore/runtime/MachineContext.h b/Source/JavaScriptCore/runtime/MachineContext.h
+--- a/Source/JavaScriptCore/runtime/MachineContext.h
++++ b/Source/JavaScriptCore/runtime/MachineContext.h
+@@ -189,7 +189,7 @@
+ #error Unknown Architecture
+ #endif
+ 
+-#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD)
++#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD) || (OS(MOCHIOS) && CPU(X86_64))
+ 
+ #if CPU(X86_64)
+     return reinterpret_cast<void*&>((uintptr_t&) machineContext.gregs[REG_RSP]);
+@@ -308,9 +308,10 @@
+ #error Unknown Architecture
+ #endif
+ 
+-#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD)
+-
+-// The following sequence depends on glibc's sys/ucontext.h.
++#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD) || (OS(MOCHIOS) && CPU(X86_64))
++
++// Use SDK-defined symbolic indices. mochiOS has its own mcontext_t ABI,
++// not the Linux binary context layout.
+ #if CPU(X86_64)
+     return reinterpret_cast<void*&>((uintptr_t&) machineContext.gregs[REG_RBP]);
+ #elif CPU(ARM)
+@@ -468,9 +469,10 @@
+ #error Unknown Architecture
+ #endif
+ 
+-#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD)
+-
+-// The following sequence depends on glibc's sys/ucontext.h.
++#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD) || (OS(MOCHIOS) && CPU(X86_64))
++
++// Use SDK-defined symbolic indices. mochiOS has its own mcontext_t ABI,
++// not the Linux binary context layout.
+ #if CPU(X86_64)
+     return reinterpret_cast<void*&>((uintptr_t&) machineContext.gregs[REG_RIP]);
+ #elif CPU(ARM)
+@@ -644,9 +646,10 @@
+ #error Unknown Architecture
+ #endif
+ 
+-#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD)
+-
+-// The following sequence depends on glibc's sys/ucontext.h.
++#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD) || (OS(MOCHIOS) && CPU(X86_64))
++
++// Use SDK-defined symbolic indices. mochiOS has its own mcontext_t ABI,
++// not the Linux binary context layout.
+ #if CPU(X86_64)
+     return reinterpret_cast<void*&>((uintptr_t&) machineContext.gregs[REG_RSI]);
+ #elif CPU(ARM)
+@@ -701,9 +704,10 @@
+ #error Unknown Architecture
+ #endif
+ 
+-#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD)
+-
+-// The following sequence depends on glibc's sys/ucontext.h.
++#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD) || (OS(MOCHIOS) && CPU(X86_64))
++
++// Use SDK-defined symbolic indices. mochiOS has its own mcontext_t ABI,
++// not the Linux binary context layout.
+ #if CPU(X86_64)
+     return reinterpret_cast<void*>((uintptr_t) machineContext.gregs[REG_RBX]);
+ #elif CPU(ARM)
+@@ -821,9 +825,10 @@
+ #error Unknown Architecture
+ #endif
+ 
+-#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD)
+-
+-// The following sequence depends on glibc's sys/ucontext.h.
++#elif OS(FUCHSIA) || OS(LINUX) || OS(HURD) || (OS(MOCHIOS) && CPU(X86_64))
++
++// Use SDK-defined symbolic indices. mochiOS has its own mcontext_t ABI,
++// not the Linux binary context layout.
+ #if CPU(X86_64)
+     return reinterpret_cast<void*&>((uintptr_t&) machineContext.gregs[REG_R8]);
+ #elif CPU(ARM)
