@@ -319,7 +319,7 @@
     }
   ],
   "machine_context_accessors_syntax_passed": true,
-  "upstream_patch_sha256": "1f1aefd93689427c7f15263271b78d3d70cad602bdf29e8d05c3fd89ff137eeb",
+  "upstream_patch_sha256": "ccb304c338366cee5699f44f291ee624c2278e49ccd7f0993b7d646894afe0cc",
   "component_source_sha256": {
     "tests/mochios-ports/pthread-suspend.c": "8112d69e4e9dab1ad9827ab4e46e39d17f5df580f2d35152a969f903b2583eee",
     "tools/devkit/sdk/probe/process-memory.c": "bf18b8db80a6a8ea0867ce2634e51b6b177e467b8a94b0fab103162099fb2a04",

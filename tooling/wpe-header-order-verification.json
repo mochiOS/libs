@@ -1,0 +1,17 @@
+{
+  "format": 1,
+  "failed_run": 42449705307,
+  "failed_job": 128636734186,
+  "error": "JavaScriptCore/IndexingHeader.h missing while compiling the JavaScriptCoreJIT PCH before private header staging",
+  "fix": "Explicit staging dependencies on the separate JavaScriptCoreJIT object target through JavaScriptCore_DEPENDENCIES",
+  "checked": "CMake regenerated the actual native WPE Ninja graph; no engine compilation performed locally",
+  "pch_order_dependency": "cmake_object_order_depends_target_JavaScriptCoreJIT",
+  "required_header_dependencies": [
+    "Source/JavaScriptCore/JavaScriptCore_CopyHeaders",
+    "Source/JavaScriptCore/JavaScriptCore_CopyPrivateHeaders",
+    "Source/WTF/wtf/WTF_CopyHeaders",
+    "Source/bmalloc/bmalloc_CopyHeaders"
+  ],
+  "patch_sha256": "ccb304c338366cee5699f44f291ee624c2278e49ccd7f0993b7d646894afe0cc",
+  "engine_build_verified": false
+}

@@ -294,3 +294,22 @@ diff --git a/Source/WTF/wtf/glib/FileSystemGlib.cpp b/Source/WTF/wtf/glib/FileSy
  #elif OS(UNIX)
  #if OS(NETBSD)
  #define _PROC_CURPROC_PATH "/proc/curproc/exe"
+diff --git a/Source/JavaScriptCore/CMakeLists.txt b/Source/JavaScriptCore/CMakeLists.txt
+--- a/Source/JavaScriptCore/CMakeLists.txt
++++ b/Source/JavaScriptCore/CMakeLists.txt
+@@ -1851,6 +1851,15 @@
+ 
+ WEBKIT_COMPUTE_SOURCES(JavaScriptCore)
+ 
++# The PCH subtarget also includes staged framework headers. The parent target's
++# later framework dependencies do not order this separate object library.
++if (CMAKE_SYSTEM_NAME STREQUAL "mochiOS")
++    list(APPEND JavaScriptCore_DEPENDENCIES
++        JavaScriptCore_CopyHeaders
++        JavaScriptCore_CopyPrivateHeaders
++    )
++endif ()
++
+ WEBKIT_DEFINE_SUBTARGET_WITH_PREFIX(JavaScriptCore JavaScriptCoreJIT
+     PREFIX JavaScriptCoreJITPrefix.h
+     PREFIX_LANGUAGES CXX
