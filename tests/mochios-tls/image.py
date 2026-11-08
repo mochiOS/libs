@@ -164,6 +164,12 @@ def main():
             source_stat.st_ino, source_stat.st_size, source_stat.st_mtime_ns):
         disk.unlink()
         raise RuntimeError('Source image changed while composing the fixture; rebuild from a stable image')
+    # Compress only after the raw partitions and initfs working copies have
+    # been released. Keep the original until conversion succeeds; this avoids
+    # exchanging lower composition peaks for permanently larger VM images.
+    compact = output / 'disk.compact.qcow2'
+    run(['qemu-img', 'convert', '-c', '-O', 'qcow2', disk, compact])
+    compact.replace(disk)
     shutil.copyfile('/usr/share/OVMF/OVMF_VARS_4M.snakeoil.fd', output / 'OVMF_VARS.fd')
     (output / 'image.json').write_text(json.dumps(evidence, indent=2) + '\n')
     print('Independent development VM image:', disk)
