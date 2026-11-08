@@ -70,7 +70,7 @@ jobs:
     needs: plan
     if: needs.plan.outputs.sdk_ready == 'true' && needs.plan.outputs.needs_build == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 180
+    timeout-minutes: 360
     permissions:
       contents: read
       packages: read
@@ -85,6 +85,13 @@ jobs:
         with:
           name: frozen-plan
           path: out
+      - name: Reserve space for engine builds on disposable hosted runners
+        if: runner.environment == 'github-hosted'
+        run: |
+          if python3 -c 'import json,sys; p=json.load(open("out/plan.json")); sys.exit(0 if any(x["name"] == "wpewebkit" for x in p["packages"]) else 1)'; then
+            sudo rm -rf -- /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
+          fi
+          df -h .
       - name: Restore reviewed development SDK
         if: inputs.sdk_candidate == true
         run: python3 tools/sdk_candidate.py restore
