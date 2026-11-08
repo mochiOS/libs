@@ -12,7 +12,7 @@
 
 _Static_assert(ATOMIC_INT_LOCK_FREE == 2, "signal handshake needs lock-free atomics");
 static sem_t ready, suspended, resumed;
-static atomic_int phase, stop_worker, failure;
+static atomic_int phase, stop_worker, failure, resume_signal_seen;
 static uintptr_t stack_low, stack_high, saved_sp, callback_sp;
 
 static int wait_for(sem_t *sem)
@@ -26,8 +26,10 @@ static void suspend_handler(int signal, siginfo_t *info, void *raw)
 {
     (void)signal;
     (void)info;
-    if (atomic_load_explicit(&phase, memory_order_acquire))
+    if (atomic_load_explicit(&phase, memory_order_acquire)) {
+        atomic_fetch_add_explicit(&resume_signal_seen, 1, memory_order_release);
         return;
+    }
     char marker;
     callback_sp = (uintptr_t)&marker;
     ucontext_t *context = raw;
@@ -41,6 +43,8 @@ static void suspend_handler(int signal, siginfo_t *info, void *raw)
     sigdelset(&mask, SIGUSR2);
     if (sigsuspend(&mask) != -1 || errno != EINTR)
         atomic_store(&failure, 12);
+    if (atomic_load_explicit(&resume_signal_seen, memory_order_acquire) != 1)
+        atomic_store(&failure, 14);
     if (sem_post(&resumed))
         atomic_store(&failure, 13);
 }
@@ -72,6 +76,7 @@ int native_gc_suspend_probe(void)
 {
     if (sem_init(&ready, 0, 0) || sem_init(&suspended, 0, 0) || sem_init(&resumed, 0, 0))
         return 1;
+    puts("NATIVE GC installing handler");
     struct sigaction action = {0};
     action.sa_sigaction = suspend_handler;
     action.sa_flags = SA_SIGINFO;
@@ -87,16 +92,29 @@ int native_gc_suspend_probe(void)
     if (pthread_attr_init(&attr) || pthread_attr_setstacksize(&attr, 128 * 1024) ||
         pthread_attr_setguardsize(&attr, 8192))
         return 4;
+    puts("NATIVE GC creating worker");
     pthread_t thread;
     int error = pthread_create(&thread, &attr, worker, NULL);
     pthread_attr_destroy(&attr);
-    if (error || wait_for(&ready))
+    if (error)
         return 5;
-    if (pthread_kill(thread, SIGUSR2) || wait_for(&suspended))
+    puts("NATIVE GC waiting for worker");
+    if (wait_for(&ready))
+        return 5;
+    puts("NATIVE GC worker ready");
+    if (pthread_kill(thread, SIGUSR2))
         return 6;
+    puts("NATIVE GC suspend sent");
+    if (wait_for(&suspended))
+        return 6;
+    puts("NATIVE GC suspended");
     atomic_store_explicit(&phase, 1, memory_order_release);
-    if (pthread_kill(thread, SIGUSR2) || wait_for(&resumed))
+    if (pthread_kill(thread, SIGUSR2))
         return 7;
+    puts("NATIVE GC resume sent");
+    if (wait_for(&resumed))
+        return 7;
+    puts("NATIVE GC resumed");
     atomic_store_explicit(&stop_worker, 1, memory_order_release);
     if (pthread_join(thread, NULL))
         return 8;
