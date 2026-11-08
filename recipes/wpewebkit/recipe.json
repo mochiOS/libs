@@ -1,0 +1,84 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "options": {
+    "PORT": "WPE",
+    "DEVELOPER_MODE": false,
+    "ENABLE_DOCUMENTATION": false,
+    "ENABLE_INTROSPECTION": false,
+    "ENABLE_MINIBROWSER": false,
+    "ENABLE_WPE_PLATFORM": true,
+    "ENABLE_WPE_PLATFORM_HEADLESS": true,
+    "ENABLE_WPE_PLATFORM_DRM": false,
+    "ENABLE_WPE_PLATFORM_WAYLAND": false,
+    "ENABLE_WPE_LEGACY_API": false,
+    "ENABLE_WPE_QT_API": false,
+    "USE_GBM": false,
+    "USE_LIBDRM": false,
+    "ENABLE_GPU_PROCESS": false,
+    "ENABLE_VIDEO": false,
+    "ENABLE_WEB_AUDIO": false,
+    "ENABLE_SPEECH_SYNTHESIS": false,
+    "ENABLE_SPELLCHECK": false,
+    "ENABLE_WEBDRIVER": false,
+    "ENABLE_XSLT": false,
+    "ENABLE_JOURNALD_LOG": false,
+    "USE_ATK": false,
+    "USE_AVIF": false,
+    "USE_JPEGXL": false,
+    "USE_LCMS": false,
+    "USE_LIBHYPHEN": false,
+    "USE_LIBBACKTRACE": false,
+    "USE_WOFF2": false,
+    "USE_SYSPROF_CAPTURE": false,
+    "ENABLE_JIT": false,
+    "ENABLE_DFG_JIT": false,
+    "ENABLE_FTL_JIT": false,
+    "ENABLE_C_LOOP": true,
+    "ENABLE_WEBASSEMBLY": false,
+    "ENABLE_SAMPLING_PROFILER": false,
+    "USE_SYSTEM_MALLOC": true,
+    "USE_MIMALLOC": false,
+    "ENABLE_API_TESTS": false,
+    "ENABLE_LAYOUT_TESTS": false,
+    "ENABLE_GAMEPAD": false,
+    "ENABLE_MEDIA_SESSION": false,
+    "ENABLE_MEDIA_STREAM": false,
+    "ENABLE_WEB_CODECS": false,
+    "ENABLE_ENCRYPTED_MEDIA": false,
+    "ENABLE_WEBXR": false,
+    "ENABLE_WEBXR_HIT_TEST": false,
+    "ENABLE_WEBXR_LAYERS": false,
+    "ENABLE_PDFJS": false,
+    "USE_SYSTEM_UNIFDEF": true
+  },
+  "licenses": [
+    "Source/JavaScriptCore/COPYING.LIB",
+    "Source/WebCore/LICENSE-APPLE",
+    "Source/WebCore/LICENSE-LGPL-2",
+    "Source/WebCore/LICENSE-LGPL-2.1",
+    "Source/ThirdParty/skia/LICENSE",
+    "Source/ThirdParty/ANGLE/LICENSE",
+    "Source/ThirdParty/unifdef/COPYING"
+  ],
+  "shared_libraries": [
+    "libWPEWebKit-2.0.so*"
+  ],
+  "link_libraries": [
+    "WPEWebKit-2.0"
+  ],
+  "pkg_config_modules": [
+    "wpe-webkit-2.0"
+  ],
+  "probe": "probe.c",
+  "patches": [
+    "mochios.patch"
+  ],
+  "overlays": {
+    "OptionsMochiOS.cmake": "Source/cmake/OptionsMochiOS.cmake"
+  },
+  "executables": [
+    "usr/libexec/wpe-webkit-2.0/WPEWebProcess",
+    "usr/libexec/wpe-webkit-2.0/WPENetworkProcess"
+  ]
+}

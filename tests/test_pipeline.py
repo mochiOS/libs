@@ -32,7 +32,7 @@ class RegistryTests(unittest.TestCase):
         plan = libs.make_plan(ROOT)
         libs.validate_plan(ROOT, plan)
         self.assertEqual(plan['ready'], libs.sdk_lock(ROOT)['available'])
-        self.assertEqual(set(plan['blocked_ports']), {'webkit', 'epoxy', 'mesa'})
+        self.assertEqual(set(plan['blocked_ports']), {'webkit', 'wpewebkit', 'epoxy', 'mesa'})
         self.assertTrue(catalog['libraries']['glib-networking']['enabled'])
         self.assertTrue(catalog['libraries']['libsoup']['enabled'])
         if not plan['ready']: self.assertTrue(plan['blocked_reason'])
