@@ -327,3 +327,59 @@ diff --git a/Source/JavaScriptCore/heap/BlockDirectory.cpp b/Source/JavaScriptCo
      size_t pageSize = WTF::pageSize();
      ASSERT(!(MarkedBlock::blockSize % pageSize));
      auto numberOfPagesInMarkedBlock = MarkedBlock::blockSize / pageSize;
+diff --git a/Source/JavaScriptCore/runtime/JSCBytecodeCacheVersion.cpp b/Source/JavaScriptCore/runtime/JSCBytecodeCacheVersion.cpp
+--- a/Source/JavaScriptCore/runtime/JSCBytecodeCacheVersion.cpp
++++ b/Source/JavaScriptCore/runtime/JSCBytecodeCacheVersion.cpp
+@@ -31,7 +31,7 @@
+ #include <wtf/NeverDestroyed.h>
+ #include <wtf/text/SuperFastHash.h>
+ 
+-#if OS(UNIX)
++#if OS(UNIX) && !OS(MOCHIOS)
+ #include <dlfcn.h>
+ #if OS(DARWIN)
+ #include <mach-o/dyld.h>
+@@ -68,7 +68,7 @@
+         }
+         cacheVersion.construct(0);
+         dataLogLnIf(JSCBytecodeCacheVersionInternal::verbose, "Failed to get UUID for JavaScriptCore framework");
+-#elif OS(UNIX) && !PLATFORM(PLAYSTATION) && !OS(HAIKU) && !OS(QNX)
++#elif OS(UNIX) && !PLATFORM(PLAYSTATION) && !OS(HAIKU) && !OS(QNX) && !OS(MOCHIOS)
+         auto result = ([&] -> std::optional<uint32_t> {
+             Dl_info info { };
+             if (!dladdr(jsFunctionAddr, &info))
+diff --git a/Source/JavaScriptCore/runtime/Options.cpp b/Source/JavaScriptCore/runtime/Options.cpp
+--- a/Source/JavaScriptCore/runtime/Options.cpp
++++ b/Source/JavaScriptCore/runtime/Options.cpp
+@@ -991,6 +991,13 @@
+     if (Options::softReservedZoneSize() < Options::reservedZoneSize() + minimumReservedZoneSize)
+         Options::softReservedZoneSize() = Options::reservedZoneSize() + minimumReservedZoneSize;
+ 
++#if OS(MOCHIOS)
++    // The initial native port has no authenticated loaded-image build-ID query.
++    // Do not persist/reuse bytecode under the generic timestamp fallback key.
++    Options::useCodeCache() = false;
++    Options::forceDiskCache() = false;
++#endif
++
+     if (!Options::useCodeCache())
+         Options::diskCachePath() = nullptr;
+ 
+diff --git a/Source/JavaScriptCore/runtime/CodeCache.cpp b/Source/JavaScriptCore/runtime/CodeCache.cpp
+--- a/Source/JavaScriptCore/runtime/CodeCache.cpp
++++ b/Source/JavaScriptCore/runtime/CodeCache.cpp
+@@ -166,7 +166,14 @@
+         source, String(), CacheTypes<UnlinkedCodeBlockType>::codeType, executable->lexicallyScopedFeatures(), scriptMode,
+         derivedContextType, evalContextType, isArrowFunctionContext, codeGenerationMode,
+         std::nullopt);
++#if OS(MOCHIOS)
++    // Lookup may decode provider-supplied disk bytecode before the later option
++    // check. Avoid that path entirely while native build identification is absent.
++    UnlinkedCodeBlockType* unlinkedCodeBlock = Options::useCodeCache()
++        ? m_sourceCode.findCacheAndUpdateAge<UnlinkedCodeBlockType>(vm, key) : nullptr;
++#else
+     UnlinkedCodeBlockType* unlinkedCodeBlock = m_sourceCode.findCacheAndUpdateAge<UnlinkedCodeBlockType>(vm, key);
++#endif
+     if (unlinkedCodeBlock && Options::useCodeCache()) {
+         unsigned lineCount = unlinkedCodeBlock->lineCount();
+         unsigned startColumn = unlinkedCodeBlock->startColumn() + source.startColumn().oneBasedInt();

@@ -66,6 +66,12 @@ its existing unsupported-platform fallback for the optional paged-out-heap GC
 bailout heuristic; it does not fabricate page residency from process totals.
 Normal heap marking, sweeping and the real process memory sampler remain in use.
 
+Native bytecode caching is disabled until a stable loaded-image build identity is
+available. JSC compiles the existing non-ELF build-version fallback instead of
+including GNU `link.h` or calling unavailable `dladdr` / `dl_iterate_phdr`.
+This does not substitute the timestamp fallback for an authenticated build ID;
+the initial port neither persists nor reuses bytecode under that fallback key.
+
 ## Runtime package and ABI ownership
 
 The runtime package must update together: `libwebkit.so.1`, its upstream WPE and

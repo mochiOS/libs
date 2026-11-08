@@ -1,0 +1,28 @@
+{
+  "format": 1,
+  "discovered_by": "Native SDK syntax check of actual UnifiedSource-runtime-21.cpp after the mincore failure",
+  "error": "JSCBytecodeCacheVersion.cpp assumes GNU link.h, dladdr and dl_iterate_phdr for every Unix platform",
+  "fix": "Select upstream non-ELF build-version fallback on mochiOS; disable code cache, forced disk cache and provider bytecode lookup until native loaded-image build identification exists",
+  "not_changed": "SDK loader authority and exported APIs; other operating-system paths",
+  "sdk_actions_run": 42448524814,
+  "patch_sha256": "11b406897c9178b22dbedabb5bd471bd991e5ea951ef47cdd86dcd253935d882",
+  "syntax_checks": [
+    {
+      "source": "JavaScriptCore/runtime/JSCBytecodeCacheVersion.cpp",
+      "compiled_unit": "UnifiedSource-runtime-21.cpp",
+      "status": 0
+    },
+    {
+      "source": "JavaScriptCore/runtime/Options.cpp",
+      "compiled_unit": "UnifiedSource-runtime-35.cpp",
+      "status": 0
+    },
+    {
+      "source": "JavaScriptCore/runtime/CodeCache.cpp",
+      "compiled_unit": "UnifiedSource-runtime-6.cpp",
+      "status": 0
+    }
+  ],
+  "engine_build_verified": false,
+  "engine_runtime_verified": false
+}
