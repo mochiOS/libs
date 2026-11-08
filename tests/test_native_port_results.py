@@ -24,4 +24,13 @@ class Results(unittest.TestCase):
             text=runner.read_results(Path(directory),{'start':2048,'size':2048})
         self.assertEqual(calls[-1][2],'cat /tmp/port-smoke-results.log')
         self.assertTrue(runner.outcome(text)['passed'])
+
+class RuntimeLibraries(unittest.TestCase):
+    def test_dlopen_sonames_are_explicit_and_cannot_escape(self):
+        spec=importlib.util.spec_from_file_location('port_build',Path(__file__).parent/'mochios-ports/build.py')
+        build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
+        self.assertEqual(build.runtime_library_names(['libEGL.so.1','libEGL.so.1']),['libEGL.so.1'])
+        for name in ['../libEGL.so.1','/system/libEGL.so.1','libEGL.so.1\\other','libEGL.so.1\n','libEGL.a','']:
+            with self.subTest(name=name),self.assertRaises(ValueError):build.runtime_library_names([name])
+
 if __name__=='__main__':unittest.main()

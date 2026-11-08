@@ -15,6 +15,14 @@ def digest(path):
     return hashlib.file_digest(path.open('rb'), 'sha256').hexdigest()
 
 
+def runtime_library_names(names):
+    """Validate explicit dlopen dependencies; file paths and traversal are forbidden."""
+    for name in names:
+        if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_+.-]*\.so(?:\.[0-9]+)*',name):
+            raise ValueError('Invalid runtime library name')
+    return list(dict.fromkeys(names))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--library', required=True)
@@ -23,7 +31,9 @@ def main():
     parser.add_argument('--prefix', type=Path, required=True)
     parser.add_argument('--capability-binary', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--runtime-library', action='append', default=[], help='Explicit additional SONAME loaded through dlopen')
     args = parser.parse_args()
+    runtime_libraries = runtime_library_names(args.runtime_library)
     root, sdk, prefix, work = (p.resolve() for p in [args.os_root, args.sdk, args.prefix, args.output])
     if work.exists(): parser.error('Choose a fresh output directory')
     if 'DEVELOPMENT_SYSTEM_SIGNATURES=y' not in (root / '.config').read_text().splitlines():
@@ -83,22 +93,26 @@ entry = "entry.elf"
         (stage / path[1:]).chmod(0o755)
         manifest += '\n[[binary]]\npath = ' + json.dumps(path) + '\nkind = "application"\nrequires = ' + json.dumps(capabilities) + '\n'
     queue, seen = [target, bundle / 'entry.elf'], set()
-    while queue:
-        binary = queue.pop()
-        dynamic = subprocess.check_output([sdk / 'host/bin/readelf', '-d', binary], text=True)
-        for name in re.findall(r'\(NEEDED\).*?\[([^]]+)\]', dynamic):
-            if name in seen: continue
-            if '/' in name or '\\' in name or len(seen) >= 64: raise ValueError('Invalid dependency closure')
-            library = (prefix / 'usr/lib' / name).resolve()
-            if not library.is_relative_to(prefix): raise ValueError('Dependency escaped prefix')
-            seen.add(name)
-            relative = '/system/libraries/port-smoke/' + name
-            destination = stage / relative[1:]
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(library, destination)
-            destination.chmod(0o644)
-            queue.append(destination)
-            manifest += '\n[[binary]]\npath = ' + json.dumps(relative) + '\nkind = "library"\n'
+    pending = list(runtime_libraries)
+    while queue or pending:
+        if queue:
+            binary = queue.pop()
+            dynamic = subprocess.check_output([sdk / 'host/bin/readelf', '-d', binary], text=True)
+            pending.extend(re.findall(r'\(NEEDED\).*?\[([^]]+)\]', dynamic))
+            continue
+        name = pending.pop()
+        if name in seen: continue
+        if '/' in name or '\\' in name or len(seen) >= 64: raise ValueError('Invalid dependency closure')
+        library = (prefix / 'usr/lib' / name).resolve()
+        if not library.is_relative_to(prefix): raise ValueError('Dependency escaped prefix')
+        seen.add(name)
+        relative = '/system/libraries/port-smoke/' + name
+        destination = stage / relative[1:]
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(library, destination)
+        destination.chmod(0o644)
+        queue.append(destination)
+        manifest += '\n[[binary]]\npath = ' + json.dumps(relative) + '\nkind = "library"\n'
     source_manifest = work / 'manifest.toml'
     source_manifest.write_text(manifest)
     (bundle / 'manifest.toml').write_text(manifest)
@@ -124,7 +138,7 @@ entry = "entry.elf"
     report = {'format': 1, 'sdk_status': 'explicit development candidate; not a published SDK verification',
               'base_sdk_version': metadata['version'], 'runtime_archive_sha256': runtime_digest,
               'candidate': candidate, 'library': args.library, 'module_versions': versions,
-              'libraries': sorted(seen), 'runtime_tested': False,
+              'libraries': sorted(seen), 'explicit_runtime_libraries': runtime_libraries, 'runtime_tested': False,
               'sources': {p.name: digest(p) for p in [probe, source/'wrapper.c', source/'launcher.c']},
               'inputs': {str(p.relative_to(stage)): digest(p) for p in sorted(stage.rglob('*')) if p.is_file()}}
     (work / 'build.json').write_text(json.dumps(report, indent=2) + '\n')
