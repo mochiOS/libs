@@ -71,14 +71,49 @@ remain unchanged; no release is generated. Use this candidate to cross-build
 the recipe, then run the native fixture commands with `--library epoxy` and the
 resulting target-only prefix. No system EGL package belongs in that prefix.
 
-The probe exercises exact extension-token matching (including false prefixes
-and suffixes) and calls real `epoxy_has_egl()`/`dlopen()` without an installed EGL
-provider. It must report EGL unavailable. This does **not** test rendering,
-context creation or resolution of a function from an actual graphics driver.
+Epoxy revision 4 links the real Mesa EGL provider at startup. Its native probe
+creates a surfaceless pbuffer, resolves GLES functions through that provider,
+clears the surface and checks returned RGBA pixels. The bootstrap uses the
+advertised `EGL_EXT_platform_base` entry point, not an EGL 1.5 function before
+initialization. The measured provider is Mesa softpipe; this does not establish
+hardware acceleration. See `tooling/epoxy-verification.json` for the verified
+Actions bundles and matching native binary hashes.
 
-The current runtime supports only private dynamic groups with RTLD_LAZY or
-RTLD_NOW and RTLD_LOCAL. Global/default namespace lookup and RTLD_NOLOAD are not
-supported. libepoxy's conservative NOLOAD queries can therefore report false;
-we preserve this behavior rather than broadening load permissions or returning
-invented support. Initial/startup-linked EGL and shared namespace compatibility
-still require implementation and testing before WebKit graphics is usable.
+Late loading of Mesa's initial-exec TLS remains unsupported. No runtime loader
+permissions or TLS constraints are relaxed by the startup-linked integration.
+
+## WebKit thread and memory prerequisites
+
+The native `pthread-suspend.c` probe interrupts a busy guarded worker thread,
+reads its real SDK `ucontext_t`, checks the interrupted SP against observed stack
+bounds, and performs WTF's semaphore / signal / `sigsuspend` resume handshake.
+It checks that the C handler uses the interrupted user stack below the x86-64
+red zone and that the resume handler actually ran. A notification or partial stage log is insufficient.
+
+```sh
+python3 tests/mochios-ports/build.py \
+  --probe tests/mochios-ports/pthread-suspend.c \
+  --probe-entry native_gc_suspend_probe \
+  --os-root "$OS_ROOT" --sdk "$SDK_CANDIDATE" --prefix "$TARGET_PREFIX" \
+  --capability-binary "$MATCHING_CAPABILITY_BINARY" --output out/native-gc-build
+python3 tests/mochios-tls/image.py --os-root "$OS_ROOT" \
+  --stage out/native-gc-build/stage --output out/native-gc-vm \
+  --kernel-directory "$MATCHING_KERNEL" \
+  --base-image-directory "$FROZEN_BASE_IMAGE"
+python3 tests/mochios-ports/run.py --image-directory out/native-gc-vm \
+  --build out/native-gc-build/build.json
+```
+
+Use the exact reviewed SDK Actions artifact, not the earlier shared.6 candidate
+that hung inside the resume wait. The runtime uses an empty acceptance set in
+the existing retained POSIX signal-wait request: this waits for delivery without
+consuming a signal or depending on nested kernel upcalls. The handler generation
+must change before `sigsuspend` returns `EINTR`; ignored/epoch-only wakeups retry.
+
+The SDK's `sdk/probe/process-memory.c` independently checks current resident
+bytes, the lifetime peak, allocation/deallocation observations, and size/null
+errors through `mochios_process_memory_read`. It can be run with the same fixture
+builder using `--probe-entry sdk_memory_probe` and an explicit probe path.
+
+These are WebKit prerequisites. They do not execute JavaScriptCore, launch WPE's
+helpers, render HTML or verify the proposed `libwebkit.so.1` backend.

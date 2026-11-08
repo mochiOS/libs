@@ -79,7 +79,7 @@ int native_gc_suspend_probe(void)
     puts("NATIVE GC installing handler");
     struct sigaction action = {0};
     action.sa_sigaction = suspend_handler;
-    action.sa_flags = SA_SIGINFO;
+    action.sa_flags = SA_SIGINFO | SA_RESTART;
     sigfillset(&action.sa_mask);
     if (sigaction(SIGUSR2, &action, NULL))
         return 2;

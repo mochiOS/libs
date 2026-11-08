@@ -1,0 +1,263 @@
+{
+  "format": 1,
+  "verified_at_utc": "2026-11-08T05:08:41.652934+00:00",
+  "scope": "Native SDK prerequisites for WPE; not JavaScriptCore or WebKit execution",
+  "native_prerequisites_passed": true,
+  "engine_runtime_verified": false,
+  "sdk_policy": {
+    "format": 1,
+    "repository": "mochiOS/devkit",
+    "run_id": 42448524814,
+    "head_sha": "a008947ca6f6b27f582146f9510bc4e49ec39be3",
+    "version": "27.0-dp.1-shared.6",
+    "sources": {
+      "user": "18ea82e22564d9cba8b9c55f854591d194944df4",
+      "mnu": "d6bd2e1961724b5021dca1dd72784966b3950048"
+    },
+    "features": [
+      "private-dlopen",
+      "secure-getenv"
+    ],
+    "exports": [
+      "dlopen",
+      "dlsym",
+      "dlclose",
+      "dlerror",
+      "secure_getenv",
+      "pthread_getattr_np",
+      "mochios_process_memory_read",
+      "sigsuspend"
+    ],
+    "enable_libraries": [
+      "mesa",
+      "epoxy",
+      "wpewebkit"
+    ]
+  },
+  "sdk_provenance": {
+    "format": 1,
+    "run_id": 42448524814,
+    "head_sha": "a008947ca6f6b27f582146f9510bc4e49ec39be3",
+    "artifact_id": 13605130269,
+    "artifact_sha256": "e32928902c0231a7619142339a71494cd8750d3c6ba469a2428ec30ec8736ec7",
+    "sdk_sha256": "6b19a73323ebf9fdd4f6ebb86c90220247be9d06ee435ab98fb6e2dad5ad6847",
+    "sources": {
+      "user": "18ea82e22564d9cba8b9c55f854591d194944df4",
+      "mnu": "d6bd2e1961724b5021dca1dd72784966b3950048"
+    },
+    "hardlinked_bytes": 301322365,
+    "copied_bytes": 4549350
+  },
+  "kernel_provenance": {
+    "source_commit": "d6bd2e1961724b5021dca1dd72784966b3950048",
+    "sha256": "5de6363706bc253e92b6198afccfa050f4af567ffcd58226afc6dd1d537a50f8",
+    "target": "x86_64-unknown-none",
+    "build_log_sha256": "c972786c55ceebe615e0cb3cb4b277fa03c35f3757569db40ad3e11d8759ac00"
+  },
+  "cases": [
+    "current-resident-bytes-and-lifetime-peak",
+    "allocation-and-deallocation-residency",
+    "C-ABI-size-and-null-errors",
+    "guarded-worker-stack-bounds",
+    "busy-worker-native-signal-capture",
+    "POSIX-user-stack-and-x86-64-red-zone",
+    "actual-resume-handler-execution",
+    "sigsuspend-EINTR-with-and-without-SA_RESTART"
+  ],
+  "native_evidence": [
+    {
+      "signal_flags": [
+        "SA_SIGINFO"
+      ],
+      "result": {
+        "format": 1,
+        "complete": true,
+        "failed": false,
+        "passed": true,
+        "cases": {
+          "probe": true
+        },
+        "runtime_tested": true,
+        "build": {
+          "format": 1,
+          "sdk_status": "explicit development candidate; not a published SDK verification",
+          "base_sdk_version": "27.0-dp.1-shared.6",
+          "runtime_archive_sha256": "6fe006f90c65018faa613db857d5838093c8ce76ae2d7f1d951af0916dbbfd39",
+          "candidate": null,
+          "library": null,
+          "probe_entry": "native_prerequisite_probe",
+          "module_versions": {},
+          "libraries": [],
+          "explicit_runtime_libraries": [],
+          "runtime_tested": false,
+          "sources": {
+            "probe.c": "4e119eb8f73b579af0f728ffc5c6937492707c4ddbb6dd388f462c4e11c98b64",
+            "wrapper.c": "de3ece069adea31756d031d7209f03f0d9631493144ba70ba17603de880fecb4",
+            "launcher.c": "f922d5e8222e36778105e925a54a011fbb7c89f581219d07f3e67714c5cababf"
+          },
+          "inputs": {
+            "system/applications/PortSmoke.app/entry.elf": "6237a24f415d08940b64364db7da4ec2571a2bd0a2ed9472edccbd9d9e555202",
+            "system/applications/PortSmoke.app/manifest.toml": "03a71fa284091812ef5c7b99e08dc3ce81dc572d63d27b6dd18d601ce46648af",
+            "system/applications/PortSmoke.app/setup.json": "4e1dd6a418093e2bcdbc23cb0c27eb80aecc1eff769e9ed5c9119c5d78c94612",
+            "system/bin/port-smoke": "5ac977c951ba8f8a0f8c350906c06f8f745b3eaaf9263e0a103c56b99532ffcc",
+            "system/packages/capability/manifest.toml": "100f9f1ea036e231db232cf859e42a345d158076c8739f4c7cdbc70ca14e6f0c",
+            "system/packages/capability/verification.bin": "942482b52cba042bd24d9c3b0f674629899d600a47a82dc9cc0a1c61877d83bc",
+            "system/packages/port-smoke/manifest.toml": "cd63a5856e294d4070a26646e3ea8be275c0ac19f51c2e66f01d1c3a384b66a0",
+            "system/packages/port-smoke/verification.bin": "51bd56ff801700140b5c33279c8f19abf7ee2a56ac50a8dec338d79f38054035",
+            "system/services/capability.service": "696822dbeb29e27a5741192e2b8be382856c2956bab771c1dd1ec453aceda6a4",
+            "system/setup/session-startup.json": "f2c04b07b13dbaa559549dd2e6ea8f5baaf24c10b37ebdec0d55288e398c2015"
+          }
+        },
+        "image": {
+          "format": 1,
+          "source_image_sha256": "8193e61678ca4b49e19a645cdc13b364d5de6fa9988fe2f932242b5498dc45e5",
+          "partitions": [
+            {
+              "start": 2048,
+              "size": 393216,
+              "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+              "uuid": "D6DBE4B9-AB8B-4C6E-A2BA-7958EAA898F1",
+              "name": "mochiOS ESP"
+            },
+            {
+              "start": 395264,
+              "size": 1961984,
+              "type": "6D6F6368-694F-5300-8000-6D5061727401",
+              "uuid": "836875B7-AADE-4A4B-86CB-16EF4B859CD0",
+              "name": "mochiOS System"
+            },
+            {
+              "start": 2357248,
+              "size": 262144,
+              "type": "6D6F6368-694F-5300-8000-6D5061727402",
+              "uuid": "5E810B81-CF6A-45F0-9691-2E52FF0D2DF5",
+              "name": "mochiOS Data"
+            }
+          ],
+          "virtual_bytes": 1342177280,
+          "system_sha256": "3c81ebcdd3c5724e52243782c8ee2712f4181d80dcd21897ddc7496ff19cd01b",
+          "kernel_sha256": "5de6363706bc253e92b6198afccfa050f4af567ffcd58226afc6dd1d537a50f8"
+        },
+        "elapsed_host_seconds": 15.071
+      },
+      "output": "PORT-SMOKE START\nNATIVE CURRENT MEMORY PASS\nNATIVE GC installing handler\nNATIVE GC creating worker\nNATIVE GC waiting for worker\nNATIVE GC worker ready\nNATIVE GC suspend sent\nNATIVE GC suspended\nNATIVE GC resume sent\nNATIVE GC resumed\nNATIVE GC SUSPEND PASS saved_sp=53e56f60 callback_sp=53e56e87 stack=53e37000..53e57000\nPORT-SMOKE COMPLETE result=0\n"
+    },
+    {
+      "signal_flags": [
+        "SA_SIGINFO",
+        "SA_RESTART"
+      ],
+      "result": {
+        "format": 1,
+        "complete": true,
+        "failed": false,
+        "passed": true,
+        "cases": {
+          "probe": true
+        },
+        "runtime_tested": true,
+        "build": {
+          "format": 1,
+          "sdk_status": "explicit development candidate; not a published SDK verification",
+          "base_sdk_version": "27.0-dp.1-shared.6",
+          "runtime_archive_sha256": "6fe006f90c65018faa613db857d5838093c8ce76ae2d7f1d951af0916dbbfd39",
+          "candidate": null,
+          "library": null,
+          "probe_entry": "native_prerequisite_probe",
+          "module_versions": {},
+          "libraries": [],
+          "explicit_runtime_libraries": [],
+          "runtime_tested": false,
+          "sources": {
+            "probe.c": "b63c43a128d982c478c25f91aff4e54ceba285e9844c975e258b145a59fd432c",
+            "wrapper.c": "de3ece069adea31756d031d7209f03f0d9631493144ba70ba17603de880fecb4",
+            "launcher.c": "f922d5e8222e36778105e925a54a011fbb7c89f581219d07f3e67714c5cababf"
+          },
+          "inputs": {
+            "system/applications/PortSmoke.app/entry.elf": "6237a24f415d08940b64364db7da4ec2571a2bd0a2ed9472edccbd9d9e555202",
+            "system/applications/PortSmoke.app/manifest.toml": "03a71fa284091812ef5c7b99e08dc3ce81dc572d63d27b6dd18d601ce46648af",
+            "system/applications/PortSmoke.app/setup.json": "4e1dd6a418093e2bcdbc23cb0c27eb80aecc1eff769e9ed5c9119c5d78c94612",
+            "system/bin/port-smoke": "ccd8cd180612034b5dc94a13bb57b321b93b4077d61d73fa4317b016de947d43",
+            "system/packages/capability/manifest.toml": "100f9f1ea036e231db232cf859e42a345d158076c8739f4c7cdbc70ca14e6f0c",
+            "system/packages/capability/verification.bin": "942482b52cba042bd24d9c3b0f674629899d600a47a82dc9cc0a1c61877d83bc",
+            "system/packages/port-smoke/manifest.toml": "3244a792df3899a96594c8494927bb60b8f484a72b248f1221999171591de875",
+            "system/packages/port-smoke/verification.bin": "3f12e9eba1c92084bdafba0264424e41852edea8f907580553671f858562c95f",
+            "system/services/capability.service": "696822dbeb29e27a5741192e2b8be382856c2956bab771c1dd1ec453aceda6a4",
+            "system/setup/session-startup.json": "f2c04b07b13dbaa559549dd2e6ea8f5baaf24c10b37ebdec0d55288e398c2015"
+          }
+        },
+        "image": {
+          "format": 1,
+          "source_image_sha256": "8193e61678ca4b49e19a645cdc13b364d5de6fa9988fe2f932242b5498dc45e5",
+          "partitions": [
+            {
+              "start": 2048,
+              "size": 393216,
+              "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+              "uuid": "D6DBE4B9-AB8B-4C6E-A2BA-7958EAA898F1",
+              "name": "mochiOS ESP"
+            },
+            {
+              "start": 395264,
+              "size": 1961984,
+              "type": "6D6F6368-694F-5300-8000-6D5061727401",
+              "uuid": "836875B7-AADE-4A4B-86CB-16EF4B859CD0",
+              "name": "mochiOS System"
+            },
+            {
+              "start": 2357248,
+              "size": 262144,
+              "type": "6D6F6368-694F-5300-8000-6D5061727402",
+              "uuid": "5E810B81-CF6A-45F0-9691-2E52FF0D2DF5",
+              "name": "mochiOS Data"
+            }
+          ],
+          "virtual_bytes": 1342177280,
+          "system_sha256": "e752fc4704adcd3761ec09281b07dafbbb85f3911fb9debd7ba74072c1849590",
+          "kernel_sha256": "5de6363706bc253e92b6198afccfa050f4af567ffcd58226afc6dd1d537a50f8"
+        },
+        "elapsed_host_seconds": 10.061
+      },
+      "output": "PORT-SMOKE START\nNATIVE CURRENT MEMORY PASS\nNATIVE GC installing handler\nNATIVE GC creating worker\nNATIVE GC waiting for worker\nNATIVE GC worker ready\nNATIVE GC suspend sent\nNATIVE GC suspended\nNATIVE GC resume sent\nNATIVE GC resumed\nNATIVE GC SUSPEND PASS saved_sp=5e768f60 callback_sp=5e768e87 stack=5e749000..5e769000\nPORT-SMOKE COMPLETE result=0\n"
+    }
+  ],
+  "syntax_checks": [
+    {
+      "component": "WTF",
+      "translation_units": 186,
+      "sdk_actions_run": 42437884358,
+      "kind": "syntax-only; no engine object build"
+    },
+    {
+      "component": "bmalloc",
+      "translation_units": 168,
+      "sdk_actions_run": 42446895270,
+      "kind": "syntax-only; no engine object build"
+    },
+    {
+      "component": "Skia OS ports",
+      "translation_units": 12,
+      "sdk_actions_run": 42437884358,
+      "kind": "syntax-only; no engine object build"
+    }
+  ],
+  "machine_context_accessors_syntax_passed": true,
+  "upstream_patch_sha256": "f7919357173cbf41c0b40d97d37ae7b3c193286a6b257d84ea8ce40b08c2bc7f",
+  "component_source_sha256": {
+    "tests/mochios-ports/pthread-suspend.c": "8112d69e4e9dab1ad9827ab4e46e39d17f5df580f2d35152a969f903b2583eee",
+    "tools/devkit/sdk/probe/process-memory.c": "bf18b8db80a6a8ea0867ce2634e51b6b177e467b8a94b0fab103162099fb2a04"
+  },
+  "prior_runtime_failure": {
+    "sdk_actions_run": 42446895270,
+    "sdk_source": "169aaa04483d16e8ce650e24aca81211c7a3cfcf",
+    "observed": "GC suspend succeeded; nested sigsuspend resume wait never completed",
+    "fix_source": "18ea82e22564d9cba8b9c55f854591d194944df4",
+    "mechanism": "Existing retained POSIX wait with an empty acceptance set; dispatch before returning EINTR; no new kernel API or authority"
+  },
+  "remaining": [
+    "upstream WPE cross-build verification",
+    "real JavaScriptCore execution",
+    "authenticated WPE helper launch",
+    "actual HTML rendering and input integration"
+  ]
+}

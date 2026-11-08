@@ -1,11 +1,11 @@
 {
   "format": 1,
   "repository": "mochiOS/devkit",
-  "run_id": 42446895270,
-  "head_sha": "88c2210161fa88469f8054f2b2d17693efc60e25",
+  "run_id": 42448524814,
+  "head_sha": "a008947ca6f6b27f582146f9510bc4e49ec39be3",
   "version": "27.0-dp.1-shared.6",
   "sources": {
-    "user": "169aaa04483d16e8ce650e24aca81211c7a3cfcf",
+    "user": "18ea82e22564d9cba8b9c55f854591d194944df4",
     "mnu": "d6bd2e1961724b5021dca1dd72784966b3950048"
   },
   "features": [
@@ -19,7 +19,8 @@
     "dlerror",
     "secure_getenv",
     "pthread_getattr_np",
-    "mochios_process_memory_read"
+    "mochios_process_memory_read",
+    "sigsuspend"
   ],
   "enable_libraries": [
     "mesa",
