@@ -44,6 +44,23 @@ metadata. `tooling/pthread-stack-verification.json` records a native initial and
 guarded-worker test using the matching SDK and kernel. This verifies that API,
 not JavaScriptCore or WebKit execution.
 
+## Initial upstream port profile
+
+The first upstream WPE verification targets HTML/CSS and interpreted JavaScript
+with headless WPEPlatform and the real Mesa software EGL provider. JIT,
+WebAssembly, media pipelines and WebGL are disabled in this development profile.
+This is not the final Terra feature policy. In particular, upstream ANGLE's WPE
+build assumes Linux process/library discovery and driver integration; those
+native integrations must be ported and tested before enabling WebGL. It must not
+be advertised as working merely because the software EGL prerequisite passed.
+
+The native process memory sampler uses the caller-only
+`mochios_process_memory_read` C SDK contract. It reads current resident bytes from
+the kernel, not the historical `getrusage().ru_maxrss` peak. No Linux procfs or
+RealtimeKit service is assumed. An unavailable kernel/SDK contract fails the
+port rather than reporting a fabricated zero memory footprint. The matching
+shared.6 SDK is an unpublished development candidate, not an automatic release.
+
 ## Runtime package and ABI ownership
 
 The runtime package must update together: `libwebkit.so.1`, its upstream WPE and

@@ -58,7 +58,8 @@
     "ENABLE_MEDIA_RECORDER": false,
     "ENABLE_WEB_RTC": false,
     "ENABLE_WEBGPU": false,
-    "USE_CCACHE": false
+    "USE_CCACHE": false,
+    "ENABLE_WEBGL": false
   },
   "licenses": [
     "Source/JavaScriptCore/COPYING.LIB",
