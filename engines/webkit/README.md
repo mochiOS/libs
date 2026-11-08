@@ -20,13 +20,15 @@ builds WebKit. A dependency of Terra is not part of Terra's source build.
 - A production configure requires an actual mochiOS SDK, real WPE and reviewed
   backend sources. None are replaced with dummy successful implementations.
   In particular, an empty backend list cannot produce a shared engine library.
-- Actions checks the contract and saves an explicit readiness plan. The real
-  cross-build job runs only when dependency recipes, backend source and helper
-  Capability declarations are available. A skipped build is not a built engine.
+- The ordinary library workflow checks the C ABI contract. WebKit remains a
+  disabled registry entry until its upstream recipe, backend source and helper
+  Capability declarations are implemented. A skipped build is not a built engine.
 
-The native backend is **not implemented yet**. Current missing dependency ports
-include EGL, libepoxy and xkbcommon. No working WebKit engine, native WebView or
-release package is claimed by these changes. `port.json` is a reviewable record
+The native backend is **not implemented yet**. The dependency ports have real
+cross-build recipes; Mesa EGL/GLES2 has passed native pixel-readback validation.
+Each additional runtime result is recorded separately in `tooling/`, and a
+successful cross-build alone does not establish runtime support. No working
+WebKit engine, native WebView or release package is claimed by these changes. `port.json` is a reviewable record
 of missing backend and helper definitions, not a Boolean switch that fabricates
 support. Actual SDK/prefix versions and upstream CMake still decide compilation.
 
@@ -69,31 +71,26 @@ python3 tools/webkit.py doctor --target mochios \
 # Once preflight and the native port succeed, use configure, build and install
 # with identical target, SDK, prefix and working-directory options.
 python3 tools/webkit_ci.py plan
-python3 tools/webkit_ci.py build
+# Readiness only; the retired parallel build entry point refuses execution.
 ```
 
-`webkit_ci.py build` refuses missing prerequisites before downloading/building.
-Once ready it reuses verified SDK-locked dependency releases, captures exact input
-hashes, and runs WebKit in the pinned builder image with network disabled, dropped
-capabilities and a read-only root. Only isolated source/SDK/dependency mounts and
-private output are supplied. Only reviewed pipeline files are mounted: no OS
-checkout, Git directory, signing key or GitHub token enters the build container.
-The CI orchestrator applies only the reviewed `port.json` patch list to its
-private native source tree before configuration. Changed patches require a fresh
-build directory; the pinned upstream archive stays unchanged. Direct driver
-commands operate on the supplied source tree and do not imply a completed port.
-All configure/build/install output is streamed into Actions and retained in logs.
-Default downloads, extracted sources and build caches live under ignored
-`out/webkit`, separate from the tracked adapter `src/` directory.
-The initial 25 GiB budget is a preflight policy, not an upstream minimum. Set the
-repository variable `WEBKIT_BUILD_RUNNER` to a JSON runner-label array if a larger
-runner is needed; no runner configuration or remote workflow was changed here.
+WebKit uses the existing `libraries.toml` / `sources.lock.json` / `recipes/`
+pipeline and `.github/workflows/libraries.yml`. It does not have a second build
+or publication pipeline. Current development verification runs on `staging`
+with the explicitly reviewed unpublished SDK candidate. Candidate builds cannot
+publish releases. Production SDK pins, approval gates and published packages
+remain separate from this verification.
 
-The developer archive preserves the complete installed tree and license notices.
-Its receipt says `runtime_tested=false` and `publishable=false`. It is neither a
-signed MPKG nor a working-browser claim. Native process/surface/sandbox tests and
-explicit helper Capability declarations are required before a production package.
-The workflow uploads artifacts only and contains no release/signing job.
+The direct `webkit.py` commands are source/configuration diagnostics, not proof
+of a completed port. The native backend and helper declarations still gate a
+real engine build. `webkit_ci.py plan` reports readiness; `webkit_ci.py build`
+rejects the retired parallel path.
+
+The ordinary builder isolates source, SDK and verified dependencies from the OS
+checkout, Git directory and credentials. Target code is not executed on Linux.
+A WebKit runtime package must retain upstream DSOs, helpers, resources and
+notices, and must pass native process/rendering tests before it can be described
+as a working engine. No release is published by this development work.
 
 ## Local contract checks
 
