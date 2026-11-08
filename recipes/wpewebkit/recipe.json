@@ -50,7 +50,15 @@
     "ENABLE_WEBXR_HIT_TEST": false,
     "ENABLE_WEBXR_LAYERS": false,
     "ENABLE_PDFJS": false,
-    "USE_SYSTEM_UNIFDEF": true
+    "USE_SYSTEM_UNIFDEF": true,
+    "USE_GSTREAMER": false,
+    "USE_GSTREAMER_GL": false,
+    "USE_GSTREAMER_WEBRTC": false,
+    "ENABLE_MEDIA_SOURCE": false,
+    "ENABLE_MEDIA_RECORDER": false,
+    "ENABLE_WEB_RTC": false,
+    "ENABLE_WEBGPU": false,
+    "USE_CCACHE": false
   },
   "licenses": [
     "Source/JavaScriptCore/COPYING.LIB",
