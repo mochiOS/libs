@@ -1,0 +1,60 @@
+{
+  "format": 1,
+  "failed_run": 42453064729,
+  "failed_job": 128646283283,
+  "error": "BlockDirectory.cpp unconditionally calls unavailable mincore on native mochiOS",
+  "fix": "Use the existing unsupported-platform fallback for the optional per-page residency / paged-out GC bailout heuristic; do not fabricate resident page samples or add a fake SDK API",
+  "scope": "Heap marking/sweeping and the actual caller-only process resident-memory sampler are unchanged",
+  "sdk_actions_run": 42448524814,
+  "patch_sha256": "9b27c5ad1155220d26855fc4f371d3d6425428c1b3c36e384a46ff5defb94999",
+  "kind": "syntax-only using each actual native unified compile_commands entry; no engine object build",
+  "heap_build_units": [
+    {
+      "source": "JavaScriptCore/DerivedSources/unified-sources/UnifiedSource-heap-1.cpp",
+      "compiled_unit": "UnifiedSource-heap-1.cpp",
+      "status": 0
+    },
+    {
+      "source": "JavaScriptCore/DerivedSources/unified-sources/UnifiedSource-heap-2.cpp",
+      "compiled_unit": "UnifiedSource-heap-2.cpp",
+      "status": 0
+    },
+    {
+      "source": "JavaScriptCore/DerivedSources/unified-sources/UnifiedSource-heap-3.cpp",
+      "compiled_unit": "UnifiedSource-heap-3.cpp",
+      "status": 0
+    },
+    {
+      "source": "JavaScriptCore/DerivedSources/unified-sources/UnifiedSource-heap-4.cpp",
+      "compiled_unit": "UnifiedSource-heap-4.cpp",
+      "status": 0
+    },
+    {
+      "source": "JavaScriptCore/DerivedSources/unified-sources/UnifiedSource-heap-5.cpp",
+      "compiled_unit": "UnifiedSource-heap-5.cpp",
+      "status": 0
+    },
+    {
+      "source": "JavaScriptCore/DerivedSources/unified-sources/UnifiedSource-heap-6.cpp",
+      "compiled_unit": "UnifiedSource-heap-6.cpp",
+      "status": 0
+    },
+    {
+      "source": "JavaScriptCore/DerivedSources/unified-sources/UnifiedSource-heap-7.cpp",
+      "compiled_unit": "UnifiedSource-heap-7.cpp",
+      "status": 0
+    },
+    {
+      "source": "JavaScriptCore/DerivedSources/unified-sources/UnifiedSource-heap-8.cpp",
+      "compiled_unit": "UnifiedSource-heap-8.cpp",
+      "status": 0
+    },
+    {
+      "source": "JavaScriptCore/DerivedSources/unified-sources/UnifiedSource-heap-9.cpp",
+      "compiled_unit": "UnifiedSource-heap-9.cpp",
+      "status": 0
+    }
+  ],
+  "engine_build_verified": false,
+  "engine_runtime_verified": false
+}

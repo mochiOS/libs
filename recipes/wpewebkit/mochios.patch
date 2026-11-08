@@ -313,3 +313,17 @@ diff --git a/Source/JavaScriptCore/CMakeLists.txt b/Source/JavaScriptCore/CMakeL
  WEBKIT_DEFINE_SUBTARGET_WITH_PREFIX(JavaScriptCore JavaScriptCoreJIT
      PREFIX JavaScriptCoreJITPrefix.h
      PREFIX_LANGUAGES CXX
+diff --git a/Source/JavaScriptCore/heap/BlockDirectory.cpp b/Source/JavaScriptCore/heap/BlockDirectory.cpp
+--- a/Source/JavaScriptCore/heap/BlockDirectory.cpp
++++ b/Source/JavaScriptCore/heap/BlockDirectory.cpp
+@@ -69,7 +69,9 @@
+     // FIXME: We should figure out a solution for Windows and PlayStation.
+     // QNX doesn't have mincore(), though the information can be had. But since all mapped
+     // pages are resident, does it matter?
+-#if OS(UNIX) && !PLATFORM(PLAYSTATION) && !OS(QNX) && !OS(HAIKU)
++    // mochiOS has no per-page residency query. Keep the existing unsupported-OS
++    // fallback; process-wide resident memory is not a substitute for mincore().
++#if OS(UNIX) && !PLATFORM(PLAYSTATION) && !OS(QNX) && !OS(HAIKU) && !OS(MOCHIOS)
+     size_t pageSize = WTF::pageSize();
+     ASSERT(!(MarkedBlock::blockSize % pageSize));
+     auto numberOfPagesInMarkedBlock = MarkedBlock::blockSize / pageSize;

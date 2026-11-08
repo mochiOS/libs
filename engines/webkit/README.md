@@ -61,6 +61,11 @@ RealtimeKit service is assumed. An unavailable kernel/SDK contract fails the
 port rather than reporting a fabricated zero memory footprint. The matching
 shared.6 SDK is an unpublished development candidate, not an automatic release.
 
+The initial port does not provide a per-page `mincore` residency query. JSC uses
+its existing unsupported-platform fallback for the optional paged-out-heap GC
+bailout heuristic; it does not fabricate page residency from process totals.
+Normal heap marking, sweeping and the real process memory sampler remain in use.
+
 ## Runtime package and ABI ownership
 
 The runtime package must update together: `libwebkit.so.1`, its upstream WPE and
