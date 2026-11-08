@@ -25,7 +25,10 @@ def runtime_library_names(names):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--library', required=True)
+    selection=parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument('--library')
+    selection.add_argument('--probe',type=Path,help='Explicit C SDK probe, using the same signed native fixture')
+    parser.add_argument('--probe-entry',default='main',help='Zero-argument int probe function (default: main)')
     parser.add_argument('--os-root', type=Path, required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--prefix', type=Path, required=True)
@@ -46,15 +49,25 @@ def main():
     runtime_digest = digest(sdk / 'lib/libmochi_user_newlib_runtime.a')
     if candidate is not None and candidate['runtime_archive_sha256'] != runtime_digest:
         parser.error('SDK candidate runtime changed since its provenance was recorded')
-    if not re.fullmatch(r'[a-z][a-z0-9-]*',args.library): parser.error('Invalid library name')
     repository=Path(__file__).resolve().parents[2]
-    recipe_path=repository/'recipes'/args.library/'recipe.json'
-    recipe=json.loads(recipe_path.read_text())
-    probe=(recipe_path.parent/recipe['probe']).resolve()
-    if not probe.is_relative_to(recipe_path.parent.resolve()) or probe.suffix!='.c':
-        parser.error('This native runner accepts only repository-owned C probes')
-    if not re.search(r'\bmain\s*\(\s*void\s*\)',probe.read_text()):
-        parser.error('Native probe must declare int main(void)')
+    if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*',args.probe_entry):
+        parser.error('Invalid C probe entry point')
+    if args.library is not None:
+        if not re.fullmatch(r'[a-z][a-z0-9-]*',args.library): parser.error('Invalid library name')
+        if args.probe_entry!='main': parser.error('Recipe probes must use main')
+        recipe_path=repository/'recipes'/args.library/'recipe.json'
+        recipe=json.loads(recipe_path.read_text())
+        probe=(recipe_path.parent/recipe['probe']).resolve()
+        if not probe.is_relative_to(recipe_path.parent.resolve()):
+            parser.error('Recipe probe escapes its assets')
+        modules=recipe['pkg_config_modules']
+    else:
+        probe=args.probe.resolve()
+        modules=[]
+    if not probe.is_file() or probe.suffix!='.c':
+        parser.error('Native runner accepts only existing C probes')
+    if not re.search(r'\bint\s+'+re.escape(args.probe_entry)+r'\s*\(\s*void\s*\)',probe.read_text()):
+        parser.error('Native probe must define its zero-argument int entry point')
     source = Path(__file__).resolve().parent
     work.mkdir(parents=True)
     stage = work / 'stage'
@@ -64,13 +77,12 @@ def main():
     target.parent.mkdir(parents=True)
     env = dict(os.environ)
     env.update(PKG_CONFIG_SYSROOT_DIR=str(prefix), PKG_CONFIG_LIBDIR=str(prefix / 'usr/lib/pkgconfig'), PKG_CONFIG_PATH='')
-    modules=recipe['pkg_config_modules']
     versions={m: subprocess.check_output(['pkg-config','--modversion',m],env=env,text=True).strip() for m in modules}
-    cflags = shlex.split(subprocess.check_output(['pkg-config', '--cflags', *modules], env=env, text=True))
-    flags = cflags + shlex.split(subprocess.check_output(['pkg-config', '--libs', *modules], env=env, text=True))
+    cflags = shlex.split(subprocess.check_output(['pkg-config', '--cflags', *modules], env=env, text=True)) if modules else []
+    flags = cflags + (shlex.split(subprocess.check_output(['pkg-config', '--libs', *modules], env=env, text=True)) if modules else [])
     cc = sdk / 'bin/mochios-cc'
     probe_object=work/'probe.o'
-    subprocess.run([cc,probe,'-Dmain=port_probe_main','-O2','-g0','-c','-o',probe_object,*cflags],env=env,check=True)
+    subprocess.run([cc,probe,'-D'+args.probe_entry+'=port_probe_main','-O2','-g0','-c','-o',probe_object,*cflags],env=env,check=True)
     subprocess.run([cc,source/'wrapper.c',probe_object,'-O2','-g0','-o',target,
                     '-L'+str(prefix/'usr/lib'),*flags],env=env,check=True)
     subprocess.run([cc, source / 'launcher.c', '-O2', '-g0', '-o', bundle / 'entry.elf'], env=env, check=True)
@@ -137,7 +149,7 @@ entry = "entry.elf"
         {'bundle_id': 'org.mochios.sdk.test-missing'}]}) + '\n')
     report = {'format': 1, 'sdk_status': 'explicit development candidate; not a published SDK verification',
               'base_sdk_version': metadata['version'], 'runtime_archive_sha256': runtime_digest,
-              'candidate': candidate, 'library': args.library, 'module_versions': versions,
+              'candidate': candidate, 'library': args.library, 'probe_entry':args.probe_entry, 'module_versions': versions,
               'libraries': sorted(seen), 'explicit_runtime_libraries': runtime_libraries, 'runtime_tested': False,
               'sources': {p.name: digest(p) for p in [probe, source/'wrapper.c', source/'launcher.c']},
               'inputs': {str(p.relative_to(stage)): digest(p) for p in sorted(stage.rglob('*')) if p.is_file()}}
