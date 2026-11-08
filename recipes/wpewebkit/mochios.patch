@@ -237,3 +237,40 @@ diff --git a/Source/WTF/wtf/PlatformWPE.cmake b/Source/WTF/wtf/PlatformWPE.cmake
 +    )
 +    list(APPEND WTF_SOURCES mochios/MemoryFootprintMochiOS.cpp)
 +endif ()
+diff --git a/Source/bmalloc/bmalloc/BPlatform.h b/Source/bmalloc/bmalloc/BPlatform.h
+--- a/Source/bmalloc/bmalloc/BPlatform.h
++++ b/Source/bmalloc/bmalloc/BPlatform.h
+@@ -62,6 +62,10 @@
+ #define BOS_UNIX 1
+ #endif
+ 
++#ifdef __mochios__
++#define BOS_MOCHIOS 1
++#endif
++
+ #ifdef __linux__
+ #define BOS_LINUX 1
+ #endif
+diff --git a/Source/bmalloc/bmalloc/VMAllocate.h b/Source/bmalloc/bmalloc/VMAllocate.h
+--- a/Source/bmalloc/bmalloc/VMAllocate.h
++++ b/Source/bmalloc/bmalloc/VMAllocate.h
+@@ -321,6 +321,10 @@
+     vmValidatePhysical(p, vmSize);
+ #if BOS(DARWIN)
+     SYSCALL(madvise(p, vmSize, MADV_FREE_REUSABLE));
++#elif BOS(MOCHIOS)
++    // Replace only the allocator-owned anonymous range with zeroed pages.
++    // POSIX_MADV_DONTNEED is only advice and cannot guarantee decommit/zeroing.
++    vmZeroAndPurge(p, vmSize, VMTag::Malloc);
+ #elif BOS(FREEBSD)
+     SYSCALL(madvise(p, vmSize, MADV_FREE));
+ #else
+@@ -334,7 +338,7 @@
+ inline void vmAllocatePhysicalPages(void* p, size_t vmSize)
+ {
+     vmValidatePhysical(p, vmSize);
+-#if BOS(DARWIN)
++#if BOS(DARWIN) || BOS(MOCHIOS)
+     BUNUSED_PARAM(p);
+     BUNUSED_PARAM(vmSize);
+     // For the Darwin platform, we don't need to call madvise(..., MADV_FREE_REUSE)
