@@ -19,9 +19,9 @@ dependencies = ["pcre2"]
 [libraries.epoxy]
 git = "https://github.com/anholt/libepoxy.git"
 tag_pattern = '^(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
-revision = 3
+revision = 4
 enabled = false
-reason = "Requires the reviewed shared.5 SDK, dlfcn.h and a verified Mesa EGL provider; published shared.4 is unsupported."
+reason = "Requires the reviewed shared.5 SDK, dlfcn.h and startup-linked Mesa EGL; late Mesa TLS loading is unsupported."
 recipe = "recipes/epoxy/recipe.json"
 dependencies = ["mesa"]
 

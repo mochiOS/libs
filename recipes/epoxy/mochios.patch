@@ -515,6 +515,7 @@
 +} khronos_boolean_enum_t;
 +
 +#endif /* __khrplatform_h_ */
+diff --git a/src/dispatch_common.c b/src/dispatch_common.c
 --- a/src/dispatch_common.c
 +++ b/src/dispatch_common.c
 @@ -164,7 +164,9 @@
@@ -527,9 +528,46 @@
  #include <pthread.h>
  #endif
  #include <string.h>
---- a/src/dispatch_common.c
-+++ b/src/dispatch_common.c
-@@ -697,31 +697,49 @@
+@@ -628,10 +630,21 @@
+     return epoxy_internal_has_gl_extension(ext, true);
+ }
+ 
++#if defined(__mochios__) && PLATFORM_HAS_EGL
++/* Mesa owns initial-exec TLS, so its EGL provider is a normal startup-linked
++ * dependency. Keep the native symbol distinct from Epoxy's lazy EGL aliases. */
++extern __eglMustCastToProperFunctionPointerType
++mochios_egl_provider_get_proc_address(const char *name) __asm__("eglGetProcAddress");
++#endif
++
+ bool
+ epoxy_load_egl(bool exit_if_fails, bool load)
+ {
+-#if PLATFORM_HAS_EGL
++#if defined(__mochios__) && PLATFORM_HAS_EGL
++    (void)exit_if_fails;
++    (void)load;
++    return mochios_egl_provider_get_proc_address("eglGetCurrentDisplay") != NULL;
++#elif PLATFORM_HAS_EGL
+     return get_dlopen_handle(&api.egl_handle, EGL_LIB, exit_if_fails, load);
+ #else
+     return false;
+@@ -641,7 +654,14 @@
+ void *
+ epoxy_conservative_egl_dlsym(const char *name, bool exit_if_fails)
+ {
+-#if PLATFORM_HAS_EGL
++#if defined(__mochios__) && PLATFORM_HAS_EGL
++    void *symbol = (void *)mochios_egl_provider_get_proc_address(name);
++    if (!symbol && exit_if_fails) {
++        fprintf(stderr, "%s() not found in the startup EGL provider.\n", name);
++        abort();
++    }
++    return symbol;
++#elif PLATFORM_HAS_EGL
+     if (epoxy_load_egl(exit_if_fails, exit_if_fails))
+         return do_dlsym(&api.egl_handle, name, exit_if_fails);
+ #endif
+@@ -697,31 +717,49 @@
  void *
  epoxy_gl_dlsym(const char *name)
  {
@@ -579,7 +617,7 @@
  }
  
  /**
-@@ -737,6 +755,11 @@
+@@ -737,6 +775,11 @@
  void *
  epoxy_gles3_dlsym(const char *name)
  {
@@ -591,7 +629,7 @@
      if (epoxy_current_context_is_glx()) {
          return epoxy_get_proc_address(name);
      } else {
-@@ -749,6 +772,7 @@
+@@ -749,6 +792,7 @@
  
          return epoxy_get_proc_address(name);
      }
@@ -599,7 +637,7 @@
  }
  
  /**
-@@ -760,7 +784,7 @@
+@@ -760,7 +804,7 @@
  {
  #ifdef _WIN32
      int core_symbol_support = 11;
@@ -608,7 +646,7 @@
      /**
       * All symbols must be resolved through eglGetProcAddress
       * on Android
-@@ -806,6 +830,11 @@
+@@ -806,6 +850,11 @@
  void *
  epoxy_get_bootstrap_proc_address(const char *name)
  {
@@ -620,7 +658,7 @@
      /* If we already have a library that links to libglapi loaded,
       * use that.
       */
-@@ -842,6 +871,7 @@
+@@ -842,6 +891,7 @@
  
      /* Fall back to GLX */
      return epoxy_gl_dlsym(name);
@@ -628,3 +666,21 @@
  }
  
  void *
+diff --git a/src/meson.build b/src/meson.build
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -64,6 +64,14 @@
+ endif
+ if build_egl
+   epoxy_deps += [ elg_headers_dep, ]
++  if host_system == 'mochios'
++    # Mesa's initial-exec TLS must be admitted with the startup ELF graph.
++    # This also authenticates EGL and its full dependency closure normally.
++    if not egl_dep.found()
++      error('mochiOS Epoxy requires the real startup-linked EGL provider')
++    endif
++    epoxy_deps += [ egl_dep, ]
++  endif
+ endif
+ 
+ libepoxy = library(

@@ -12,7 +12,10 @@ int main(void) {
     if(!epoxy_has_egl()){puts("EPOXY EGL FAIL missing provider");return 1;}
     if(!epoxy_extension_in_string("GL_EXT_one GL_EXT_two","GL_EXT_one") ||
        epoxy_extension_in_string("GL_EXT_one GL_EXT_two","GL_EXT_on"))return 2;
-    display=eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA,EGL_DEFAULT_DISPLAY,NULL);
+    /* Before a display is initialized Epoxy conservatively assumes EGL 1.4.
+     * Bootstrap via the advertised client extension, not a guessed EGL 1.5. */
+    if(!epoxy_has_egl_extension(EGL_NO_DISPLAY,"EGL_EXT_platform_base"))goto done;
+    display=eglGetPlatformDisplayEXT(EGL_PLATFORM_SURFACELESS_MESA,EGL_DEFAULT_DISPLAY,NULL);
     if(display==EGL_NO_DISPLAY)goto done;
     stage="initialize"; if(!eglInitialize(display,NULL,NULL))goto done;
     stage="bind GLES";if(!eglBindAPI(EGL_OPENGL_ES_API))goto done;

@@ -32,6 +32,11 @@ WebKit engine, native WebView or release package is claimed by these changes. `p
 of missing backend and helper definitions, not a Boolean switch that fabricates
 support. Actual SDK/prefix versions and upstream CMake still decide compilation.
 
+On mochiOS, Epoxy declares Mesa EGL as an ordinary startup-linked dependency.
+Mesa's initial-exec TLS is therefore installed with the authenticated initial
+ELF graph. EGL and GLES entry points are resolved through that real provider;
+no late TLS support or authentication bypass is implied by this port.
+
 JavaScriptCore's stack-bound prerequisite is available in the reviewed,
 unpublished shared.5 SDK candidate. `pthread_getattr_np` uses the kernel's
 self-only initial-stack query and the runtime's actual worker-stack/guard
