@@ -95,6 +95,31 @@ jobs:
       - name: Restore reviewed development SDK
         if: inputs.sdk_candidate == true
         run: python3 tools/sdk_candidate.py restore
+      - name: Select verified development bundle cache
+        id: bundle-cache-key
+        if: inputs.sdk_candidate == true
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, sys
+          from pathlib import Path
+          sys.path.insert(0, 'tools')
+          import libs
+          plan = json.loads(Path('out/plan.json').read_text())
+          libs.validate_plan(libs.ROOT, plan)
+          prefix = 'mochios-verified-bundles-v1-Linux-' + libs.identity(plan['sdk']) + '-'
+          key = prefix + libs.identity([p['input_id'] for p in plan['packages']])
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('prefix=' + prefix + '\n')
+              output.write('key=' + key + '-' + os.environ['GITHUB_RUN_ID'] + '-' + os.environ['GITHUB_RUN_ATTEMPT'] + '\n')
+          PYTHON
+      - name: Restore verified development bundles
+        if: inputs.sdk_candidate == true
+        continue-on-error: true
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: out/verified-cache
+          key: ${{ steps.bundle-cache-key.outputs.key }}
+          restore-keys: ${{ steps.bundle-cache-key.outputs.prefix }}
       - name: Authenticate only the host runner for the pinned builder image
         env:
           GH_TOKEN: ${{ github.token }}
@@ -102,7 +127,15 @@ jobs:
       - name: Build without mounting the OS workspace
         env:
           GH_TOKEN: ${{ github.token }} # Read-only release cache access; not passed into containers.
+          MOCHIOS_LIBS_VERIFIED_CACHE: ${{ inputs.sdk_candidate == true && '1' || '0' }}
         run: python3 tools/libs.py build
+      - name: Save completed development bundles even if a later build fails
+        if: ${{ !cancelled() && inputs.sdk_candidate == true && hashFiles('out/verified-cache-updated') != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: out/verified-cache
+          key: ${{ steps.bundle-cache-key.outputs.key }}
       - name: Retain cross-build failure evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

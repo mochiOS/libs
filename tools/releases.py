@@ -109,6 +109,94 @@ def verify_bundle(directory, package, plan, root=libs.ROOT):
     return manifest
 
 
+def prepare_build_cache(plan, output):
+    """Keep only current frozen input IDs in the bounded Actions bundle snapshot."""
+    cache = output / 'verified-cache'
+    if cache.is_symlink(): raise ValueError('Build cache root must not be a symlink')
+    cache.mkdir(parents=True, exist_ok=True)
+    wanted = {package['input_id'] for package in plan['packages']}
+    if any(not libs.SHA256.fullmatch(key) for key in wanted):
+        raise ValueError('Invalid build cache input ID')
+    for entry in cache.iterdir():
+        if entry.is_symlink() or not entry.is_dir() or not libs.SHA256.fullmatch(entry.name):
+            raise ValueError('Unexpected build cache entry')
+        if entry.name not in wanted: shutil.rmtree(entry)
+    return cache
+
+
+def verify_build_cache(root, directory, package, plan, builder_id):
+    """Revalidate an untrusted cached bundle against this exact plan and builder."""
+    if directory.is_symlink() or not directory.is_dir():
+        raise ValueError('Invalid build cache directory')
+    wanted = set(filenames(package))
+    if {p.name for p in directory.iterdir()} != wanted:
+        raise ValueError('Incomplete or unexpected build cache files')
+    for name in wanted:
+        path = directory / name
+        if path.is_symlink() or not path.is_file():
+            raise ValueError('Build cache assets must be regular files')
+    manifest = verify_bundle(directory, package, plan, root=root)
+    builder = manifest.get('builder', {})
+    if builder.get('image') != builder_id or builder.get('reference') != plan['sdk']['builder_image']:
+        raise ValueError('Build cache builder identity mismatch')
+    return manifest
+
+
+def restore_build_cache(root, package, plan, output, builder_id):
+    """Restore only a fully verified completed bundle; never trust cache-hit status."""
+    cache_root = output / 'verified-cache'
+    if cache_root.is_symlink(): raise ValueError('Build cache root must not be a symlink')
+    cache = libs.relative(cache_root, package['input_id'])
+    if not cache.exists() and not cache.is_symlink(): return None
+    manifest = verify_build_cache(root, cache, package, plan, builder_id)
+    restored = output / 'cache-stages' / package['input_id']
+    if restored.exists() or restored.is_symlink():
+        raise ValueError('Build cache staging output already exists')
+    restored.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=restored.parent, prefix='unpack-') as temporary:
+        unpack = Path(temporary)
+        with tarfile.open(cache / filenames(package)[0]) as archive:
+            archive.extractall(unpack, members=libs.safe_members(archive), filter='data')
+        # The data filter strips group/other write bits. Restore only the exact
+        # nonprivileged modes already checked in the frozen-input bundle inventory.
+        for entry in manifest['files']:
+            if 'mode' in entry:
+                path = libs.relative(unpack / 'sysroot', entry['path'])
+                if path.is_symlink() or not path.is_file():
+                    raise ValueError('Extracted build cache file type mismatch')
+                path.chmod(entry['mode'])
+        if libs.inventory(unpack / 'sysroot') != manifest['files']:
+            raise ValueError('Extracted build cache inventory mismatch')
+        unpack.rename(restored)
+    release_output = output / 'releases' / package['release']
+    if release_output.exists() or release_output.is_symlink():
+        raise ValueError('Refusing to overwrite existing release output from cache')
+    release_output.mkdir(parents=True)
+    for name in filenames(package): shutil.copy2(cache / name, release_output / name)
+    return restored / 'sysroot'
+
+
+def save_build_cache(root, package, plan, output, builder_id):
+    """Atomically retain a completed, reverified bundle even if a later port fails."""
+    cache_root = output / 'verified-cache'
+    if cache_root.is_symlink(): raise ValueError('Build cache root must not be a symlink')
+    cache_root.mkdir(parents=True, exist_ok=True)
+    destination = libs.relative(cache_root, package['input_id'])
+    source = output / 'releases' / package['release']
+    verify_build_cache(root, source, package, plan, builder_id)
+    if destination.exists() or destination.is_symlink():
+        verify_build_cache(root, destination, package, plan, builder_id)
+        if any(libs.hash_file(source / name) != libs.hash_file(destination / name) for name in filenames(package)):
+            raise ValueError('Conflicting completed build cache')
+        return
+    with tempfile.TemporaryDirectory(dir=output, prefix='cache-copy-') as temporary:
+        temporary = Path(temporary)
+        for name in filenames(package): shutil.copy2(source / name, temporary / name)
+        verify_build_cache(root, temporary, package, plan, builder_id)
+        temporary.rename(destination)
+    (output / 'verified-cache-updated').write_text('Completed bundles added\n')
+
+
 def release_metadata(tag):
     """Read both drafts and published releases; distinguish explicit absence from API/auth failures."""
     result = subprocess.run(['gh','release','view',tag,'--repo','mochiOS/libs','--json','isDraft,assets'], env=os.environ.copy(), capture_output=True, text=True)

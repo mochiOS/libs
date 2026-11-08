@@ -674,7 +674,9 @@ def build(root, plan, output, image):
     if not re.fullmatch(r'sha256:[0-9a-f]{64}', builder_id): raise ValueError('Invalid builder image identity')
     print('Preparing SDK ' + plan['sdk']['version'] + '...', flush=True)
     sdk = install_sdk(root, output, plan['sdk']); validate_sdk(sdk, plan['sdk'])
-    from releases import restore_existing, verify_bundle
+    from releases import restore_existing, verify_bundle, prepare_build_cache, restore_build_cache, save_build_cache
+    use_build_cache = os.environ.get('MOCHIOS_LIBS_VERIFIED_CACHE') == '1'
+    if use_build_cache: prepare_build_cache(plan, output)
     installed = {}
     total = len(plan['packages'])
     for index, package in enumerate(plan['packages'], start=1):
@@ -689,6 +691,12 @@ def build(root, plan, output, image):
             installed[name] = work / 'stage'
             print('Reusing verified local build: ' + package['release'], flush=True)
             continue
+        if use_build_cache:
+            restored = restore_build_cache(root, package, plan, output, builder_id)
+            if restored is not None:
+                installed[name] = restored
+                print('Reusing verified Actions bundle: ' + package['release'], flush=True)
+                continue
         restored = restore_existing(root, package, plan, output)
         if restored is not None:
             installed[name] = restored
@@ -734,6 +742,7 @@ def build(root, plan, output, image):
         package_build(root, package, stage, dict(sdk=plan['sdk'], registry_commit=run(['git', '-C', root, 'rev-parse', 'HEAD']), builder=dict(image=builder_id, reference=image, tools=verified['tools'])), output / 'releases')
         installed[name] = stage
         write_json(work / 'complete.json', dict(input_id=package['input_id'], verified=verified))
+        if use_build_cache: save_build_cache(root, package, plan, output, builder_id)
         print(f'[{index}/{total}] {package["release"]}: complete', flush=True)
 
 
