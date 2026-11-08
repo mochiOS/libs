@@ -56,3 +56,15 @@ diff --git a/Source/WebCore/platform/unix/SharedMemoryUnix.cpp b/Source/WebCore/
          } while (fileDescriptor == -1 && errno == EINTR);
      }
  
+diff --git a/Source/WTF/wtf/PlatformHave.h b/Source/WTF/wtf/PlatformHave.h
+--- a/Source/WTF/wtf/PlatformHave.h
++++ b/Source/WTF/wtf/PlatformHave.h
+@@ -197,7 +197,7 @@
+ #define HAVE_RESOURCE_H 1
+ #endif
+ 
+-#if OS(UNIX) && !OS(FUCHSIA)
++#if OS(UNIX) && !OS(FUCHSIA) && !OS(MOCHIOS)
+ #define HAVE_PTHREAD_SETSCHEDPARAM 1
+ #endif
+ 
