@@ -8,8 +8,8 @@
   "compile_link_verified": true,
   "runtime_smoke_passed": true,
   "native_tested": true,
-  "official_actions_verification": false,
-  "build_origin": "Local diagnostic build with the repository cross-build backend, pinned Meson and verified SDK Actions artifact. Official r4 artifacts are not yet verified.",
+  "official_actions_verification": true,
+  "build_origin": "Official SDK-pinned Actions build. All five native-test DSOs are byte-for-byte identical to the official verified bundles.",
   "sdk_scope": "Reviewed unpublished shared.5 SDK e6a5d22 and matching d6bd2e1 kernel; published SDK not changed",
   "public_sdk_unchanged": true,
   "egl_loading": "Authenticated startup ELF dependency; no late Mesa TLS loading",
@@ -134,7 +134,56 @@
     "message": "dynamic loader: code authentication or capability ceiling denied",
     "additional_constraint": "Resident loader also rejects modules with PT_TLS before mapping; no authentication or TLS constraints were relaxed"
   },
-  "remaining_checks": [
-    "Official r4 Actions cross-build and bundle verification"
-  ]
+  "remaining_checks": [],
+  "official_verified_at_utc": "2026-11-08T03:40:26.091031+00:00",
+  "actions": {
+    "run_id": 42441546370,
+    "url": "https://github.com/mochiOS/libs/actions/runs/42441546370",
+    "registry_commit": "945722048d7a750812b2182f8838f6d878e6379d",
+    "sdk": {
+      "format": 1,
+      "available": true,
+      "version": "27.0-dp.1-shared.5",
+      "target": "x86_64-unknown-mochios",
+      "abi": "mochios-1",
+      "url": "https://github.com/mochiOS/devkit/actions/runs/42437884358",
+      "sha256": "a708583cc6f792e282c728a60ba1c295cad56da0e6992ab48a98dd544eab419b",
+      "builder_image": "ghcr.io/mochios/libs-builder@sha256:5149cc5c8282fbd773d17a545e9850c4b8bbbce75ab9785dbc7a7ab73599d91e",
+      "development_only": true,
+      "candidate_run": 42437884358,
+      "candidate_head": "e6a5d223e3324bd24af49f93c3fd3f09ea7cae66"
+    },
+    "library_archive_sha256": {
+      "pcre2": "1689ad7c77c47fb32d398192838fa6950bc96bb27669f26547ac7127a880032e",
+      "mesa": "a2d7110c290d5c2c000a2317803c1d03ab1f3881931a27fa7439ac33a32be724",
+      "epoxy": "b143d27f1a5cfa1540a8a152c9559ee23bcc9e79b036799a5b8e6e8c76d44aea"
+    }
+  },
+  "native_binary_comparison": {
+    "libEGL.so.1": {
+      "tested_sha256": "7905f45a1fe8575bb273ef913cd78dd79f8826097a0fa2372860d92ccb642eee",
+      "official_sha256": "7905f45a1fe8575bb273ef913cd78dd79f8826097a0fa2372860d92ccb642eee",
+      "identical": true
+    },
+    "libepoxy.so.0": {
+      "tested_sha256": "b288020f3f90b1be10b98400fa0f26f68d2b06cbb1196261a80dc58df74829b5",
+      "official_sha256": "b288020f3f90b1be10b98400fa0f26f68d2b06cbb1196261a80dc58df74829b5",
+      "identical": true
+    },
+    "libgallium-26.2.6.so": {
+      "tested_sha256": "6026a65d248e72ba0b35dd896e160c938c2be47c2ab360bd9e1fbb7e5bf66bdd",
+      "official_sha256": "6026a65d248e72ba0b35dd896e160c938c2be47c2ab360bd9e1fbb7e5bf66bdd",
+      "identical": true
+    },
+    "libpcre2-8.so.0": {
+      "tested_sha256": "52294ea3ed0ae0f25c39f6dcba9f9e3327d78882b017f9b27d3a164f1ae7243a",
+      "official_sha256": "52294ea3ed0ae0f25c39f6dcba9f9e3327d78882b017f9b27d3a164f1ae7243a",
+      "identical": true
+    },
+    "libpcre2-posix.so.3": {
+      "tested_sha256": "5cbc6853a53b2227dc53ed5f3fc2d2ec96df8398941c5d240c04cc92bbee691e",
+      "official_sha256": "5cbc6853a53b2227dc53ed5f3fc2d2ec96df8398941c5d240c04cc92bbee691e",
+      "identical": true
+    }
+  }
 }
