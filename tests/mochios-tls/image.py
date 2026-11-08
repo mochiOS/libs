@@ -30,6 +30,22 @@ def extract(source, target, offset, size):
          'conv=sparse', 'status=none'])
 
 
+
+def write_partition(disk, source, offset, size):
+    """Copy exact partition bytes through a bounded raw view, preserving holes.
+
+    Without --target-is-zero, zero input also clears previously allocated data.
+    Adjacent partitions are outside the raw view and cannot be overwritten.
+    """
+    if offset < 0 or size <= 0 or source.stat().st_size != size:
+        raise ValueError('Partition source size or offset mismatch')
+    if any(c in str(disk) for c in [',', '\n']):
+        raise ValueError('Image paths must not contain commas or newlines')
+    target=(f'driver=raw,offset={offset},size={size},file.driver=qcow2,'
+            f'file.file.driver=file,file.file.filename={disk}')
+    run(['qemu-img','convert','-n','--target-image-opts','-f','raw',source,target])
+
+
 def debug(image, command, allow_missing=False):
     result = run(['debugfs', '-w', '-R', command, image])
     text = result.stdout + result.stderr
@@ -105,8 +121,7 @@ def main():
         digest.write_bytes(hashlib.file_digest(systemimage.open('rb'), 'sha256').digest())
         evidence['system_sha256'] = digest.read_bytes().hex()
         run(['qemu-img', 'create', '-f', 'qcow2', disk, virtual_size])
-        run(['qemu-io', '-f', 'qcow2', '-c',
-             f"write -c -s {systemimage} {system['start'] * 512} {system['size'] * 512}", disk])
+        write_partition(disk, systemimage, system['start'] * 512, system['size'] * 512)
         systemimage.unlink()
         initfs = work / 'initfs.img'
         run(['mcopy', '-i', espimage, '::/system/initfs.img', initfs])
@@ -130,8 +145,7 @@ def main():
         kernel = work / 'kernel.elf'
         run(['mcopy', '-i', espimage, '::/system/kernel.elf', kernel])
         evidence['kernel_sha256'] = hashlib.file_digest(kernel.open('rb'), 'sha256').hexdigest()
-        run(['qemu-io', '-f', 'qcow2', '-c',
-             f"write -c -s {espimage} {esp['start'] * 512} {esp['size'] * 512}", disk])
+        write_partition(disk, espimage, esp['start'] * 512, esp['size'] * 512)
         espimage.unlink()
         dataimage = work / 'data.img'
         extract(source, dataimage, data['start'] * 512, data['size'] * 512)
@@ -139,8 +153,7 @@ def main():
         if 'auto_login=true' not in [line.strip() for line in settings.splitlines()]:
             raise RuntimeError('A development image with existing automatic login is required; authentication settings are never changed')
         debug(dataimage, 'rm /tmp/native-tls-results.log', allow_missing=True)
-        run(['qemu-io', '-f', 'qcow2', '-c',
-             f"write -c -s {dataimage} {data['start'] * 512} {data['size'] * 512}", disk])
+        write_partition(disk, dataimage, data['start'] * 512, data['size'] * 512)
         for offset in [0, virtual_size - 1048576]:
             block = work / 'gpt.bin'
             extract(source, block, offset, 1048576)
