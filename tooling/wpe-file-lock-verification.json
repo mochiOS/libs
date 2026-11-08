@@ -1,0 +1,36 @@
+{
+  "format": 1,
+  "failed_run": 42458190519,
+  "failed_job": 128663489940,
+  "failure": "JSC link: undefined symbol flock from WTF FileHandlePOSIX.cpp",
+  "fix": "Refuse required native file locks with ENOTSUP; refuse before opening/creating/truncating paths; close and invalidate adopted descriptors on lock refusal, preserving errno",
+  "limitation": "Descriptor-owned file locks and lock-dependent persistence are not implemented. Do not substitute process-owned fcntl semantics or silently ignore lock requests.",
+  "sdk_actions_run": 42448524814,
+  "patch_sha256": "718c1162432bc45114bef9c0bbcb0833ae5e2255fe4d808514883b2e3445525e",
+  "syntax_checks": [
+    {
+      "source": "WTF/wtf/FileHandle.cpp",
+      "compiled_unit": "FileHandle.cpp",
+      "status": 0
+    },
+    {
+      "source": "WTF/wtf/posix/FileHandlePOSIX.cpp",
+      "compiled_unit": "FileHandlePOSIX.cpp",
+      "status": 0
+    },
+    {
+      "source": "WTF/wtf/posix/FileSystemPOSIX.cpp",
+      "compiled_unit": "FileSystemPOSIX.cpp",
+      "status": 0
+    }
+  ],
+  "host_regression": "Actual patched upstream constructor, destructor, lock, close and openFile methods: shared/exclusive/nonblocking refusal, fd 0 without locking, error preservation, exactly-once close, no open/create/truncate side effects",
+  "cache_evidence": {
+    "run_id": 42458190519,
+    "completed_dependencies": 29,
+    "cache_saved": true,
+    "cache_bytes": 34844743
+  },
+  "engine_build_verified": false,
+  "engine_runtime_verified": false
+}

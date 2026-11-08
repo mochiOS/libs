@@ -72,6 +72,15 @@ including GNU `link.h` or calling unavailable `dladdr` / `dl_iterate_phdr`.
 This does not substitute the timestamp fallback for an authenticated build ID;
 the initial port neither persists nor reuses bytecode under that fallback key.
 
+The shared.6 SDK does not export descriptor-owned `flock` locking. Native WPE
+rejects a requested file lock with `ENOTSUP` before opening the path, including
+before any create/truncate side effect. Adopting a descriptor with a required
+lock also closes and invalidates it on refusal, preserving the lock error.
+Ordinary opens without lock requests are unchanged. Required locking is never
+silently disabled or mapped to process-owned `fcntl` locks with different close
+semantics. Lock-dependent persistence is unsupported until a real native locking
+contract is implemented and tested; this remains a development port.
+
 ## Runtime package and ABI ownership
 
 The runtime package must update together: `libwebkit.so.1`, its upstream WPE and

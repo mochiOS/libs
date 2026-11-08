@@ -332,7 +332,7 @@
     }
   ],
   "machine_context_accessors_syntax_passed": true,
-  "upstream_patch_sha256": "11b406897c9178b22dbedabb5bd471bd991e5ea951ef47cdd86dcd253935d882",
+  "upstream_patch_sha256": "718c1162432bc45114bef9c0bbcb0833ae5e2255fe4d808514883b2e3445525e",
   "component_source_sha256": {
     "tests/mochios-ports/pthread-suspend.c": "8112d69e4e9dab1ad9827ab4e46e39d17f5df580f2d35152a969f903b2583eee",
     "tools/devkit/sdk/probe/process-memory.c": "bf18b8db80a6a8ea0867ce2634e51b6b177e467b8a94b0fab103162099fb2a04",
@@ -349,7 +349,8 @@
     "upstream WPE cross-build verification",
     "real JavaScriptCore execution",
     "authenticated WPE helper launch",
-    "actual HTML rendering and input integration"
+    "actual HTML rendering and input integration",
+    "Native descriptor-owned locking before lock-dependent persistence"
   ],
   "actual_build_unit_syntax_checks": {
     "sdk_actions_run": 42448524814,
