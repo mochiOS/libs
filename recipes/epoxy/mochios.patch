@@ -527,3 +527,113 @@
  #include <pthread.h>
  #endif
  #include <string.h>
+--- a/src/dispatch_common.c
++++ b/src/dispatch_common.c
+@@ -178,7 +178,7 @@
+ #define OPENGL_LIB "/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL"
+ #define GLES1_LIB "libGLESv1_CM.so"
+ #define GLES2_LIB "libGLESv2.so"
+-#elif defined(__ANDROID__)
++#elif defined(__ANDROID__) || (defined(__mochios__) && PLATFORM_HAS_EGL)
+ #define GLX_LIB "libGLESv2.so"
+ #define EGL_LIB "libEGL.so"
+ #define GLES1_LIB "libGLESv1_CM.so"
+@@ -697,31 +697,49 @@
+ void *
+ epoxy_gl_dlsym(const char *name)
+ {
++#if defined(__mochios__) && PLATFORM_HAS_EGL
++    /* Reuse the EGL provider's dispatch group instead of loading a second
++     * GLES DSO with overlapping private dependencies. */
++    return (void *)eglGetProcAddress(name);
++#else
+     epoxy_load_gl();
+ 
+     return do_dlsym(&api.gl_handle, name, true);
++#endif
+ }
+ 
+ void *
+ epoxy_gles1_dlsym(const char *name)
+ {
++#if defined(__mochios__) && PLATFORM_HAS_EGL
++    /* Reuse the EGL provider's dispatch group instead of loading a second
++     * GLES DSO with overlapping private dependencies. */
++    return (void *)eglGetProcAddress(name);
++#else
+     if (epoxy_current_context_is_glx()) {
+         return epoxy_get_proc_address(name);
+     } else {
+         get_dlopen_handle(&api.gles1_handle, GLES1_LIB, true, true);
+         return do_dlsym(&api.gles1_handle, name, true);
+     }
++#endif
+ }
+ 
+ void *
+ epoxy_gles2_dlsym(const char *name)
+ {
++#if defined(__mochios__) && PLATFORM_HAS_EGL
++    /* Reuse the EGL provider's dispatch group instead of loading a second
++     * GLES DSO with overlapping private dependencies. */
++    return (void *)eglGetProcAddress(name);
++#else
+     if (epoxy_current_context_is_glx()) {
+         return epoxy_get_proc_address(name);
+     } else {
+         get_dlopen_handle(&api.gles2_handle, GLES2_LIB, true, true);
+         return do_dlsym(&api.gles2_handle, name, true);
+     }
++#endif
+ }
+ 
+ /**
+@@ -737,6 +755,11 @@
+ void *
+ epoxy_gles3_dlsym(const char *name)
+ {
++#if defined(__mochios__) && PLATFORM_HAS_EGL
++    /* Reuse the EGL provider's dispatch group instead of loading a second
++     * GLES DSO with overlapping private dependencies. */
++    return (void *)eglGetProcAddress(name);
++#else
+     if (epoxy_current_context_is_glx()) {
+         return epoxy_get_proc_address(name);
+     } else {
+@@ -749,6 +772,7 @@
+ 
+         return epoxy_get_proc_address(name);
+     }
++#endif
+ }
+ 
+ /**
+@@ -760,7 +784,7 @@
+ {
+ #ifdef _WIN32
+     int core_symbol_support = 11;
+-#elif defined(__ANDROID__)
++#elif defined(__ANDROID__) || (defined(__mochios__) && PLATFORM_HAS_EGL)
+     /**
+      * All symbols must be resolved through eglGetProcAddress
+      * on Android
+@@ -806,6 +830,11 @@
+ void *
+ epoxy_get_bootstrap_proc_address(const char *name)
+ {
++#if defined(__mochios__) && PLATFORM_HAS_EGL
++    /* Reuse the EGL provider's dispatch group instead of loading a second
++     * GLES DSO with overlapping private dependencies. */
++    return (void *)eglGetProcAddress(name);
++#else
+     /* If we already have a library that links to libglapi loaded,
+      * use that.
+      */
+@@ -842,6 +871,7 @@
+ 
+     /* Fall back to GLX */
+     return epoxy_gl_dlsym(name);
++#endif
+ }
+ 
+ void *
