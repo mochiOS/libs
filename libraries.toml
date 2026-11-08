@@ -184,7 +184,7 @@ tag_pattern = '^wpewebkit-(?P<version>[0-9]+\.[0-9]*[02468]\.[0-9]+)$'
 source_archive = "https://wpewebkit.org/releases/wpewebkit-{version}.tar.xz"
 revision = 1
 enabled = false
-reason = "Development-only native port; requires the reviewed shared.5 SDK and real process/rendering verification before release"
+reason = "Development-only native port; requires the reviewed shared.6 process-memory SDK and real process/rendering verification before release"
 recipe = "recipes/wpewebkit/recipe.json"
 dependencies = ["glib", "harfbuzz", "icu", "libjpeg-turbo", "epoxy", "libgcrypt", "libsoup", "libtasn1", "xkbcommon", "libxml2", "libpng", "sqlite", "libwebp", "zlib", "freetype", "fontconfig", "expat"]
 
