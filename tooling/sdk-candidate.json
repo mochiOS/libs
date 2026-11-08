@@ -1,12 +1,12 @@
 {
   "format": 1,
   "repository": "mochiOS/devkit",
-  "run_id": 42375655547,
-  "head_sha": "3fc70b9fbc760ba63442c78fdcfd75dfe5cbd43f",
+  "run_id": 42437884358,
+  "head_sha": "e6a5d223e3324bd24af49f93c3fd3f09ea7cae66",
   "version": "27.0-dp.1-shared.5",
   "sources": {
-    "user": "f63dae1ade2b4f53c7e533001e5dee3f520c8e9e",
-    "mnu": "2bc6db753901b8b9fcc2d42cf7cf8e234dde211b"
+    "user": "6e6f7d98d6f230139f3d51e4f997aca7719ed500",
+    "mnu": "d6bd2e1961724b5021dca1dd72784966b3950048"
   },
   "features": [
     "private-dlopen",
@@ -17,7 +17,8 @@
     "dlsym",
     "dlclose",
     "dlerror",
-    "secure_getenv"
+    "secure_getenv",
+    "pthread_getattr_np"
   ],
   "enable_libraries": [
     "mesa",
