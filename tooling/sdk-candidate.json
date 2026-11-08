@@ -20,7 +20,8 @@
     "secure_getenv",
     "pthread_getattr_np",
     "mochios_process_memory_read",
-    "sigsuspend"
+    "sigsuspend",
+    "getexecname"
   ],
   "enable_libraries": [
     "mesa",

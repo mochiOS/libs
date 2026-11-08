@@ -274,3 +274,23 @@ diff --git a/Source/bmalloc/bmalloc/VMAllocate.h b/Source/bmalloc/bmalloc/VMAllo
      BUNUSED_PARAM(p);
      BUNUSED_PARAM(vmSize);
      // For the Darwin platform, we don't need to call madvise(..., MADV_FREE_REUSE)
+diff --git a/Source/WTF/wtf/glib/FileSystemGlib.cpp b/Source/WTF/wtf/glib/FileSystemGlib.cpp
+--- a/Source/WTF/wtf/glib/FileSystemGlib.cpp
++++ b/Source/WTF/wtf/glib/FileSystemGlib.cpp
+@@ -87,6 +87,16 @@
+         return { };
+     return CString(unsafeMakeSpan(readBuffer, static_cast<size_t>(result)));
+ }
++#elif OS(MOCHIOS)
++// Existing SDK runtime extension, also exported by the shared.6 candidate.
++// This is a frozen process-local name, never authority to execute a helper.
++extern "C" const char* getexecname();
++
++CString currentExecutablePath()
++{
++    const char* path = getexecname();
++    return path ? CString(path) : CString();
++}
+ #elif OS(UNIX)
+ #if OS(NETBSD)
+ #define _PROC_CURPROC_PATH "/proc/curproc/exe"

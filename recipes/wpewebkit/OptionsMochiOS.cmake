@@ -14,6 +14,7 @@ check_c_source_compiles("
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <unistd.h>
+extern const char *getexecname(void);
 int main(void) {
     pthread_attr_t attr;
     int e = pthread_getattr_np(pthread_self(), &attr);
@@ -22,10 +23,10 @@ int main(void) {
     e += sendmsg(-1, (const struct msghdr *)0, 0);
     struct mochios_process_memory_usage usage;
     e += mochios_process_memory_read(&usage, sizeof(usage));
-    return e;
+    return e + (getexecname() == 0);
 }" MOCHIOS_NATIVE_WPE_HEADERS)
 if (NOT MOCHIOS_NATIVE_WPE_HEADERS)
-    message(FATAL_ERROR "WPE needs real pthread stack, shared-memory and descriptor-passing SDK APIs")
+    message(FATAL_ERROR "WPE needs native pthread stack, resident memory, executable name, shared-memory and descriptor-passing SDK APIs")
 endif ()
 # Expose the SDK's GNU-compatible pthread extension without pretending to be
 # glibc/Linux. No target code is executed by the configuration probe above.

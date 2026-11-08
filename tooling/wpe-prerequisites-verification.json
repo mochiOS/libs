@@ -26,7 +26,8 @@
       "secure_getenv",
       "pthread_getattr_np",
       "mochios_process_memory_read",
-      "sigsuspend"
+      "sigsuspend",
+      "getexecname"
     ],
     "enable_libraries": [
       "mesa",
@@ -62,7 +63,8 @@
     "busy-worker-native-signal-capture",
     "POSIX-user-stack-and-x86-64-red-zone",
     "actual-resume-handler-execution",
-    "sigsuspend-EINTR-with-and-without-SA_RESTART"
+    "sigsuspend-EINTR-with-and-without-SA_RESTART",
+    "captured-executable-name-stable-across-cwd-changes"
   ],
   "native_evidence": [
     {
@@ -219,6 +221,81 @@
         "elapsed_host_seconds": 10.061
       },
       "output": "PORT-SMOKE START\nNATIVE CURRENT MEMORY PASS\nNATIVE GC installing handler\nNATIVE GC creating worker\nNATIVE GC waiting for worker\nNATIVE GC worker ready\nNATIVE GC suspend sent\nNATIVE GC suspended\nNATIVE GC resume sent\nNATIVE GC resumed\nNATIVE GC SUSPEND PASS saved_sp=5e768f60 callback_sp=5e768e87 stack=5e749000..5e769000\nPORT-SMOKE COMPLETE result=0\n"
+    },
+    {
+      "probe": "native_executable_name_probe",
+      "result": {
+        "format": 1,
+        "complete": true,
+        "failed": false,
+        "passed": true,
+        "cases": {
+          "probe": true
+        },
+        "runtime_tested": true,
+        "build": {
+          "format": 1,
+          "sdk_status": "explicit development candidate; not a published SDK verification",
+          "base_sdk_version": "27.0-dp.1-shared.6",
+          "runtime_archive_sha256": "6fe006f90c65018faa613db857d5838093c8ce76ae2d7f1d951af0916dbbfd39",
+          "candidate": null,
+          "library": null,
+          "probe_entry": "native_executable_name_probe",
+          "module_versions": {},
+          "libraries": [],
+          "explicit_runtime_libraries": [],
+          "runtime_tested": false,
+          "sources": {
+            "executable-name.c": "e560b43a4cf4b86f0598b4cdbed5437a5ec3ee917b3992d960b920c86850a0d1",
+            "wrapper.c": "de3ece069adea31756d031d7209f03f0d9631493144ba70ba17603de880fecb4",
+            "launcher.c": "f922d5e8222e36778105e925a54a011fbb7c89f581219d07f3e67714c5cababf"
+          },
+          "inputs": {
+            "system/applications/PortSmoke.app/entry.elf": "6237a24f415d08940b64364db7da4ec2571a2bd0a2ed9472edccbd9d9e555202",
+            "system/applications/PortSmoke.app/manifest.toml": "03a71fa284091812ef5c7b99e08dc3ce81dc572d63d27b6dd18d601ce46648af",
+            "system/applications/PortSmoke.app/setup.json": "4e1dd6a418093e2bcdbc23cb0c27eb80aecc1eff769e9ed5c9119c5d78c94612",
+            "system/bin/port-smoke": "f2f1cfebb887c8d7937ab5a29b320a7b988233e53da734d230c366abb174dc79",
+            "system/packages/capability/manifest.toml": "100f9f1ea036e231db232cf859e42a345d158076c8739f4c7cdbc70ca14e6f0c",
+            "system/packages/capability/verification.bin": "942482b52cba042bd24d9c3b0f674629899d600a47a82dc9cc0a1c61877d83bc",
+            "system/packages/port-smoke/manifest.toml": "1b7fbd772adf7c87dd836789f9f69f1a1827d48aace4efcddd247ae728fec2c8",
+            "system/packages/port-smoke/verification.bin": "b6c37d967a4b5e23a892655e26168ec4f86f6a2ab304b3c9667c10d34d76924b",
+            "system/services/capability.service": "696822dbeb29e27a5741192e2b8be382856c2956bab771c1dd1ec453aceda6a4",
+            "system/setup/session-startup.json": "f2c04b07b13dbaa559549dd2e6ea8f5baaf24c10b37ebdec0d55288e398c2015"
+          }
+        },
+        "image": {
+          "format": 1,
+          "source_image_sha256": "8193e61678ca4b49e19a645cdc13b364d5de6fa9988fe2f932242b5498dc45e5",
+          "partitions": [
+            {
+              "start": 2048,
+              "size": 393216,
+              "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+              "uuid": "D6DBE4B9-AB8B-4C6E-A2BA-7958EAA898F1",
+              "name": "mochiOS ESP"
+            },
+            {
+              "start": 395264,
+              "size": 1961984,
+              "type": "6D6F6368-694F-5300-8000-6D5061727401",
+              "uuid": "836875B7-AADE-4A4B-86CB-16EF4B859CD0",
+              "name": "mochiOS System"
+            },
+            {
+              "start": 2357248,
+              "size": 262144,
+              "type": "6D6F6368-694F-5300-8000-6D5061727402",
+              "uuid": "5E810B81-CF6A-45F0-9691-2E52FF0D2DF5",
+              "name": "mochiOS Data"
+            }
+          ],
+          "virtual_bytes": 1342177280,
+          "system_sha256": "b83efb5ec2533bbcf236720ded55c2f1f64d7534dc5c71936caacb24c4c84d85",
+          "kernel_sha256": "5de6363706bc253e92b6198afccfa050f4af567ffcd58226afc6dd1d537a50f8"
+        },
+        "elapsed_host_seconds": 15.073
+      },
+      "output": "PORT-SMOKE START\nNATIVE EXECUTABLE NAME PASS stable across cwd changes\nPORT-SMOKE COMPLETE result=0\n"
     }
   ],
   "syntax_checks": [
@@ -242,10 +319,11 @@
     }
   ],
   "machine_context_accessors_syntax_passed": true,
-  "upstream_patch_sha256": "f7919357173cbf41c0b40d97d37ae7b3c193286a6b257d84ea8ce40b08c2bc7f",
+  "upstream_patch_sha256": "1f1aefd93689427c7f15263271b78d3d70cad602bdf29e8d05c3fd89ff137eeb",
   "component_source_sha256": {
     "tests/mochios-ports/pthread-suspend.c": "8112d69e4e9dab1ad9827ab4e46e39d17f5df580f2d35152a969f903b2583eee",
-    "tools/devkit/sdk/probe/process-memory.c": "bf18b8db80a6a8ea0867ce2634e51b6b177e467b8a94b0fab103162099fb2a04"
+    "tools/devkit/sdk/probe/process-memory.c": "bf18b8db80a6a8ea0867ce2634e51b6b177e467b8a94b0fab103162099fb2a04",
+    "tests/mochios-ports/executable-name.c": "e560b43a4cf4b86f0598b4cdbed5437a5ec3ee917b3992d960b920c86850a0d1"
   },
   "prior_runtime_failure": {
     "sdk_actions_run": 42446895270,
@@ -259,5 +337,62 @@
     "real JavaScriptCore execution",
     "authenticated WPE helper launch",
     "actual HTML rendering and input integration"
-  ]
+  ],
+  "actual_build_unit_syntax_checks": {
+    "sdk_actions_run": 42448524814,
+    "kind": "Isolated source syntax using its actual direct/unified build entry; no target object generation",
+    "compiler_and_headers_match_configured_sdk": true,
+    "results": [
+      {
+        "source": "JavaScriptCore/heap/MachineStackMarker.cpp",
+        "compiled_unit": "UnifiedSource-heap-5.cpp",
+        "status": 0
+      },
+      {
+        "source": "JavaScriptCore/heap/MarkedSpace.cpp",
+        "compiled_unit": "UnifiedSource-heap-6.cpp",
+        "status": 0
+      },
+      {
+        "source": "JavaScriptCore/heap/Heap.cpp",
+        "compiled_unit": "UnifiedSource-heap-4.cpp",
+        "status": 0
+      },
+      {
+        "source": "JavaScriptCore/interpreter/CLoopStack.cpp",
+        "compiled_unit": "UnifiedSource-interpreter-1.cpp",
+        "status": 0
+      },
+      {
+        "source": "JavaScriptCore/runtime/JSLock.cpp",
+        "compiled_unit": "UnifiedSource-runtime-25.cpp",
+        "status": 0
+      },
+      {
+        "source": "JavaScriptCore/runtime/Options.cpp",
+        "compiled_unit": "UnifiedSource-runtime-35.cpp",
+        "status": 0
+      },
+      {
+        "source": "WebCore/platform/unix/SharedMemoryUnix.cpp",
+        "compiled_unit": "UnifiedSource-platform-82.cpp",
+        "status": 0
+      },
+      {
+        "source": "WebCore/platform/graphics/PlatformDisplay.cpp",
+        "compiled_unit": "PlatformDisplay.cpp",
+        "status": 0
+      },
+      {
+        "source": "WebKit/Platform/IPC/glib/ConnectionGLib.cpp",
+        "compiled_unit": "UnifiedSource-Platform-4.cpp",
+        "status": 0
+      },
+      {
+        "source": "WebKit/UIProcess/Launcher/glib/ProcessLauncherGLib.cpp",
+        "compiled_unit": "UnifiedSource-UIProcess-34.cpp",
+        "status": 0
+      }
+    ]
+  }
 }
