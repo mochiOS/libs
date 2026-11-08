@@ -1,0 +1,105 @@
+{
+  "format": 1,
+  "verified_at_utc": "2026-11-08T02:29:00.712642+00:00",
+  "api": "pthread_getattr_np",
+  "compile_link_verified": true,
+  "runtime_smoke_passed": true,
+  "sdk_scope": "Unpublished shared.5 SDK Actions candidate; published shared.4 unchanged",
+  "cases": [
+    "initial-thread-local-variable-within-kernel-observed-range",
+    "runtime-owned-pthread-128-KiB-usable-stack",
+    "8-KiB-guard-excluded-from-usable-stack",
+    "pthread-join-and-attribute-destruction"
+  ],
+  "sdk": {
+    "format": 1,
+    "run_id": 42437884358,
+    "head_sha": "e6a5d223e3324bd24af49f93c3fd3f09ea7cae66",
+    "artifact_id": 13599924866,
+    "artifact_sha256": "cd4a69a3fbbf8b65327d261adf7c7d6a2646e65c757154c292d56376483c7c8d",
+    "sdk_sha256": "a708583cc6f792e282c728a60ba1c295cad56da0e6992ab48a98dd544eab419b",
+    "sources": {
+      "user": "6e6f7d98d6f230139f3d51e4f997aca7719ed500",
+      "mnu": "d6bd2e1961724b5021dca1dd72784966b3950048"
+    },
+    "hardlinked_bytes": 0,
+    "copied_bytes": 305861021
+  },
+  "kernel": {
+    "source_commit": "d6bd2e1961724b5021dca1dd72784966b3950048",
+    "sha256": "5de6363706bc253e92b6198afccfa050f4af567ffcd58226afc6dd1d537a50f8",
+    "target": "x86_64-unknown-none",
+    "build_log_sha256": "c972786c55ceebe615e0cb3cb4b277fa03c35f3757569db40ad3e11d8759ac00"
+  },
+  "evidence": {
+    "format": 1,
+    "complete": true,
+    "failed": false,
+    "passed": true,
+    "cases": {
+      "probe": true
+    },
+    "runtime_tested": true,
+    "build": {
+      "format": 1,
+      "sdk_status": "explicit development candidate; not a published SDK verification",
+      "base_sdk_version": "27.0-dp.1-shared.5",
+      "runtime_archive_sha256": "f54916409cafcc714d1e03119a644cd3bb4be1b4af9a2583d14d22d21fca705a",
+      "candidate": null,
+      "library": null,
+      "probe_entry": "sdk_stack_probe",
+      "module_versions": {},
+      "libraries": [],
+      "explicit_runtime_libraries": [],
+      "runtime_tested": false,
+      "sources": {
+        "pthread-stack.c": "09c2eab8b0dbb547823aa41d6b8a565b74566954399e1f39424db7e22538d920",
+        "wrapper.c": "de3ece069adea31756d031d7209f03f0d9631493144ba70ba17603de880fecb4",
+        "launcher.c": "f922d5e8222e36778105e925a54a011fbb7c89f581219d07f3e67714c5cababf"
+      },
+      "inputs": {
+        "system/applications/PortSmoke.app/entry.elf": "9621365a5374b74d34dcd81baed6511c0ae4f744077fa9deb37e23c153cf830d",
+        "system/applications/PortSmoke.app/manifest.toml": "03a71fa284091812ef5c7b99e08dc3ce81dc572d63d27b6dd18d601ce46648af",
+        "system/applications/PortSmoke.app/setup.json": "4e1dd6a418093e2bcdbc23cb0c27eb80aecc1eff769e9ed5c9119c5d78c94612",
+        "system/bin/port-smoke": "55627adb6a71ea33ee59420583385d1a4965427ec76d838d1a5ad265aacb545b",
+        "system/packages/capability/manifest.toml": "100f9f1ea036e231db232cf859e42a345d158076c8739f4c7cdbc70ca14e6f0c",
+        "system/packages/capability/verification.bin": "942482b52cba042bd24d9c3b0f674629899d600a47a82dc9cc0a1c61877d83bc",
+        "system/packages/port-smoke/manifest.toml": "5d4182807d490bf5827ebebc4690d66d99e830b989875e617a6d9885a1c9f675",
+        "system/packages/port-smoke/verification.bin": "7eb42ce7343ec3f37d5cc3a23dcc7c84cac4ba5ff3fa84b9460edd38b357a4d7",
+        "system/services/capability.service": "696822dbeb29e27a5741192e2b8be382856c2956bab771c1dd1ec453aceda6a4",
+        "system/setup/session-startup.json": "f2c04b07b13dbaa559549dd2e6ea8f5baaf24c10b37ebdec0d55288e398c2015"
+      }
+    },
+    "image": {
+      "format": 1,
+      "source_image_sha256": "8193e61678ca4b49e19a645cdc13b364d5de6fa9988fe2f932242b5498dc45e5",
+      "partitions": [
+        {
+          "start": 2048,
+          "size": 393216,
+          "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+          "uuid": "D6DBE4B9-AB8B-4C6E-A2BA-7958EAA898F1",
+          "name": "mochiOS ESP"
+        },
+        {
+          "start": 395264,
+          "size": 1961984,
+          "type": "6D6F6368-694F-5300-8000-6D5061727401",
+          "uuid": "836875B7-AADE-4A4B-86CB-16EF4B859CD0",
+          "name": "mochiOS System"
+        },
+        {
+          "start": 2357248,
+          "size": 262144,
+          "type": "6D6F6368-694F-5300-8000-6D5061727402",
+          "uuid": "5E810B81-CF6A-45F0-9691-2E52FF0D2DF5",
+          "name": "mochiOS Data"
+        }
+      ],
+      "virtual_bytes": 1342177280,
+      "system_sha256": "f26e439cce0999dd421c5727bcc89506fd5e6c90040c398e781e67ca0577d2fd",
+      "kernel_sha256": "5de6363706bc253e92b6198afccfa050f4af567ffcd58226afc6dd1d537a50f8"
+    },
+    "elapsed_host_seconds": 35.54
+  }
+}
