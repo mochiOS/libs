@@ -32,6 +32,13 @@ WebKit engine, native WebView or release package is claimed by these changes. `p
 of missing backend and helper definitions, not a Boolean switch that fabricates
 support. Actual SDK/prefix versions and upstream CMake still decide compilation.
 
+JavaScriptCore's stack-bound prerequisite is available in the reviewed,
+unpublished shared.5 SDK candidate. `pthread_getattr_np` uses the kernel's
+self-only initial-stack query and the runtime's actual worker-stack/guard
+metadata. `tooling/pthread-stack-verification.json` records a native initial and
+guarded-worker test using the matching SDK and kernel. This verifies that API,
+not JavaScriptCore or WebKit execution.
+
 ## Runtime package and ABI ownership
 
 The runtime package must update together: `libwebkit.so.1`, its upstream WPE and
