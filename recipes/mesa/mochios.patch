@@ -246,3 +246,39 @@
  
     if (dri_get_pipe_screen(dri2_dpy->dri_screen_render_gpu)->get_disk_shader_cache)
        disp->Extensions.ANDROID_blob_cache = EGL_TRUE;
+--- a/meson.build
++++ b/meson.build
+@@ -1869,6 +1869,8 @@
+   if not dep_regex.found()
+     dep_regex = declare_dependency(compile_args : ['-DNO_REGEX'])
+   endif
++elif host_machine.system() == 'mochios'
++  dep_regex = dependency('libpcre2-posix')
+ else
+   dep_regex = null_dep
+ endif
+--- a/src/util/xmlconfig.c
++++ b/src/util/xmlconfig.c
+@@ -52,6 +52,8 @@
+ static inline int regcomp(regex_t *r, const char *s, int f) { return 0; }
+ static inline int regexec(regex_t *r, const char *s, int n, void *p, int f) { return REG_NOMATCH; }
+ static inline void regfree(regex_t* r) {}
++#elif defined(__mochios__)
++#include <pcre2posix.h>
+ #else
+ #include <regex.h>
+ #endif
+--- a/src/gallium/auxiliary/driver_ddebug/dd_draw.c
++++ b/src/gallium/auxiliary/driver_ddebug/dd_draw.c
+@@ -737,7 +737,10 @@
+ static void
+ dd_kill_process(void)
+ {
+-#if DETECT_OS_POSIX
++#if DETECT_OS_MOCHIOS
++   /* Flush diagnostic streams before aborting; no global sync syscall. */
++   fflush(NULL);
++#elif DETECT_OS_POSIX
+    sync();
+ #endif
+    fprintf(stderr, "dd: Aborting the process...\n");

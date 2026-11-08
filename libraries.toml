@@ -14,7 +14,7 @@ revision = 1
 enabled = false
 reason = "Requires shared.5 private loader and secure_getenv; built only with the reviewed development SDK until that SDK is released"
 recipe = "recipes/mesa/recipe.json"
-dependencies = []
+dependencies = ["pcre2"]
 
 [libraries.zlib]
 git = "https://github.com/madler/zlib.git"
