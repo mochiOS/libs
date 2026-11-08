@@ -65,6 +65,35 @@ def validate(library, selected, baseline, helpers):
         raise ValueError('Pinned source distribution changed')
 
 
+
+def source_members(tar, helpers):
+    """Accept only byte-identical regular duplicates in official source archives.
+
+    SDK/package archives retain their strict no-duplicates policy. Bound total
+    entries/expanded bytes before hashing duplicates; reject aliases and changes
+    in mode or contents rather than depending on extraction order.
+    """
+    members=tar.getmembers()
+    if len(members)>100_000 or sum(m.size for m in members)>MAX_EXPANDED:
+        raise ValueError('Source distribution exceeds extraction budget')
+    seen={}; unique=[]
+    for member in members:
+        name=Path(member.name).as_posix()
+        if name in seen:
+            previous=seen[name]
+            if (member.name!=previous.name or not member.isfile() or not previous.isfile()
+                    or member.mode!=previous.mode or member.size!=previous.size):
+                raise ValueError('Conflicting source archive duplicate')
+            with tar.extractfile(previous) as first, tar.extractfile(member) as second:
+                if hashlib.file_digest(first,'sha256').digest()!=hashlib.file_digest(second,'sha256').digest():
+                    raise ValueError('Conflicting source archive duplicate')
+            continue
+        seen[name]=member;unique.append(member)
+    class UniqueMembers:
+        def getmembers(self): return unique
+    return helpers.safe_members(UniqueMembers())
+
+
 def checkout(output, library, selected, helpers):
     """Extract authenticated source bytes and reject modified caches, unsafe paths and oversized input."""
     record = selected['archive']; digest = record['sha256']
@@ -95,7 +124,7 @@ def checkout(output, library, selected, helpers):
     with tempfile.TemporaryDirectory(dir=destination.parent, prefix='distribution-') as temp:
         staged = Path(temp)/'source'; staged.mkdir()
         with tarfile.open(archive) as tar:
-            members = helpers.safe_members(tar)
+            members = source_members(tar, helpers)
             size = sum(member.size for member in members)
             if len(members) > 100_000 or size > MAX_EXPANDED or size + 256*1024**2 > shutil.disk_usage(staged).free:
                 raise ValueError('Source distribution exceeds extraction/free-space budget')
