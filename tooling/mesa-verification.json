@@ -1,0 +1,119 @@
+{
+  "format": 1,
+  "verified_at_utc": "2026-11-08T01:23:49.678897+00:00",
+  "library": "mesa",
+  "version": "26.2.6",
+  "source_commit": "8e87a503ebd91408c88596d1b9eeb5f4c0b2088d",
+  "compile_link_verified": true,
+  "runtime_smoke_passed": true,
+  "native_cases": [
+    "surfaceless-egl-initialization",
+    "gles2-pbuffer-context",
+    "rgba-clear",
+    "pixel-readback"
+  ],
+  "actions": {
+    "run_id": 42430490312,
+    "registry_commit": "40b4b2bd1329f3d876eb152affcd2ae2485a28cc",
+    "sdk": {
+      "abi": "mochios-1",
+      "available": true,
+      "builder_image": "ghcr.io/mochios/libs-builder@sha256:5149cc5c8282fbd773d17a545e9850c4b8bbbce75ab9785dbc7a7ab73599d91e",
+      "candidate_head": "3fc70b9fbc760ba63442c78fdcfd75dfe5cbd43f",
+      "candidate_run": 42375655547,
+      "development_only": true,
+      "format": 1,
+      "sha256": "bdac84a316f1e854660d27e9c95896d8adb2de2b32479be8d580ece013b87efd",
+      "target": "x86_64-unknown-mochios",
+      "url": "https://github.com/mochiOS/devkit/actions/runs/42375655547",
+      "version": "27.0-dp.1-shared.5"
+    },
+    "library_archive_sha256": {
+      "pcre2": "c8452aab659c7fea6652241c507e8afc7706f6b1aeff46d79b524bf526203257",
+      "mesa": "1fbed38b445e4f17771fd129e1cfe866fa5c5640242f9a283fd1f0059791d065"
+    }
+  },
+  "native_result": {
+    "format": 1,
+    "complete": true,
+    "failed": false,
+    "passed": true,
+    "cases": {
+      "probe": true
+    },
+    "runtime_tested": true,
+    "build": {
+      "format": 1,
+      "sdk_status": "explicit development candidate; not a published SDK verification",
+      "base_sdk_version": "27.0-dp.1-shared.5",
+      "runtime_archive_sha256": "4a092c97dc745c6eab3beb25bd0fc049c112a7c04cee9f3552d292ada4d8c579",
+      "candidate": null,
+      "library": "mesa",
+      "module_versions": {
+        "egl": "26.2.6",
+        "glesv2": "26.2.6"
+      },
+      "libraries": [
+        "libEGL.so.1",
+        "libGLESv2.so.2",
+        "libgallium-26.2.6.so",
+        "libpcre2-8.so.0",
+        "libpcre2-posix.so.3"
+      ],
+      "runtime_tested": false,
+      "sources": {
+        "probe.c": "3d4e973b694f90fce5685d12c90acc02bb5eff6f80ae5f5eb9b2c84530232489",
+        "wrapper.c": "de3ece069adea31756d031d7209f03f0d9631493144ba70ba17603de880fecb4",
+        "launcher.c": "f922d5e8222e36778105e925a54a011fbb7c89f581219d07f3e67714c5cababf"
+      },
+      "inputs": {
+        "system/applications/PortSmoke.app/entry.elf": "a4ac52bc2547bd6b92c0a86899eab27feb60e887db4c8a6e1d348dc2a44c0f13",
+        "system/applications/PortSmoke.app/manifest.toml": "2989d83cf0c3e81d8c8441d1b12bfb19c0223e64280a432c899356b59772a562",
+        "system/applications/PortSmoke.app/setup.json": "4e1dd6a418093e2bcdbc23cb0c27eb80aecc1eff769e9ed5c9119c5d78c94612",
+        "system/bin/port-smoke": "2fb18c4c8a7c34c4e4c7d3f07ec83bbca72689ae469dcb25ab7cb0e18a8b6bd9",
+        "system/libraries/port-smoke/libEGL.so.1": "7905f45a1fe8575bb273ef913cd78dd79f8826097a0fa2372860d92ccb642eee",
+        "system/libraries/port-smoke/libGLESv2.so.2": "651db5598b9d0f4bd45eb1858b623b5e9ffae9db734f9da4fb59bc7470f24ee3",
+        "system/libraries/port-smoke/libgallium-26.2.6.so": "6026a65d248e72ba0b35dd896e160c938c2be47c2ab360bd9e1fbb7e5bf66bdd",
+        "system/libraries/port-smoke/libpcre2-8.so.0": "52294ea3ed0ae0f25c39f6dcba9f9e3327d78882b017f9b27d3a164f1ae7243a",
+        "system/libraries/port-smoke/libpcre2-posix.so.3": "5cbc6853a53b2227dc53ed5f3fc2d2ec96df8398941c5d240c04cc92bbee691e",
+        "system/packages/capability/manifest.toml": "100f9f1ea036e231db232cf859e42a345d158076c8739f4c7cdbc70ca14e6f0c",
+        "system/packages/capability/verification.bin": "942482b52cba042bd24d9c3b0f674629899d600a47a82dc9cc0a1c61877d83bc",
+        "system/packages/port-smoke/manifest.toml": "9aaf0b4f1b1f25ada5fdbd1c02f2a691598f97bd3bd24cee712efb6bc2672733",
+        "system/packages/port-smoke/verification.bin": "f1fc884e021230a09cd4ebfcb3431c014d01b9f6031dc566cf30e6c9a45fd0cd",
+        "system/services/capability.service": "696822dbeb29e27a5741192e2b8be382856c2956bab771c1dd1ec453aceda6a4",
+        "system/setup/session-startup.json": "f2c04b07b13dbaa559549dd2e6ea8f5baaf24c10b37ebdec0d55288e398c2015"
+      }
+    },
+    "image": {
+      "format": 1,
+      "source_image_sha256": "8193e61678ca4b49e19a645cdc13b364d5de6fa9988fe2f932242b5498dc45e5",
+      "partitions": [
+        {
+          "start": 2048,
+          "size": 393216,
+          "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+          "uuid": "D6DBE4B9-AB8B-4C6E-A2BA-7958EAA898F1",
+          "name": "mochiOS ESP"
+        },
+        {
+          "start": 395264,
+          "size": 1961984,
+          "type": "6D6F6368-694F-5300-8000-6D5061727401",
+          "uuid": "836875B7-AADE-4A4B-86CB-16EF4B859CD0",
+          "name": "mochiOS System"
+        },
+        {
+          "start": 2357248,
+          "size": 262144,
+          "type": "6D6F6368-694F-5300-8000-6D5061727402",
+          "uuid": "5E810B81-CF6A-45F0-9691-2E52FF0D2DF5",
+          "name": "mochiOS Data"
+        }
+      ],
+      "virtual_bytes": 1342177280,
+      "system_sha256": "6b8e41cf30095bb74f91a4886c449c80a8feea8d9920c58e8f3c38f30566850b",
+      "kernel_sha256": "c152d9bb7f2a03db89c87b7268662f60012649bfafde9bddf1920ecd007b28e2"
+    },
+    "elapsed_host_seconds": 31.393
+  }
+}

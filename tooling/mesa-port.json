@@ -40,13 +40,15 @@
     }
   ],
   "target_scope": "Surfaceless EGL and GLES2 via softpipe. No X11, Wayland, KMS/DRM, LLVM or GPU driver is supplied.",
-  "build_verified": false,
-  "runtime_verified": false,
+  "build_verified": true,
+  "runtime_verified": true,
   "required_sdk_apis": [
     "dlopen",
     "dlsym",
     "dlclose",
     "dlerror",
     "secure_getenv"
-  ]
+  ],
+  "verification": "mesa-verification.json",
+  "sdk_scope": "Verified unreleased shared.5 Actions artifact; published shared.4 remains unsupported"
 }
