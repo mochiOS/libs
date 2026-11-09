@@ -3,9 +3,10 @@
   "date": "2026-11-09",
   "purpose": "Development SDK and WPE native ABI validation; not an engine runtime or publication approval",
   "sdk": {
-    "run_id": 42555939781,
-    "head_sha": "528b9d77aac04ed4a7b82a6c1319157baea35b31",
-    "sha256": "fe4b15f527caff55684ec64c7240cab555ddd4a2605fbde13c47625e77f4006c",
+    "run_id": 42559303186,
+    "head_sha": "76f9fca14e99db1a03d2bd7cdb9da49f65267813",
+    "version": "27.0-dp.1-shared.8",
+    "sha256": "3a4b09efd45d1ced90d5e7ce137dc2cb5e206797847c86dedfc93719b95b3755",
     "path_audit": {
       "format": 1,
       "passed": true,
@@ -13,25 +14,27 @@
       "archives_scanned": 1,
       "verification": "source-prefix-remapping-and-distribution-scan"
     },
-    "version": "27.0-dp.1-shared.7"
+    "compiler_driver_sha256": "99c0d14b4275d9c4855a92b10ac3ff62a6363d1b20adc71d62cea2f1dde1f583",
+    "runtime_archive_sha256": "8a3ac481560b7e2377a06040c208d62a5bfc20b9850436af7f8e6d7473178e09"
   },
   "native_vm": {
     "architecture": "x86_64",
     "accelerator": "QEMU TCG",
     "passed": true,
     "complete": true,
-    "elapsed_host_seconds": 35.346,
+    "elapsed_host_seconds": 35.252,
     "runtime_archive_sha256": "8a3ac481560b7e2377a06040c208d62a5bfc20b9850436af7f8e6d7473178e09",
     "kernel_sha256": "e317e961e90b1b44f521320eae694429c05eeb65f926454200583a04e081e6c3",
-    "probe_source_sha256": "c4aa583d8c0621687ae62f112d2eed553763962989abd32b1ace44e0de45df77",
-    "dso_source_sha256": "1829d740edeba7ef790352fe504cceef4020d7037eff56c9c3870f3480f9d7c0",
+    "probe_source_sha256": "58f7318d0938321102f73fc4e5e8ac2fc611022d5676253011bc4bd0b9bf2ec6",
+    "dso_source_sha256": "7f5b7314b527d8ce52c924da00cd6dcc0965ca1f5a3e0b5e2e3045a15887b46a",
     "cases": [
       "pthread-policy-and-errno",
       "flock-dup-fork-exec-CLOEXEC-final-close",
       "flock-process-exit-and-signal-interruption",
       "residency-private-discard-protection-COW-errors-file-cache",
       "initial-loader-inspection-constructor-reentry-symbols-unload-callback-snapshot",
-      "public-process-math-imports"
+      "public-process-math-imports",
+      "private-128-bit-signed-and-unsigned-division-and-remainder"
     ]
   },
   "wpe_preflight": {
@@ -52,8 +55,21 @@
     "unprovided_external_sdk_names": []
   },
   "cmake_contract": {
-    "actual_shared7_compile_and_link": true,
     "old_shared6_rejected_early": true,
-    "try_compile_target_type_restored": true
+    "try_compile_target_type_restored": true,
+    "actual_shared8_compile_and_link": true,
+    "old_shared7_arithmetic_rejected_early": true,
+    "shared7_unix_abi_compile_and_link": true
+  },
+  "compiler_helper_contract": {
+    "hidden_local_helpers": [
+      "__divti3",
+      "__modti3",
+      "__udivti3",
+      "__umodti3"
+    ],
+    "process_runtime_imports_preserved": true,
+    "unknown_external_import_rejected": true,
+    "sdk_headers_and_libraries_unchanged_from_shared7": true
   }
 }

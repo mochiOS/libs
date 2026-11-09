@@ -1,9 +1,9 @@
 {
   "format": 1,
   "repository": "mochiOS/devkit",
-  "run_id": 42555939781,
-  "head_sha": "528b9d77aac04ed4a7b82a6c1319157baea35b31",
-  "version": "27.0-dp.1-shared.7",
+  "run_id": 42559303186,
+  "head_sha": "76f9fca14e99db1a03d2bd7cdb9da49f65267813",
+  "version": "27.0-dp.1-shared.8",
   "sources": {
     "user": "f585ece9c9b331040707da5bae9a2796eadf1a93",
     "mnu": "1cd3f9f694162b07140f9d51ca038ec412c1ad0f"
