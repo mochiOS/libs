@@ -20,9 +20,11 @@
     "Source/WTF/wtf/posix/FileSystemPOSIX.cpp": "d6d23dee53cfe6e0b016aa01321c10815f75cbe5caa97e35ea35d7ec49a0c800",
     "Source/WTF/wtf/unix/MemoryPressureHandlerUnix.cpp": "b59fe3b745f3d967d171a55e75fa6e8615b1cf34c3a32c54f98a28c0e5b47c4b",
     "Source/WebCore/platform/unix/SharedMemoryUnix.cpp": "f22fcd5914b390f057db6d976543ca6d4d31467f8d350df70d234f7380197cf4",
+    "Source/WebKit/PlatformWPE.cmake": "19052db9f9621cbedcbd4da6bdf725e176e859fb645a91a956b0f161400a22a1",
     "Source/WebKit/UIProcess/wpe/AcceleratedBackingStore.cpp": "425e40244b2a8309f6ddb2a38120087b8c0be33fd0b7aa41c6e016b79f864f35",
     "Source/bmalloc/bmalloc/BPlatform.h": "fbe02c44510089478036a02f2fd83a758b40339dee9b9a56ac7f40e5b9de54a5",
     "Source/bmalloc/bmalloc/VMAllocate.h": "d92807c17e34eabf574afd4f14504e8707e49f0dfe1ca8d0e709d2594a043eca",
-    "Source/cmake/OptionsWPE.cmake": "886f92527e498ed07fd1d83ac6d759ac3002fe1b0cc6410c265aebaad90656df"
+    "Source/cmake/OptionsWPE.cmake": "886f92527e498ed07fd1d83ac6d759ac3002fe1b0cc6410c265aebaad90656df",
+    "Source/cmake/WebKitMacros.cmake": "99042d906792832915d22d1219eb560fa388779d732b5ed64a064999d2a968f1"
   }
 }

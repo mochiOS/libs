@@ -456,3 +456,52 @@ diff --git a/Source/WTF/wtf/posix/FileSystemPOSIX.cpp b/Source/WTF/wtf/posix/Fil
  }
  
  std::optional<WallTime> fileCreationTime(const String& path)
+diff --git a/Source/WebKit/PlatformWPE.cmake b/Source/WebKit/PlatformWPE.cmake
+--- a/Source/WebKit/PlatformWPE.cmake
++++ b/Source/WebKit/PlatformWPE.cmake
+@@ -145,6 +145,14 @@
+     )
+ 
+     WEBKIT_BUILD_PDFJS_GRESOURCES(${WebKit_DERIVED_SOURCES_DIR})
++endif ()
++
++if (CMAKE_SYSTEM_NAME STREQUAL "mochiOS")
++    # The data source is compiled by WebKitShared, but NetworkProcess includes
++    # its companion header. Forward the generation edge to every split target.
++    list(APPEND WebKit_HEADERS
++        ${WebKit_DERIVED_SOURCES_DIR}/WebKitDirectoryInputStreamData.h
++    )
+ endif ()
+ 
+ set(WebKit_DirectoryInputStream_DATA
+@@ -347,6 +355,13 @@
+ endif ()
+ 
+ # To generate WebKitEnumTypes.h we want to use all installed headers, except WebKitEnumTypes.h itself.
++if (CMAKE_SYSTEM_NAME STREQUAL "mochiOS")
++    list(APPEND WebKit_HEADERS
++        ${WPE_API_INSTALLED_HEADERS}
++        ${WPE_WEB_PROCESS_EXTENSION_API_INSTALLED_HEADERS}
++    )
++endif ()
++
+ set(WPE_ENUM_GENERATION_HEADERS ${WPE_API_INSTALLED_HEADERS})
+ list(REMOVE_ITEM WPE_ENUM_GENERATION_HEADERS ${DERIVED_SOURCES_WPE_API_DIR}/WebKitEnumTypes.h)
+ add_custom_command(
+diff --git a/Source/cmake/WebKitMacros.cmake b/Source/cmake/WebKitMacros.cmake
+--- a/Source/cmake/WebKitMacros.cmake
++++ b/Source/cmake/WebKitMacros.cmake
+@@ -259,6 +259,13 @@
+ function(WEBKIT_DEFINE_SUBTARGET _target _parent)
+     add_library(${_target} OBJECT)
+     target_sources(${_target} PRIVATE ${${_parent}_HEADERS} ${ARGN})
++    if (CMAKE_SYSTEM_NAME STREQUAL "mochiOS")
++        # Generated binding headers are derived sources, not framework headers.
++        # Every split target must wait for them before compiling its sources/PCH.
++        set(_generated_headers ${${_parent}_DERIVED_SOURCES})
++        list(FILTER _generated_headers INCLUDE REGEX "\\.h$")
++        target_sources(${_target} PRIVATE ${_generated_headers})
++    endif ()
+     target_include_directories(${_target} PRIVATE $<TARGET_PROPERTY:${_parent},INCLUDE_DIRECTORIES>)
+     target_include_directories(${_target} SYSTEM PRIVATE ${${_parent}_SYSTEM_INCLUDE_DIRECTORIES})
+     target_compile_definitions(${_target} PRIVATE ${_parent}_EXPORTS $<TARGET_PROPERTY:${_parent},COMPILE_DEFINITIONS>)
