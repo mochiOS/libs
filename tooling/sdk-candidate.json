@@ -1,12 +1,12 @@
 {
   "format": 1,
   "repository": "mochiOS/devkit",
-  "run_id": 42448524814,
-  "head_sha": "a008947ca6f6b27f582146f9510bc4e49ec39be3",
-  "version": "27.0-dp.1-shared.6",
+  "run_id": 42555939781,
+  "head_sha": "528b9d77aac04ed4a7b82a6c1319157baea35b31",
+  "version": "27.0-dp.1-shared.7",
   "sources": {
-    "user": "18ea82e22564d9cba8b9c55f854591d194944df4",
-    "mnu": "d6bd2e1961724b5021dca1dd72784966b3950048"
+    "user": "f585ece9c9b331040707da5bae9a2796eadf1a93",
+    "mnu": "1cd3f9f694162b07140f9d51ca038ec412c1ad0f"
   },
   "features": [
     "private-dlopen",
@@ -21,7 +21,14 @@
     "pthread_getattr_np",
     "mochios_process_memory_read",
     "sigsuspend",
-    "getexecname"
+    "getexecname",
+    "flock",
+    "mincore",
+    "madvise",
+    "dladdr",
+    "dl_iterate_phdr",
+    "pthread_getschedparam",
+    "pthread_setschedparam"
   ],
   "enable_libraries": [
     "mesa",

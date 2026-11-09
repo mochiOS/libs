@@ -1,0 +1,59 @@
+{
+  "format": 1,
+  "date": "2026-11-09",
+  "purpose": "Development SDK and WPE native ABI validation; not an engine runtime or publication approval",
+  "sdk": {
+    "run_id": 42555939781,
+    "head_sha": "528b9d77aac04ed4a7b82a6c1319157baea35b31",
+    "sha256": "fe4b15f527caff55684ec64c7240cab555ddd4a2605fbde13c47625e77f4006c",
+    "path_audit": {
+      "format": 1,
+      "passed": true,
+      "files_scanned": 8801,
+      "archives_scanned": 1,
+      "verification": "source-prefix-remapping-and-distribution-scan"
+    },
+    "version": "27.0-dp.1-shared.7"
+  },
+  "native_vm": {
+    "architecture": "x86_64",
+    "accelerator": "QEMU TCG",
+    "passed": true,
+    "complete": true,
+    "elapsed_host_seconds": 35.346,
+    "runtime_archive_sha256": "8a3ac481560b7e2377a06040c208d62a5bfc20b9850436af7f8e6d7473178e09",
+    "kernel_sha256": "e317e961e90b1b44f521320eae694429c05eeb65f926454200583a04e081e6c3",
+    "probe_source_sha256": "c4aa583d8c0621687ae62f112d2eed553763962989abd32b1ace44e0de45df77",
+    "dso_source_sha256": "1829d740edeba7ef790352fe504cceef4020d7037eff56c9c3870f3480f9d7c0",
+    "cases": [
+      "pthread-policy-and-errno",
+      "flock-dup-fork-exec-CLOEXEC-final-close",
+      "flock-process-exit-and-signal-interruption",
+      "residency-private-discard-protection-COW-errors-file-cache",
+      "initial-loader-inspection-constructor-reentry-symbols-unload-callback-snapshot",
+      "public-process-math-imports"
+    ]
+  },
+  "wpe_preflight": {
+    "syntax_units": 208,
+    "syntax_failures": 0,
+    "referenced_sdk_names": 116,
+    "provided_process_exports": 108,
+    "header_static_functions": [
+      "__mochi_in6_loopback",
+      "__mochi_in6_multicast",
+      "__mochi_in6_unspecified",
+      "__mochi_in6_zero_prefix",
+      "nstosbt",
+      "sbttons",
+      "sbttous",
+      "ustosbt"
+    ],
+    "unprovided_external_sdk_names": []
+  },
+  "cmake_contract": {
+    "actual_shared7_compile_and_link": true,
+    "old_shared6_rejected_early": true,
+    "try_compile_target_type_restored": true
+  }
+}
