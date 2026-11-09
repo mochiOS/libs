@@ -50,6 +50,28 @@ int main(void) {
     e += pthread_setschedparam(pthread_self(), SCHED_OTHER, &scheduling);
     return e + (getexecname() == 0);
 }" MOCHIOS_NATIVE_WPE_UNIX_ABI)
+# C declarations do not expose compiler-generated 128-bit helper imports.
+# Link a shared object explicitly: an executable can mask missing DSO helpers
+# because it owns Rust compiler builtins with hidden visibility.
+if (DEFINED CMAKE_REQUIRED_LINK_OPTIONS)
+    set(_mochios_saved_required_link_options "${CMAKE_REQUIRED_LINK_OPTIONS}")
+else ()
+    unset(_mochios_saved_required_link_options)
+endif ()
+list(APPEND CMAKE_REQUIRED_LINK_OPTIONS -shared)
+check_c_source_compiles("
+__int128 signed_divide(__int128 a, __int128 b) { return a / b; }
+__int128 signed_remainder(__int128 a, __int128 b) { return a % b; }
+unsigned __int128 unsigned_divide(unsigned __int128 a, unsigned __int128 b) { return a / b; }
+unsigned __int128 unsigned_remainder(unsigned __int128 a, unsigned __int128 b) { return a % b; }
+int main(void) { return 0; }
+" MOCHIOS_NATIVE_WPE_SHARED_ARITHMETIC)
+if (DEFINED _mochios_saved_required_link_options)
+    set(CMAKE_REQUIRED_LINK_OPTIONS "${_mochios_saved_required_link_options}")
+else ()
+    unset(CMAKE_REQUIRED_LINK_OPTIONS)
+endif ()
+unset(_mochios_saved_required_link_options)
 if (DEFINED _mochios_saved_try_compile_target_type)
     set(CMAKE_TRY_COMPILE_TARGET_TYPE "${_mochios_saved_try_compile_target_type}")
 else ()
@@ -58,6 +80,9 @@ endif ()
 unset(_mochios_saved_try_compile_target_type)
 if (NOT MOCHIOS_NATIVE_WPE_UNIX_ABI)
     message(FATAL_ERROR "WPE requires a matching native SDK with ssize_t I/O ABI, flock, mincore, madvise, loader inspection, pthread scheduling, stack/accounting, shared-memory and descriptor-passing implementations")
+endif ()
+if (NOT MOCHIOS_NATIVE_WPE_SHARED_ARITHMETIC)
+    message(FATAL_ERROR "WPE requires an SDK that resolves private 128-bit arithmetic helpers in shared libraries")
 endif ()
 # Expose the SDK's GNU-compatible pthread extension without pretending to be
 # glibc/Linux. No target code is executed by the configuration probe above.
