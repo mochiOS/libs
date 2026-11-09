@@ -3,6 +3,29 @@
 if (NOT CMAKE_CROSSCOMPILING OR NOT CMAKE_SYSROOT)
     message(FATAL_ERROR "The mochiOS WPE port requires the real cross SDK")
 endif ()
+# CMake links imported dependencies by absolute filename. A helper linked to
+# WebKit still needs explicit target-prefix search paths for PRIVATE/transitive
+# DT_NEEDED entries. Share these paths with the SDK import validator via -L;
+# do not add ambient host paths or runtime RPATHs.
+function(_mochios_target_link_directories)
+    set(_directories)
+    foreach (_root IN LISTS CMAKE_FIND_ROOT_PATH CMAKE_SYSROOT)
+        if (NOT IS_ABSOLUTE "${_root}" OR "${_root}" STREQUAL "/")
+            continue()
+        endif ()
+        foreach (_suffix IN ITEMS usr/lib lib)
+            if (IS_DIRECTORY "${_root}/${_suffix}")
+                list(APPEND _directories "${_root}/${_suffix}")
+            endif ()
+        endforeach ()
+    endforeach ()
+    list(REMOVE_DUPLICATES _directories)
+    if (_directories)
+        link_directories(${_directories})
+    endif ()
+endfunction()
+_mochios_target_link_directories()
+
 include(CheckCSourceCompiles)
 # A header-only/static-library try_compile cannot detect missing runtime exports.
 # This is a link check, never execution of a target binary on the host.
