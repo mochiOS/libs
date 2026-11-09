@@ -158,3 +158,21 @@
        /* Cygwin >= 2.6.
           Cygwin <= 2.6.1 lacks NL_LOCALE_NAME, requiring peeking inside
           an opaque struct.  */
+--- a/lib/thread-optim.h
++++ b/lib/thread-optim.h
+@@ -70,6 +70,15 @@
+ # define gl_multithreaded()  1
+ # define _GL_MULTITHREADED_ALWAYS_TRUE
+ 
++#elif defined __mochios__
++
++/* The executable owns the native thread runtime. Thread creation need not
++   have a PLT entry, and authenticated dlopen constructors may create threads
++   after the initial object snapshot. A cached GOT scan cannot prove this
++   process single-threaded. Preserve locking instead of guessing. */
++# define gl_multithreaded()  1
++# define _GL_MULTITHREADED_ALWAYS_TRUE
++
+ #elif (defined __ELF__ /* Linux, Hurd, FreeBSD, NetBSD, OpenBSD, ... */ \
+        && HAVE_LINK_H \
+        && HAVE_DL_ITERATE_PHDR /* not Solaris 10, not Haiku */ \
