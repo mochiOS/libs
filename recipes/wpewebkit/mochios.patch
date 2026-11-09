@@ -383,29 +383,6 @@ diff --git a/Source/JavaScriptCore/runtime/CodeCache.cpp b/Source/JavaScriptCore
      if (unlinkedCodeBlock && Options::useCodeCache()) {
          unsigned lineCount = unlinkedCodeBlock->lineCount();
          unsigned startColumn = unlinkedCodeBlock->startColumn() + source.startColumn().oneBasedInt();
-diff --git a/Source/WTF/wtf/posix/FileHandlePOSIX.cpp b/Source/WTF/wtf/posix/FileHandlePOSIX.cpp
---- a/Source/WTF/wtf/posix/FileHandlePOSIX.cpp
-+++ b/Source/WTF/wtf/posix/FileHandlePOSIX.cpp
-@@ -137,11 +137,19 @@
-     if (!m_handle)
-         return false;
- 
-+#if OS(MOCHIOS)
-+    // The native SDK has no flock/open-description lock contract. POSIX process
-+    // record locks are not interchangeable: another close can release them.
-+    UNUSED_PARAM(lockMode);
-+    errno = ENOTSUP;
-+    return false;
-+#else
-     static_assert(LOCK_SH == std::to_underlying(FileLockMode::Shared), "LockSharedEncoding is as expected");
-     static_assert(LOCK_EX == std::to_underlying(FileLockMode::Exclusive), "LockExclusiveEncoding is as expected");
-     static_assert(LOCK_NB == std::to_underlying(FileLockMode::Nonblocking), "LockNonblockingEncoding is as expected");
- 
-     return flock(*m_handle, lockMode.toRaw()) != -1;
-+#endif
- }
- #endif // USE(FILE_LOCK)
- 
 diff --git a/Source/WTF/wtf/FileHandle.cpp b/Source/WTF/wtf/FileHandle.cpp
 --- a/Source/WTF/wtf/FileHandle.cpp
 +++ b/Source/WTF/wtf/FileHandle.cpp
@@ -435,24 +412,6 @@ diff --git a/Source/WTF/wtf/FileHandle.cpp b/Source/WTF/wtf/FileHandle.cpp
  #else
      UNUSED_PARAM(lockMode);
  #endif
-diff --git a/Source/WTF/wtf/posix/FileSystemPOSIX.cpp b/Source/WTF/wtf/posix/FileSystemPOSIX.cpp
---- a/Source/WTF/wtf/posix/FileSystemPOSIX.cpp
-+++ b/Source/WTF/wtf/posix/FileSystemPOSIX.cpp
-@@ -57,6 +57,14 @@
- 
- FileHandle openFile(const String& path, FileOpenMode mode, FileAccessPermission permission, OptionSet<FileLockMode> lockMode, bool failIfFileExists)
- {
-+#if OS(MOCHIOS)
-+    // Refuse before open(O_TRUNC/O_CREAT): lock failure must not destroy a file.
-+    if (lockMode) {
-+        errno = ENOTSUP;
-+        return { };
-+    }
-+#endif
-+
-     CString fsRep = fileSystemRepresentation(path);
- 
-     if (fsRep.isNull())
 diff --git a/Source/WebKit/UIProcess/wpe/AcceleratedBackingStore.cpp b/Source/WebKit/UIProcess/wpe/AcceleratedBackingStore.cpp
 --- a/Source/WebKit/UIProcess/wpe/AcceleratedBackingStore.cpp
 +++ b/Source/WebKit/UIProcess/wpe/AcceleratedBackingStore.cpp
@@ -472,3 +431,26 @@ diff --git a/Source/WebKit/UIProcess/wpe/AcceleratedBackingStore.cpp b/Source/We
  
      if (WPE_IS_BUFFER_SHM(buffer.get())) {
          SkAlphaType alphaType = kPremul_SkAlphaType;
+diff --git a/Source/WTF/wtf/posix/FileSystemPOSIX.cpp b/Source/WTF/wtf/posix/FileSystemPOSIX.cpp
+--- a/Source/WTF/wtf/posix/FileSystemPOSIX.cpp
++++ b/Source/WTF/wtf/posix/FileSystemPOSIX.cpp
+@@ -89,5 +89,19 @@
+     else if (permission == FileAccessPermission::All)
+         permissionFlag |= (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+ 
++#if OS(MOCHIOS)
++    // Acquire the open-description lock before destroying existing contents.
++    bool truncateAfterLock = lockMode && (platformFlag & O_TRUNC);
++    if (truncateAfterLock)
++        platformFlag &= ~O_TRUNC;
++    auto handle = FileHandle::adopt(open(fsRep.data(), platformFlag, permissionFlag), lockMode);
++    if (handle && truncateAfterLock && !handle.truncate(0)) {
++        int truncateError = errno;
++        handle = FileHandle { };
++        errno = truncateError;
++    }
++    return handle;
++#else
+     return FileHandle::adopt(open(fsRep.data(), platformFlag, permissionFlag), lockMode);
++#endif
+ }
