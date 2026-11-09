@@ -1,0 +1,28 @@
+{
+  "version": "2.54.2",
+  "archive_sha256": "f3284e19e47fcb5ac8c63c2e1c113dbd65b2423eb8a545f5b345707829004f56",
+  "files": {
+    "Source/JavaScriptCore/CMakeLists.txt": "750e70beabfa6c7e5c1f4016567a8aa26a3d37a7cbb22fdc99c7d9b247031ac8",
+    "Source/JavaScriptCore/heap/BlockDirectory.cpp": "3d5f0db5f516f9d8ed9fd19d40822f322e5db04f3c328d833fa829808df71ef6",
+    "Source/JavaScriptCore/runtime/CodeCache.cpp": "f21c1661a8a58254cc772a71b6c3ffd89aa8ce9d422df36780473e831fc5d486",
+    "Source/JavaScriptCore/runtime/JSCBytecodeCacheVersion.cpp": "5783a06d7f636312f591dc9fc3076bf235b20fa45ef8b5e024f0f014b34a9233",
+    "Source/JavaScriptCore/runtime/MachineContext.h": "c3fa16a556e16715a4666b874512a32979b5ae8bc789e6e1d11d1890939a8b00",
+    "Source/JavaScriptCore/runtime/Options.cpp": "50f3383317ae6e015f0c8b63d8aab5910fe59a86fd2cc4de00a4459b59d5159a",
+    "Source/WTF/wtf/FileHandle.cpp": "acfa1a40ca40ba261bfe555fc6c6fd553ef91aa05994f296616edd08a08e872d",
+    "Source/WTF/wtf/MemoryPressureHandler.cpp": "611e6cd3ad44d02090e39271839243d4c42e5b405c61d253c91beb559cfccd50",
+    "Source/WTF/wtf/MemoryPressureHandler.h": "ca4f21a4caf98c7630bb9af3eef6417c20336fc7ddf85a68047c63ce2691ea0b",
+    "Source/WTF/wtf/PlatformHave.h": "408ca38ec7160b785fb9020189d4e909aa539c550a0f53fbd3eaf7ab221909fb",
+    "Source/WTF/wtf/PlatformOS.h": "ad5594b0edbcd6d588c255e70a9f5bbcd2a35a43f54cdd4f9bc61954398996e5",
+    "Source/WTF/wtf/PlatformWPE.cmake": "232f27e40950eb87176a34127b20531e7de1043230e1e4bba5e1cb3b62bf7fa5",
+    "Source/WTF/wtf/StackBounds.cpp": "24b4e3f2bd1ecd927682a82ac0a72614565a55854f92d2c7beeb336415a378a2",
+    "Source/WTF/wtf/glib/FileSystemGlib.cpp": "5a69d49062bb0732f56c1f592fea2c2641384f7096a87c860e5265a926f6278f",
+    "Source/WTF/wtf/posix/FileHandlePOSIX.cpp": "0cf2038d9413549017348559cc28c49b2ca027b68cce59d05ed31e740b574ef4",
+    "Source/WTF/wtf/posix/FileSystemPOSIX.cpp": "d6d23dee53cfe6e0b016aa01321c10815f75cbe5caa97e35ea35d7ec49a0c800",
+    "Source/WTF/wtf/unix/MemoryPressureHandlerUnix.cpp": "b59fe3b745f3d967d171a55e75fa6e8615b1cf34c3a32c54f98a28c0e5b47c4b",
+    "Source/WebCore/platform/unix/SharedMemoryUnix.cpp": "f22fcd5914b390f057db6d976543ca6d4d31467f8d350df70d234f7380197cf4",
+    "Source/WebKit/UIProcess/wpe/AcceleratedBackingStore.cpp": "425e40244b2a8309f6ddb2a38120087b8c0be33fd0b7aa41c6e016b79f864f35",
+    "Source/bmalloc/bmalloc/BPlatform.h": "fbe02c44510089478036a02f2fd83a758b40339dee9b9a56ac7f40e5b9de54a5",
+    "Source/bmalloc/bmalloc/VMAllocate.h": "d92807c17e34eabf574afd4f14504e8707e49f0dfe1ca8d0e709d2594a043eca",
+    "Source/cmake/OptionsWPE.cmake": "886f92527e498ed07fd1d83ac6d759ac3002fe1b0cc6410c265aebaad90656df"
+  }
+}

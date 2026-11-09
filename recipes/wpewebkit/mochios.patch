@@ -434,7 +434,7 @@ diff --git a/Source/WebKit/UIProcess/wpe/AcceleratedBackingStore.cpp b/Source/We
 diff --git a/Source/WTF/wtf/posix/FileSystemPOSIX.cpp b/Source/WTF/wtf/posix/FileSystemPOSIX.cpp
 --- a/Source/WTF/wtf/posix/FileSystemPOSIX.cpp
 +++ b/Source/WTF/wtf/posix/FileSystemPOSIX.cpp
-@@ -89,5 +89,19 @@
+@@ -89,7 +89,21 @@
      else if (permission == FileAccessPermission::All)
          permissionFlag |= (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
  
@@ -454,3 +454,5 @@ diff --git a/Source/WTF/wtf/posix/FileSystemPOSIX.cpp b/Source/WTF/wtf/posix/Fil
      return FileHandle::adopt(open(fsRep.data(), platformFlag, permissionFlag), lockMode);
 +#endif
  }
+ 
+ std::optional<WallTime> fileCreationTime(const String& path)
