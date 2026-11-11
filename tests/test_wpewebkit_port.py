@@ -1,4 +1,4 @@
-"""Resolve real WPE registry dependencies without enabling the unfinished C ABI adapter."""
+"""Resolve real WPE registry dependencies while keeping production publication disabled."""
 from pathlib import Path
 import json
 import shutil
@@ -12,7 +12,7 @@ import sdk_candidate
 class WPEPort(unittest.TestCase):
     def test_candidate_requires_complete_graph_and_keeps_product_adapter_blocked(self):
         with tempfile.TemporaryDirectory() as td:
-            root=Path(td);shutil.copytree(ROOT/'recipes',root/'recipes');shutil.copy2(ROOT/'libraries.toml',root/'libraries.toml')
+            root=Path(td);shutil.copytree(ROOT/'recipes',root/'recipes');shutil.copytree(ROOT/'engines',root/'engines');shutil.copy2(ROOT/'libraries.toml',root/'libraries.toml')
             original=(root/'libraries.toml').read_text()
             sdk_candidate.activate_ports(root,['wpewebkit'])
             with self.assertRaises(ValueError):libs.read_catalog(root)
@@ -23,7 +23,10 @@ class WPEPort(unittest.TestCase):
             for dependency in libs.transitive_dependencies(catalog,'wpewebkit'):
                 self.assertLess(order.index(dependency),target)
             self.assertIn('mesa',libs.transitive_dependencies(catalog,'wpewebkit'))
-            self.assertFalse(catalog['libraries']['webkit']['enabled'])
+            self.assertTrue(catalog['libraries']['webkit']['enabled'])
+            self.assertFalse(libs.read_catalog(ROOT)['libraries']['webkit']['enabled'])
+            self.assertLess(order.index('wpewebkit'), order.index('webkit'))
+            self.assertEqual(libs.recipe(root,catalog['libraries']['webkit'])['options']['MWK_BACKEND_SOURCES'], 'src/wpe_backend.cpp')
             recipe=libs.recipe(root,catalog['libraries']['wpewebkit'])
             self.assertEqual(len(recipe['executables']),2)
     def test_official_archive_matches_the_reviewed_upstream_pin(self):

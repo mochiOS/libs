@@ -24,13 +24,25 @@ builds WebKit. A dependency of Terra is not part of Terra's source build.
   disabled registry entry until its upstream recipe, backend source and helper
   Capability declarations are implemented. A skipped build is not a built engine.
 
-The native backend is **not implemented yet**. The dependency ports have real
-cross-build recipes; Mesa EGL/GLES2 has passed native pixel-readback validation.
-Each additional runtime result is recorded separately in `tooling/`, and a
-successful cross-build alone does not establish runtime support. No working
-WebKit engine, native WebView or release package is claimed by these changes. `port.json` is a reviewable record
-of missing backend and helper definitions, not a Boolean switch that fabricates
-support. Actual SDK/prefix versions and upstream CMake still decide compilation.
+The initial native backend is implemented in `src/wpe_backend.cpp`. It creates
+real headless WPE views, drives their owning GLib context without waiting, and
+copies completed WebKitImage snapshots from premultiplied BGRA to immutable RGBA
+frame leases. Context shutdown refuses live views, leases and pending snapshots.
+WebKit owns one UI RunLoop per process, so a second session is explicitly refused.
+Navigation, Back/Forward, Reload/Stop, zoom, pointer/scroll, basic keys and committed
+UTF-8 text are connected. Full IME composition and page accessibility are not yet
+implemented or advertised. The initial frame bridge uses logical pixel sizes
+(scale 1); high-DPI native scale forwarding remains a follow-up.
+
+`MWK_COMMAND_LOAD_HTML` accepts trusted host HTML under an opaque about:blank
+origin. It grants no filesystem access. Terra supplies its local engine-check
+page; the engine contains no Terra-specific UI or document.
+
+The ordinary disabled `webkit` recipe now builds this small adapter against the
+independently built `wpewebkit` prefix through the existing libraries pipeline.
+Production remains disabled: helper Capability declarations, final native links,
+and Terra process/rendering tests are not yet verified. Build and ABI tests do
+not establish successful native browsing. `port.json` retains these blockers.
 
 On mochiOS, Epoxy declares Mesa EGL as an ordinary startup-linked dependency.
 Mesa's initial-exec TLS is therefore installed with the authenticated initial
@@ -103,8 +115,8 @@ Frame acquisition leases immutable completed premultiplied RGBA pixels. Release
 is explicit. Resize, engine dispatch and I/O do not happen during ViewKit paint.
 The eventual ViewKit WebView adapter must translate normal ViewKit pointer/key,
 focus and IME events to the C ABI and preserve standard accessibility/clipboard
-contracts. This adapter cannot be responsibly connected until the WPE platform
-backend actually renders and processes those events; no placeholder component
+contracts. This adapter cannot be responsibly connected until native runtime tests establish that the WPE platform
+backend renders and processes those events; no placeholder component
 is advertised as a working WebView. Browser-specific tabs/history/download UI
 remain outside ViewKit and AppCore.
 

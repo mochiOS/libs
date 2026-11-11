@@ -3,10 +3,12 @@
   "abi_major": 1,
   "soname": "libwebkit.so.1",
   "public_entry": "mwk_get_api",
-  "backend_sources": [],
+  "backend_sources": [
+    "src/wpe_backend.cpp"
+  ],
   "patches": [],
-  "status": "native-backend-not-implemented",
-  "note": "C ABI conformance tests are not a working engine. No production shared library is generated without reviewed backend sources and real WPE.",
+  "status": "native-backend-awaiting-runtime-verification",
+  "note": "Real WPE snapshot/input backend; not runtime-verified. Helper Capability declarations still gate production distribution.",
   "module_providers": {
     "glib-2.0": "glib",
     "gthread-2.0": "glib",

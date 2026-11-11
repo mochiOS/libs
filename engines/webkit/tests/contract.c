@@ -1,4 +1,12 @@
 #include "mochios/webkit.h"
+#if UINTPTR_MAX == UINT64_MAX
+_Static_assert(sizeof(mwk_api) == 96, "Terra API table layout");
+_Static_assert(sizeof(mwk_context_options) == 32, "Terra options layout");
+_Static_assert(sizeof(mwk_event) == 48, "Terra event layout");
+_Static_assert(sizeof(mwk_command) == 40, "Terra command layout");
+_Static_assert(sizeof(mwk_input) == 80, "Terra input layout");
+_Static_assert(sizeof(mwk_frame) == 64, "Terra frame layout");
+#endif
 #include <assert.h>
 #include <math.h>
 #include <string.h>

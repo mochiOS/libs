@@ -29,6 +29,7 @@ class CandidateSDKTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             shutil.copytree(ROOT / 'recipes', root / 'recipes')
+            shutil.copytree(ROOT / 'engines', root / 'engines')
             shutil.copy2(ROOT / 'libraries.toml', root / 'libraries.toml')
             before = (root / 'libraries.toml').read_text()
             self.assertFalse(libs.read_catalog(root)['libraries']['mesa']['enabled'])

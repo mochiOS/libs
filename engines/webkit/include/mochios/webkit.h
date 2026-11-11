@@ -50,6 +50,12 @@ extern "C" {
 #define MWK_COMMAND_RELOAD 4u
 #define MWK_COMMAND_STOP 5u
 #define MWK_COMMAND_ZOOM 6u
+/** Trusted host-supplied UTF-8 HTML, loaded with an opaque about:blank origin. */
+#define MWK_COMMAND_LOAD_HTML 7u
+#define MWK_HISTORY_CAN_BACK 1u
+#define MWK_HISTORY_CAN_FORWARD 2u
+/** Current history item originated from trusted host HTML, not a remote URI. */
+#define MWK_HISTORY_HOST_DOCUMENT 4u
 #define MWK_PIXEL_RGBA8_PREMULTIPLIED 1u
 /** Stable 32-bit status. Nonzero always represents a real rejected/failed call. */
 typedef uint32_t mwk_status;
@@ -65,6 +71,7 @@ typedef struct {
     uint32_t struct_size, type;
     uint64_t view_id, navigation_id;
     mwk_status status;
+    /** History availability flags (MWK_HISTORY_*); remaining bits are zero. */
     uint32_t reserved;
     mwk_string text;
 } mwk_event;

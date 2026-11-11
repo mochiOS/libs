@@ -1,0 +1,30 @@
+{
+  "format": 1,
+  "backend": "cmake",
+  "subdirectory": ".mochios-webkit",
+  "options": {
+    "MWK_BUILD_ENGINE": true,
+    "BUILD_TESTING": false,
+    "MWK_BACKEND_SOURCES": "src/wpe_backend.cpp"
+  },
+  "overlays": {
+    "CMakeLists.txt": ".mochios-webkit/CMakeLists.txt",
+    "exports.map": ".mochios-webkit/exports.map",
+    "src/abi.c": ".mochios-webkit/src/abi.c",
+    "src/wpe_backend.cpp": ".mochios-webkit/src/wpe_backend.cpp",
+    "include/mochios/webkit.h": ".mochios-webkit/include/mochios/webkit.h"
+  },
+  "shared_libraries": [
+    "libwebkit.so*"
+  ],
+  "link_libraries": [
+    "webkit"
+  ],
+  "pkg_config_modules": [],
+  "probe": "tests/native_probe.c",
+  "licenses": [
+    "Source/JavaScriptCore/COPYING.LIB",
+    "Source/WebCore/LICENSE-APPLE",
+    "Source/WebCore/LICENSE-LGPL-2.1"
+  ]
+}

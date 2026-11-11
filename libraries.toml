@@ -192,9 +192,11 @@ dependencies = ["glib", "harfbuzz", "icu", "libjpeg-turbo", "epoxy", "libgcrypt"
 [libraries.webkit]
 git = "https://github.com/WebKit/WebKit.git"
 tag_pattern = '^wpewebkit-(?P<version>[0-9]+\.[0-9]*[02468]\.[0-9]+)$'
-revision = 2
+source_archive = "https://wpewebkit.org/releases/wpewebkit-{version}.tar.xz"
+revision = 3
 enabled = false
-reason = "Native C ABI adapter and helper Capability declarations are not implemented; upstream WPE is a separate candidate recipe"
+reason = "Native adapter implemented; helper Capability declarations and Terra runtime validation still required before release"
+recipe = "engines/webkit/recipe.json"
 dependencies = ["wpewebkit"]
 
 [libraries.glib-networking]

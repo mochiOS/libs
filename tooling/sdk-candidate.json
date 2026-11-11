@@ -33,6 +33,7 @@
   "enable_libraries": [
     "mesa",
     "epoxy",
-    "wpewebkit"
+    "wpewebkit",
+    "webkit"
   ]
 }
