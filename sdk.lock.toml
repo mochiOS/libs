@@ -1,8 +1,8 @@
 format = 1
 available = true
-version = "27.0-dp.1-shared.9"
+version = "27.0-dp.1-shared.10"
 target = "x86_64-unknown-mochios"
 abi = "mochios-1"
-url = "https://github.com/mochiOS/devkit/releases/download/sdk-27.0-dp.1-shared.9/x86_64-mochios-sdk-27.0-dp.1-shared.9.tar.gz"
-sha256 = "c66dfe46c37e02ea00d10b0c50c96d183afd1f66d8bff3fad49e59eb6b3ac170"
+url = "https://github.com/mochiOS/devkit/releases/download/sdk-27.0-dp.1-shared.10/x86_64-mochios-sdk-27.0-dp.1-shared.10.tar.gz"
+sha256 = "7a2c080e51991b5a9b3aad6aa2e9b5a2e6f4b1bf44082bb3ca61a2397ec2361b"
 builder_image = "ghcr.io/mochios/libs-builder@sha256:8ddd13139ed63dcee7e8d9e6dbada10002c84aa5aac75caeaf548562a3299385"
