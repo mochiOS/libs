@@ -23,8 +23,10 @@ class FullReleasePatch(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             work = Path(temporary) / 'source'
             shutil.copytree(FIXTURE, work)
-            result = subprocess.run(['patch', '--batch', '--fuzz=0', '-p1', '-d', str(work),
-                                     '-i', str(ROOT / 'recipes/wpewebkit/mochios.patch')],
-                                    capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            recipe = json.loads((ROOT / 'recipes/wpewebkit/recipe.json').read_text())
+            for patch in recipe['patches']:
+                result = subprocess.run(['patch', '--batch', '--fuzz=0', '-p1', '-d', str(work),
+                                         '-i', str(ROOT / 'recipes/wpewebkit' / patch)],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertFalse(list(work.rglob('*.rej')))

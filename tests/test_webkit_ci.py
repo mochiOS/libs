@@ -29,7 +29,10 @@ class Readiness(unittest.TestCase):
         self.assertFalse(any('backend source' in s for s in plan['blockers']))
         port=json.loads((ROOT/'engines/webkit/port.json').read_text())
         self.assertEqual(port['backend_sources'], ['src/wpe_backend.cpp'])
-        self.assertTrue(any('Capability' in s for s in plan['blockers']))
+        self.assertEqual(set(port['helper_capabilities']),set(port['required_helpers']))
+        self.assertNotIn('net.connect',port['helper_capabilities']['WPEWebProcess'])
+        self.assertIn('net.connect',port['helper_capabilities']['WPENetworkProcess'])
+        self.assertFalse(any('fs.read.all' in caps for caps in port['helper_capabilities'].values()))
         self.assertEqual(plan['product'],'libwebkit.so.1')
         self.assertTrue(all(not key.startswith('/') for key in plan['inputs']))
 

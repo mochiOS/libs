@@ -14,12 +14,14 @@
 #include <new>
 #include <cstring>
 #include <atomic>
+#include "process_manager.h"
 
 struct mwk_frame_ref { std::shared_ptr<std::vector<uint8_t>> pixels; uint32_t width, height; uint64_t serial; double scale; };
 struct Pending { uint32_t type; uint64_t id; std::string text; double value; };
 struct mwk_view;
 struct mwk_context {
     mwk_context_options options;
+    WPEProcessManager* manager = nullptr;
     pthread_t owner = pthread_self();
     GMainContext* loop = g_main_context_new();
     std::vector<mwk_view*> views;
@@ -95,19 +97,29 @@ static std::atomic<bool> session_claimed{false};
 static mwk_status context_create(const mwk_context_options* options, mwk_context** output) {
     if (!output) return MWK_INVALID_ARGUMENT;
     *output = nullptr;
-    if (!options || options->struct_size < sizeof(*options) || options->reserved) return MWK_INVALID_ARGUMENT;
+    if (!options || options->struct_size < sizeof(*options) || options->reserved ||
+        !options->launch || !options->terminate || !options->process_user) return MWK_INVALID_ARGUMENT;
+    if (wpe_process_manager_get_default()) return MWK_BUSY;
     // WebKit has one UI RunLoop per process. Reject a second session explicitly.
     bool expected = false;
     if (!session_claimed.compare_exchange_strong(expected, true)) return MWK_BUSY;
     auto* c = new (std::nothrow) mwk_context;
     if (!c) { session_claimed = false; return MWK_ENGINE_ERROR; }
-    c->options = *options; *output = c; return MWK_OK;
+    c->options = *options;
+    auto* manager = static_cast<MwkProcessManager*>(g_object_new(mwk_process_manager_get_type(), nullptr));
+    manager->options = *options;
+    c->manager = WPE_PROCESS_MANAGER(manager);
+    wpe_process_manager_set_default(c->manager);
+    *output = c; return MWK_OK;
 }
 static mwk_status context_destroy(mwk_context* c) {
     if (!owner(c)) return MWK_WRONG_THREAD;
     if (c->dispatching || !c->views.empty() || !c->leases.empty() || c->snapshots) return MWK_BUSY;
     // Async cancellation callbacks still refer to this loop/context.
     if (g_main_context_pending(c->loop)) return MWK_BUSY;
+    if (wpe_process_manager_get_default() != c->manager) return MWK_BUSY;
+    wpe_process_manager_set_default(nullptr);
+    g_object_unref(c->manager);
     g_main_context_unref(c->loop); delete c; return MWK_OK;
 }
 static mwk_status view_create(mwk_context* c, uint64_t id, mwk_view** output) {
@@ -279,7 +291,7 @@ template<typename... A> struct Guard<mwk_status(*)(A...)> {
 };
 #define SAFE(F) Guard<decltype(&F)>::call<&F>
 extern "C" __attribute__((visibility("hidden"))) const mwk_api* mwk_backend_query() {
-    static const mwk_api api{sizeof(mwk_api),MWK_ABI_MAJOR,MWK_FEATURE_RGBA_FRAME | MWK_FEATURE_ZOOM,
+    static const mwk_api api{sizeof(mwk_api),MWK_ABI_MAJOR,MWK_FEATURE_RGBA_FRAME | MWK_FEATURE_ZOOM | MWK_FEATURE_HOST_PROCESSES,
         SAFE(context_create),SAFE(context_destroy),SAFE(dispatch),SAFE(view_create),SAFE(view_destroy),SAFE(command),SAFE(resize),SAFE(input),SAFE(acquire),SAFE(release)};
     return &api;
 }

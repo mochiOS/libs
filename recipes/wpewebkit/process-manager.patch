@@ -1,0 +1,111 @@
+--- a/Source/WebKit/WPEPlatform/CMakeLists.txt
++++ b/Source/WebKit/WPEPlatform/CMakeLists.txt
+@@ -127,6 +127,9 @@
+ 
+ if (ANDROID)
+     list(APPEND WPEPlatform_LIBRARIES Android::Android)
++endif ()
++
++if (ANDROID OR CMAKE_SYSTEM_NAME STREQUAL "mochiOS")
+     list(APPEND WPEPlatform_SOURCES ${WEBKIT_DIR}/WPEPlatform/wpe/WPEProcessManager.cpp)
+     list(APPEND WPEPlatform_INSTALLED_HEADERS ${WEBKIT_DIR}/WPEPlatform/wpe/WPEProcessManager.h)
+ endif ()
+--- a/Source/WebKit/WPEPlatform/wpe/WPEProcessManager.cpp
++++ b/Source/WebKit/WPEPlatform/wpe/WPEProcessManager.cpp
+@@ -26,7 +26,7 @@
+ #include "config.h"
+ #include "WPEProcessManager.h"
+ 
+-#if OS(ANDROID)
++#if OS(ANDROID) || OS(MOCHIOS)
+ 
+ #include <wtf/glib/GRefPtr.h>
+ #include <wtf/glib/WTFGType.h>
+@@ -246,4 +246,4 @@
+     s_defaultProcessManager = manager;
+ }
+ 
+-#endif // OS(ANDROID)
++#endif // OS(ANDROID) || OS(MOCHIOS)
+--- a/Source/WebKit/WPEPlatform/wpe/wpe-platform.h
++++ b/Source/WebKit/WPEPlatform/wpe/wpe-platform.h
+@@ -61,7 +61,7 @@
+ #include <wpe/WPEBufferAndroid.h>
+ #endif
+ 
+-#ifdef WPE_PLATFORM_PROCESS_MANAGER_ANDROID
++#if defined(WPE_PLATFORM_PROCESS_MANAGER_ANDROID) || defined(__mochios__)
+ #include <wpe/WPEProcessManager.h>
+ #endif
+ 
+--- a/Source/WebKit/UIProcess/Launcher/glib/ProcessLauncherGLib.cpp
++++ b/Source/WebKit/UIProcess/Launcher/glib/ProcessLauncherGLib.cpp
+@@ -48,7 +48,7 @@
+ #include "ProcessProviderLibWPE.h"
+ #endif
+ 
+-#if OS(ANDROID)
++#if OS(ANDROID) || OS(MOCHIOS)
+ #include <wpe/wpe-platform.h>
+ #endif
+ 
+@@ -112,7 +112,7 @@
+     IPC::SocketPair webkitSocketPair = IPC::createPlatformConnection(SOCK_SEQPACKET, connectionOptions());
+     GUniquePtr<gchar> webkitSocket(g_strdup_printf("%d", webkitSocketPair.client.value()));
+ 
+-#if OS(ANDROID)
++#if OS(ANDROID) || OS(MOCHIOS)
+     if (auto* processManager = wpe_process_manager_get_default()) {
+         WPEProcessType processType;
+         switch (m_launchOptions.processType) {
+@@ -138,8 +138,16 @@
+         GUniqueOutPtr<GError> error;
+         m_processID = wpe_process_manager_launch(processManager, options, &error.outPtr());
+         wpe_process_launch_options_free(options);
+-        if (!m_processID)
++        if (!m_processID) {
++#if OS(MOCHIOS)
++            RunLoop::mainSingleton().dispatch([protectedThis = protect(*this), this] {
++                didFinishLaunchingProcess(0, { });
++            });
++            return;
++#else
+             g_error("Unable to spawn a new child process: %s", error ? error->message : "unknown error");
++#endif
++        }
+ 
+         // We've finished launching the process, message back to the main run loop.
+         RunLoop::mainSingleton().dispatch([protectedThis = protect(*this), this, serverSocket = WTF::move(webkitSocketPair.server)] mutable {
+@@ -148,6 +156,13 @@
+ 
+         return;
+     }
++#if OS(MOCHIOS)
++    // No ambient pathname spawn: the embedder must own signed helper launch.
++    RunLoop::mainSingleton().dispatch([protectedThis = protect(*this), this] {
++        didFinishLaunchingProcess(0, { });
++    });
++    return;
++#endif
+ #endif
+ #if USE(LIBWPE) && !ENABLE(BUBBLEWRAP_SANDBOX)
+     if (ProcessProviderLibWPE::singleton().isEnabled()) {
+@@ -320,12 +335,17 @@
+     if (!m_processID)
+         return;
+ 
+-#if OS(ANDROID)
++#if OS(ANDROID) || OS(MOCHIOS)
+     if (auto* processManager = wpe_process_manager_get_default()) {
+         wpe_process_manager_terminate(processManager, m_processID);
+         m_processID = 0;
+         return;
+     }
++#if OS(MOCHIOS)
++    // Never reinterpret an unowned/stale identifier as authority to kill a PID.
++    m_processID = 0;
++    return;
++#endif
+ #endif
+ 
+ #if USE(LIBWPE) && !ENABLE(BUBBLEWRAP_SANDBOX)

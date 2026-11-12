@@ -81,7 +81,8 @@
   ],
   "probe": "probe.c",
   "patches": [
-    "mochios.patch"
+    "mochios.patch",
+    "process-manager.patch"
   ],
   "overlays": {
     "OptionsMochiOS.cmake": "Source/cmake/OptionsMochiOS.cmake",

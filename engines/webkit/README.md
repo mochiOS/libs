@@ -166,3 +166,50 @@ A contract build is not a WebKit build. Public `mwk_get_api` works only when a r
 backend supplies its hidden `mwk_backend_query` factory. Without that factory a
 production link cannot succeed. The C ABI intentionally remains provisional
 until the native rendering/input/process implementation is tested.
+
+## Host-owned signed helper connection
+
+`MWK_FEATURE_HOST_PROCESSES` (bit 8) extends context options after their original
+32-byte prefix with process userdata and launch/terminate callbacks. The API
+table and ABI major remain unchanged. Terra rejects engines without this feature.
+The worker maps Web and Network requests to two publisher-pinned AppCore
+executable dependencies. WebKit receives no filesystem executable paths. The
+borrowed IPC socket is duplicated and delegated as child FD 3; argv carries the
+logical WebKit identifier followed by that FD. The host retains owned Child
+handles, reaps exits and prevents stale PIDs from targeting reused processes.
+Launch may wait for exec on the engine worker; it never blocks ViewKit paint.
+Shutdown refuses new launches before stopping and reaping existing children.
+
+The native WPE ProcessLauncher requires the existing WPEProcessManager hook.
+Missing managers and rejected launches do not fall back to pathname spawn or
+`kill(pid)`. The Android path retains its upstream behavior. The mochiOS path
+reports launch failure without aborting the browser process.
+
+After a successful ordinary libs Actions build, assemble its verified target
+prefix using the normal file-inventory/digest checks, then stage an independent
+package (this does not sign, install, push or publish):
+
+```sh
+python3 tools/package_webkit.py --prefix /path/to/verified-prefix \
+  --output /path/to/new-webkit-product --version 2.54.2
+mpack create --manifest /path/to/new-webkit-product/manifest.toml \
+  --payload /path/to/new-webkit-product/payload --output /path/to/WebKit.mpkg
+```
+
+The existing binary package format supports exported application helpers and
+measured library binaries. DSOs preserve SONAMEs and live under
+`/libraries/org.mochios.webkit`, together with exported helpers in `helpers/`.
+This avoids installing private GLib/ICU/etc into the global library namespace.
+The initial application loader derives discovery directories from authenticated
+library records, without relaxing scoped reads or captured-byte validation.
+Terra's child environment uses this same private library directory. Package
+signing requires a real, explicitly selected publisher identity; the generated
+manifest does not fabricate provenance or signing records.
+
+The package generator checks the complete DT_NEEDED closure and retains license
+notices. It does not claim non-code asset delegation is finished: fonts,
+Fontconfig configuration, ICU/locale resources and trust data must be audited
+before a production package can be enabled. Engine ports remain disabled in the
+production registry. Standalone socket/helper tests are not an HTML rendering
+or full-engine runtime pass. The user verifies `terra:///engine-check` only after
+an updated complete engine build and final Terra link have succeeded.

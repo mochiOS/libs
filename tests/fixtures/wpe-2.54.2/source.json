@@ -25,6 +25,12 @@
     "Source/bmalloc/bmalloc/BPlatform.h": "fbe02c44510089478036a02f2fd83a758b40339dee9b9a56ac7f40e5b9de54a5",
     "Source/bmalloc/bmalloc/VMAllocate.h": "d92807c17e34eabf574afd4f14504e8707e49f0dfe1ca8d0e709d2594a043eca",
     "Source/cmake/OptionsWPE.cmake": "886f92527e498ed07fd1d83ac6d759ac3002fe1b0cc6410c265aebaad90656df",
-    "Source/cmake/WebKitMacros.cmake": "99042d906792832915d22d1219eb560fa388779d732b5ed64a064999d2a968f1"
+    "Source/cmake/WebKitMacros.cmake": "99042d906792832915d22d1219eb560fa388779d732b5ed64a064999d2a968f1",
+    "Source/WebKit/WPEPlatform/CMakeLists.txt": "815683fff075174a96fb92664fc23a0bf5b513456ac59847ae7ccfbbe17c903b",
+    "Source/WebKit/WPEPlatform/wpe/WPEProcessManager.cpp": "692827ac38832a6079e06960fedb0b72026993f38f0742de4fad0924fa789b7e",
+    "Source/WebKit/WPEPlatform/wpe/wpe-platform.h": "ef125bf2a05a1948890c12d5a27d41eaca5136d91cd91fed28a6b5beefc0828e",
+    "Source/WebKit/UIProcess/Launcher/glib/ProcessLauncherGLib.cpp": "a9d3ae65043e3d6a7871de71a125405b9cc13c9085d8804fd6bc4af7eef5f832",
+    "Source/WebKit/WPEPlatform/wpe/WPEProcessManager.h": "7b1a4af7938f692f8a5603a2f96ebb74aad44b490a642a976dd512cf0c66f39a",
+    "Source/WebKit/WPEPlatform/wpe/WPEDefines.h": "99d7e0015e7a4359460d3a636de421d69a94841dcabf5ace8fff65775bf31de5"
   }
 }

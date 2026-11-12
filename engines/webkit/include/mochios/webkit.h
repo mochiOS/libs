@@ -3,8 +3,8 @@
 /** mochiOS WebKit C ABI, proposed major 1. No engine implementation is implied
  * by this header. C++/WPE types never cross this boundary. All objects belong to
  * their creating UI thread and application session. No API grants Capability.
- * All calls are nonblocking; dispatch performs bounded event-loop work, never
- * paint. Inputs are borrowed only for a call; queued operations copy them.
+ * Engine work runs on the host engine worker, never during paint. Dispatch
+ * performs bounded event-loop work; host process launch may wait for native exec. Inputs are borrowed only for a call; queued operations copy them.
  * Callback data is borrowed until callback return; clients copy retained data.
  * Callbacks must not reenter or destroy engine objects. Unsupported features
  * return MWK_UNSUPPORTED; accepting a command is not a navigation success.
@@ -19,6 +19,10 @@ extern "C" {
 #define MWK_FEATURE_RGBA_FRAME UINT64_C(1)
 #define MWK_FEATURE_ZOOM UINT64_C(2)
 #define MWK_FEATURE_IME UINT64_C(4)
+/** Requires host-owned signed helper launch/termination callbacks. */
+#define MWK_FEATURE_HOST_PROCESSES UINT64_C(8)
+#define MWK_PROCESS_WEB 1u
+#define MWK_PROCESS_NETWORK 2u
 #define MWK_INPUT_POINTER_MOVE 1u
 #define MWK_INPUT_POINTER_PRESS 2u
 #define MWK_INPUT_POINTER_RELEASE 3u
@@ -75,6 +79,16 @@ typedef struct {
     uint32_t reserved;
     mwk_string text;
 } mwk_event;
+/** Borrowed IPC endpoint, valid through launch callback return. The host selects
+ * a signed executable by type, passes identifier as argv[1] and its duplicated
+ * IPC descriptor number as argv[2]. No executable path or authority is supplied.
+ * Unsupported process types must fail; GPU launching is not supported yet. */
+typedef struct {
+    uint32_t struct_size, type;
+    uint64_t identifier;
+    int32_t ipc_socket_fd;
+    uint32_t reserved;
+} mwk_process_request;
 /** Host receives wakeups to schedule dispatch on its owning UI thread. Wake
  * may be called from another thread and must not call the engine itself. */
 typedef struct {
@@ -82,6 +96,15 @@ typedef struct {
     void *user;
     void (*wake)(void *user);
     void (*event)(void *user, const mwk_event *event);
+    /** Append-only extension required by MWK_FEATURE_HOST_PROCESSES.
+     * Callbacks run on the owning engine worker and cannot reenter the engine.
+     * launch clears *pid on failure and returns a positive native PID on success.
+     * terminate resolves only host-owned child references, never arbitrary PIDs.
+     * The host keeps both user pointers live until successful context_destroy.
+     * It reaps exited children and stops all remaining owned children at shutdown. */
+    void *process_user;
+    mwk_status (*launch)(void *user, const mwk_process_request *, int32_t *pid);
+    mwk_status (*terminate)(void *user, int32_t pid);
 } mwk_context_options;
 /** Physical-pixel frame with explicit ownership. Pixels stay immutable until
  * frame_release, and a retained frame remains valid after view destruction. */

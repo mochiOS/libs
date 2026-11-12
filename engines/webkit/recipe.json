@@ -12,7 +12,8 @@
     "exports.map": ".mochios-webkit/exports.map",
     "src/abi.c": ".mochios-webkit/src/abi.c",
     "src/wpe_backend.cpp": ".mochios-webkit/src/wpe_backend.cpp",
-    "include/mochios/webkit.h": ".mochios-webkit/include/mochios/webkit.h"
+    "include/mochios/webkit.h": ".mochios-webkit/include/mochios/webkit.h",
+    "src/process_manager.h": ".mochios-webkit/src/process_manager.h"
   },
   "shared_libraries": [
     "libwebkit.so*"

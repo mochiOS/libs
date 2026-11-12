@@ -182,9 +182,9 @@ dependencies = ["glib", "glib-networking", "nghttp2", "sqlite", "libpsl", "zlib"
 git = "https://github.com/WebKit/WebKit.git"
 tag_pattern = '^wpewebkit-(?P<version>[0-9]+\.[0-9]*[02468]\.[0-9]+)$'
 source_archive = "https://wpewebkit.org/releases/wpewebkit-{version}.tar.xz"
-revision = 1
+revision = 2
 enabled = false
-reason = "Development-only native port; requires the reviewed shared.6 process-memory SDK and real process/rendering verification before release"
+reason = "Development-only native port; shared.10 signed helper integration requires full native engine verification before release"
 recipe = "recipes/wpewebkit/recipe.json"
 dependencies = ["glib", "harfbuzz", "icu", "libjpeg-turbo", "epoxy", "libgcrypt", "libsoup", "libtasn1", "xkbcommon", "libxml2", "libpng", "sqlite", "libwebp", "zlib", "freetype", "fontconfig", "expat"]
 
@@ -193,9 +193,9 @@ dependencies = ["glib", "harfbuzz", "icu", "libjpeg-turbo", "epoxy", "libgcrypt"
 git = "https://github.com/WebKit/WebKit.git"
 tag_pattern = '^wpewebkit-(?P<version>[0-9]+\.[0-9]*[02468]\.[0-9]+)$'
 source_archive = "https://wpewebkit.org/releases/wpewebkit-{version}.tar.xz"
-revision = 3
+revision = 4
 enabled = false
-reason = "Native adapter implemented; helper Capability declarations and Terra runtime validation still required before release"
+reason = "Signed helper adapter connected; full-engine execution and non-code runtime resource delegation remain unverified"
 recipe = "engines/webkit/recipe.json"
 dependencies = ["wpewebkit"]
 
