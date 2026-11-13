@@ -232,3 +232,22 @@ The port regression test applies the actual upstream patch and exercises empty
 and large spans, chunk bounds, interruptions, permission errors and failure after
 a partial fill. These are control-flow checks, not a test of cryptographic
 quality. Full engine/native helper/frame verification still gates availability.
+
+
+Native font resources are a separate, measured data export (`runtime-fonts-v1`).
+The small `webkit` adapter build installs a native `WPEWebProcess` entry which
+creates its own read-only Bundle directory before calling WPE's exported
+`WebKit::WebProcessMain`. The upstream WPE engine remains an unchanged dependency.
+The network helper receives no font resource selection. Directory owners remain
+alive throughout WebProcessMain and close on normal return; failure to acquire
+or configure the view fails startup with status 125.
+
+When assembling the System component, provide reviewed copies of the six current
+OS fonts with `--fonts`, and original `Inter.txt`, `IBMPlexSansJP.txt` and
+`UDEVGothic.txt` notices with `--font-licenses` to `tools/package_webkit.py`.
+These are explicit packaging inputs, not an OS workspace mounted in Actions.
+The assembler validates regular SFNT/OpenType inputs, binds every file digest,
+retains the notices and selects the export only for the Web helper. Fontconfig
+uses a relative `fonts` directory within the captured view; physical System
+font paths and another process's view path are not runtime authority.
+This integration still requires native execution and rendering verification.

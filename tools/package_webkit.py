@@ -16,6 +16,9 @@ import subprocess
 LIBRARY_ROOT = '/system/libraries/webkit'
 PUBLIC_LIBRARY = '/system/libraries/libwebkit.so.1'
 HELPERS = {'WPEWebProcess': 'web-process', 'WPENetworkProcess': 'network-process'}
+FONT_FILES = ('InterVariable.ttf', 'IBMPlexSansJP-Regular.ttf', 'IBMPlexSansJP-Medium.ttf',
+              'IBMPlexSansJP-SemiBold.ttf', 'UDEVGothic-Regular.ttf', 'UDEVGothic-Bold.ttf')
+FONT_NOTICES = ('Inter.txt', 'IBMPlexSansJP.txt', 'UDEVGothic.txt')
 PORT = json.loads((Path(__file__).resolve().parents[1] / 'engines/webkit/port.json').read_text())
 
 def elf(path):
@@ -50,7 +53,7 @@ def validate_process_hook(selected):
         raise ValueError('Missing native WPE process manager exports; rebuild wpewebkit')
 
 
-def stage(prefix, output, version, package='org.mochios.webkit'):
+def stage(prefix, output, version, package='org.mochios.webkit', *, fonts=None, font_licenses=None):
     """Bind the complete code closure to one independently signed binary package."""
     prefix = prefix.resolve(strict=True)
     if output.exists(): raise ValueError('Output must not exist')
@@ -65,6 +68,8 @@ def stage(prefix, output, version, package='org.mochios.webkit'):
         with path.open('rb') as stream: magic = stream.read(4)
         if magic != b'\x7fELF': continue
         kind, soname, needed = elf(path)
+        if path.name == 'WPEWebProcess' and path.relative_to(prefix).as_posix() != 'usr/libexec/mochios-webkit/WPEWebProcess':
+            continue  # The upstream entry lacks the native resource bootstrap.
         if path.name in HELPERS:
             if path.name in helpers: raise ValueError('Ambiguous helper')
             helpers[path.name] = (path, needed)
@@ -83,6 +88,20 @@ def stage(prefix, output, version, package='org.mochios.webkit'):
     validate_process_hook(selected)
     licenses = [p for p in (prefix / 'usr/share/licenses').rglob('*') if p.is_file() and not p.is_symlink()]
     if not licenses: raise ValueError('Missing upstream license inventory')
+    if fonts is None or font_licenses is None:
+        raise ValueError('Provide reviewed font data and original font license notices')
+    fonts = fonts.resolve(strict=True); font_licenses = font_licenses.resolve(strict=True)
+    for name in FONT_FILES:
+        path = fonts / name
+        if path.is_symlink() or not path.is_file() or not 12 <= path.stat().st_size <= 128 * 1024 * 1024:
+            raise ValueError('Missing/unsafe font data: ' + name)
+        with path.open('rb') as stream: magic = stream.read(4)
+        if magic not in (b'\x00\x01\x00\x00', b'OTTO', b'ttcf'):
+            raise ValueError('Font input is not SFNT/OpenType: ' + name)
+    for name in FONT_NOTICES:
+        path = font_licenses / name
+        if path.is_symlink() or not path.is_file() or not path.read_text(encoding='utf-8').strip():
+            raise ValueError('Missing/unsafe font notice: ' + name)
     # All validation precedes product creation. Do not consume filesystem aliases
     # as executable authority; every installed code path is a measured file.
     output.mkdir(parents=True)
@@ -100,9 +119,11 @@ def stage(prefix, output, version, package='org.mochios.webkit'):
         destination.chmod(int(mode, 8))
         fid = 'f' + str(count); count += 1
         text += '\n[[file]]\nid = ' + json.dumps(fid) + '\npath = ' + json.dumps(target) + '\n'
-        text += 'digest = "sha256:' + hashlib.file_digest(destination.open('rb'), 'sha256').hexdigest() + '"\nsize = ' + str(destination.stat().st_size) + '\nmode = "' + mode + '"\n'
+        with destination.open('rb') as stream: digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+        text += 'digest = "sha256:' + digest + '"\nsize = ' + str(destination.stat().st_size) + '\nmode = "' + mode + '"\n'
         if kind:
             text += '\n[[binary]]\npath = ' + json.dumps(target) + '\nfile = ' + json.dumps(fid) + '\nkind = ' + json.dumps(kind) + '\nrequires = ' + json.dumps(caps or []) + '\n'
+        return fid
     for name, source in sorted(selected.items()):
         target = PUBLIC_LIBRARY if name == 'libwebkit.so.1' else LIBRARY_ROOT + '/' + name
         record(source, target, 'library')
@@ -110,14 +131,23 @@ def stage(prefix, output, version, package='org.mochios.webkit'):
         target = LIBRARY_ROOT + '/helpers/' + name
         caps = PORT['helper_capabilities'][name]
         record(source, target, 'application', caps)
+        if name == 'WPEWebProcess':
+            text += 'resource_exports = [' + json.dumps(PORT['font_resource_export']) + ']\n'
         text += '\n[[executable_export]]\nname = ' + json.dumps(HELPERS[name]) + '\nbinary = ' + json.dumps(target) + '\n'
-    record(Path(__file__).resolve().parents[1] / 'engines/webkit/runtime/fonts.conf', LIBRARY_ROOT + '/fonts.conf')
+    font_bindings = {'fonts.conf': record(Path(__file__).resolve().parents[1] / 'engines/webkit/runtime/fonts.conf', LIBRARY_ROOT + '/fonts.conf')}
+    for name in FONT_FILES:
+        font_bindings['fonts/' + name] = record(fonts / name, LIBRARY_ROOT + '/fonts/' + name)
+    for name in FONT_NOTICES:
+        record(font_licenses / name, '/system/share/licenses/' + package + '/fonts/' + name)
+    text += '\n[[resource_export]]\nname = ' + json.dumps(PORT['font_resource_export']) + '\n[resource_export.files]\n'
+    for name, fid in font_bindings.items():
+        text += json.dumps(name) + ' = ' + json.dumps(fid) + '\n'
     for source in sorted(licenses):
         record(source, '/system/share/licenses/' + package + '/' + str(source.relative_to(prefix / 'usr/share/licenses')))
     (output / 'manifest.toml').write_text(text)
     (output / 'artifacts.json').write_text(json.dumps(dict(format=1, delivery='system-image', update_owner='os', runtime_tested=False, signed=False,
         code_libraries=sorted(selected), helpers=sorted(helpers),
-        limitations=['Non-code runtime assets require separately reviewed resource delegation.']), indent=2) + '\n')
+        limitations=['Full native execution remains separately required.']), indent=2) + '\n')
     return output
 
 
@@ -126,7 +156,9 @@ def main():
     parser.add_argument('--prefix', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--version', required=True)
+    parser.add_argument('--fonts', type=Path, required=True, help='Reviewed installed OS font files')
+    parser.add_argument('--font-licenses', type=Path, required=True, help='Original Inter.txt, IBMPlexSansJP.txt and UDEVGothic.txt notices')
     args = parser.parse_args()
-    stage(args.prefix, args.output, args.version)
+    stage(args.prefix, args.output, args.version, fonts=args.fonts, font_licenses=args.font_licenses)
 
 if __name__ == '__main__': main()

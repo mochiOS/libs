@@ -13,9 +13,13 @@ class EnginePackage(unittest.TestCase):
     def fixture(self, directory):
         root = Path(directory)/'prefix'
         data = bytearray(64); data[:6] = b'\x7fELF\x02\x01'; struct.pack_into('<HH',data,16,3,62)
-        for name in ['usr/lib/libwebkit.so.1', 'usr/lib/libengine.so.2', 'usr/libexec/WPEWebProcess', 'usr/libexec/WPENetworkProcess']:
+        for name in ['usr/lib/libwebkit.so.1', 'usr/lib/libengine.so.2', 'usr/libexec/mochios-webkit/WPEWebProcess', 'usr/libexec/WPENetworkProcess']:
             p=root/name;p.parent.mkdir(parents=True, exist_ok=True);p.write_bytes(data)
         p=root/'usr/share/licenses/webkit/LICENSE';p.parent.mkdir(parents=True);p.write_text('upstream fixture notice')
+        fonts=Path(directory)/'fonts';fonts.mkdir()
+        for name in module.FONT_FILES:(fonts/name).write_bytes(b'\x00\x01\x00\x00' + b'font fixture')
+        notices=Path(directory)/'notices';notices.mkdir()
+        for name in module.FONT_NOTICES:(notices/name).write_text('original upstream fixture notice')
         return root
     def metadata(self, path):
         if path.name.startswith('libwebkit'):return 3,path.name,['libengine.so.2']
@@ -25,7 +29,7 @@ class EnginePackage(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t:
             prefix=self.fixture(t); output=Path(t)/'product'
             with patch.object(module,'elf',side_effect=self.metadata), patch.object(module,'validate_process_hook'):
-                module.stage(prefix,output,'2.54.2')
+                module.stage(prefix,output,'2.54.2',fonts=Path(t)/'fonts',font_licenses=Path(t)/'notices')
             m=tomllib.loads((output/'manifest.toml').read_text())
             self.assertEqual(m['package']['kind'],'binary')
             paths={f['path'] for f in m['file']}
@@ -35,6 +39,12 @@ class EnginePackage(unittest.TestCase):
             self.assertIn('/system/libraries/webkit/helpers/WPEWebProcess',paths)
             self.assertTrue(all(p.startswith(('/system/libraries/','/system/share/licenses/')) for p in paths))
             self.assertEqual(m['package']['provenance'],'built-in')
+            export=m['resource_export'][0]
+            self.assertEqual(export['name'],module.PORT['font_resource_export'])
+            self.assertEqual(set(export['files']),{'fonts.conf'} | {'fonts/'+n for n in module.FONT_FILES})
+            web=next(b for b in m['binary'] if b['path'].endswith('WPEWebProcess'))
+            self.assertEqual(web['resource_exports'],[export['name']])
+            self.assertTrue(all('resource_exports' not in b for b in m['binary'] if b['path'].endswith('WPENetworkProcess')))
             self.assertEqual({e['name'] for e in m['executable_export']},{'web-process','network-process'})
             for binary in m['binary']:
                 self.assertNotIn('fs.read.all',binary['requires'])
@@ -51,7 +61,7 @@ class EnginePackage(unittest.TestCase):
             (prefix/'usr/lib/libengine.so.2').unlink()
             with patch.object(module,'elf',side_effect=self.metadata),self.assertRaisesRegex(ValueError,'Unresolved'):module.stage(prefix,output,'1')
             self.assertFalse(output.exists())
-            (prefix/'usr/libexec/WPEWebProcess').unlink()
+            (prefix/'usr/libexec/mochios-webkit/WPEWebProcess').unlink()
             with patch.object(module,'elf',side_effect=self.metadata),self.assertRaisesRegex(ValueError,'Missing'):module.stage(prefix,output,'1')
     def test_wrong_architecture_and_external_symlink_rejected(self):
         with tempfile.TemporaryDirectory() as t:
@@ -66,4 +76,15 @@ class EnginePackage(unittest.TestCase):
             prefix=self.fixture(t); output=Path(t)/'product'
             with patch.object(module,'elf',side_effect=self.metadata), patch.object(module.subprocess,'run',return_value=type('Result',(),{'stdout':''})()):
                 with self.assertRaisesRegex(ValueError,'predates'):module.stage(prefix,output,'1')
+            self.assertFalse(output.exists())
+
+    def test_missing_untrusted_fonts_and_notices_fail_closed(self):
+        with tempfile.TemporaryDirectory() as t:
+            prefix=self.fixture(t);output=Path(t)/'product';fonts=Path(t)/'fonts';notices=Path(t)/'notices'
+            with patch.object(module,'elf',side_effect=self.metadata),patch.object(module,'validate_process_hook'):
+                with self.assertRaisesRegex(ValueError,'Provide reviewed'):module.stage(prefix,output,'1')
+                (fonts/module.FONT_FILES[0]).write_bytes(b'\x7fELF' + b'not a font')
+                with self.assertRaisesRegex(ValueError,'not SFNT'):module.stage(prefix,output,'1',fonts=fonts,font_licenses=notices)
+                (fonts/module.FONT_FILES[0]).unlink();(fonts/module.FONT_FILES[0]).symlink_to('/etc/passwd')
+                with self.assertRaisesRegex(ValueError,'unsafe font'):module.stage(prefix,output,'1',fonts=fonts,font_licenses=notices)
             self.assertFalse(output.exists())

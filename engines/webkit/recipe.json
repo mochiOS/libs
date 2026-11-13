@@ -13,7 +13,9 @@
     "src/abi.c": ".mochios-webkit/src/abi.c",
     "src/wpe_backend.cpp": ".mochios-webkit/src/wpe_backend.cpp",
     "include/mochios/webkit.h": ".mochios-webkit/include/mochios/webkit.h",
-    "src/process_manager.h": ".mochios-webkit/src/process_manager.h"
+    "src/process_manager.h": ".mochios-webkit/src/process_manager.h",
+    "src/web_process_main.cpp": ".mochios-webkit/src/web_process_main.cpp",
+    "port.json": ".mochios-webkit/port.json"
   },
   "shared_libraries": [
     "libwebkit.so*"
@@ -27,5 +29,8 @@
     "Source/JavaScriptCore/COPYING.LIB",
     "Source/WebCore/LICENSE-APPLE",
     "Source/WebCore/LICENSE-LGPL-2.1"
+  ],
+  "executables": [
+    "usr/libexec/mochios-webkit/WPEWebProcess"
   ]
 }
