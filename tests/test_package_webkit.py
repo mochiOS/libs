@@ -30,6 +30,7 @@ class EnginePackage(unittest.TestCase):
             self.assertEqual(m['package']['kind'],'binary')
             paths={f['path'] for f in m['file']}
             self.assertIn('/system/libraries/libwebkit.so.1',paths)
+            self.assertIn('/system/libraries/webkit/fonts.conf',paths)
             self.assertIn('/system/libraries/webkit/libengine.so.2',paths)
             self.assertIn('/system/libraries/webkit/helpers/WPEWebProcess',paths)
             self.assertTrue(all(p.startswith(('/system/libraries/','/system/share/licenses/')) for p in paths))

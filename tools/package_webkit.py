@@ -111,6 +111,7 @@ def stage(prefix, output, version, package='org.mochios.webkit'):
         caps = PORT['helper_capabilities'][name]
         record(source, target, 'application', caps)
         text += '\n[[executable_export]]\nname = ' + json.dumps(HELPERS[name]) + '\nbinary = ' + json.dumps(target) + '\n'
+    record(Path(__file__).resolve().parents[1] / 'engines/webkit/runtime/fonts.conf', LIBRARY_ROOT + '/fonts.conf')
     for source in sorted(licenses):
         record(source, '/system/share/licenses/' + package + '/' + str(source.relative_to(prefix / 'usr/share/licenses')))
     (output / 'manifest.toml').write_text(text)
