@@ -1,0 +1,56 @@
+diff --git a/Source/WTF/wtf/RandomDevice.cpp b/Source/WTF/wtf/RandomDevice.cpp
+--- a/Source/WTF/wtf/RandomDevice.cpp
++++ b/Source/WTF/wtf/RandomDevice.cpp
+@@ -51,7 +51,7 @@
+ 
+ namespace WTF {
+ 
+-#if !OS(DARWIN) && !OS(FUCHSIA) && OS(UNIX)
++#if !OS(DARWIN) && !OS(FUCHSIA) && !OS(MOCHIOS) && OS(UNIX)
+ NEVER_INLINE NO_RETURN_DUE_TO_CRASH static void crashUnableToOpenURandom()
+ {
+     CRASH();
+@@ -66,6 +66,7 @@
+ #if !OS(DARWIN) && !OS(FUCHSIA) && !OS(WINDOWS)
+ RandomDevice::RandomDevice()
+ {
++#if !OS(MOCHIOS)
+     int ret = 0;
+     do {
+         ret = open("/dev/urandom", O_RDONLY, 0);
+@@ -73,13 +74,16 @@
+     m_fd = ret;
+     if (m_fd < 0)
+         crashUnableToOpenURandom(); // We need /dev/urandom for this API to work...
++#endif
+ }
+ #endif
+ 
+ #if !OS(DARWIN) && !OS(FUCHSIA) && !OS(WINDOWS)
+ RandomDevice::~RandomDevice()
+ {
++#if !OS(MOCHIOS)
+     close(m_fd);
++#endif
+ }
+ #endif
+ 
+@@ -91,6 +95,18 @@
+     RELEASE_ASSERT(!CCRandomGenerateBytes(buffer.data(), buffer.size()));
+ #elif OS(FUCHSIA)
+     zx_cprng_draw(buffer.data(), buffer.size());
++#elif OS(MOCHIOS)
++    // getentropy is backed by the native CSPRNG and system.random.read.
++    // Its 256-byte request bound is independent of the caller's span size.
++    while (!buffer.empty()) {
++        size_t length = buffer.size() > 256 ? 256 : buffer.size();
++        int result;
++        do {
++            result = getentropy(buffer.data(), length);
++        } while (result == -1 && errno == EINTR);
++        RELEASE_ASSERT(!result);
++        buffer = buffer.subspan(length);
++    }
+ #elif OS(UNIX)
+     ssize_t amountRead = 0;
+     while (static_cast<size_t>(amountRead) < buffer.size()) {

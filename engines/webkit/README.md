@@ -218,3 +218,17 @@ before a production package can be enabled. Engine ports remain disabled in the
 production registry. Standalone socket/helper tests are not an HTML rendering
 or full-engine runtime pass. The user verifies `terra:///engine-check` only after
 an updated complete engine build and final Terra link have succeeded.
+
+### Native cryptographic randomness
+
+The mochiOS RandomDevice port uses the existing `getentropy` API, backed by the
+native CSPRNG and the caller's `system.random.read` capability. It does not open
+a filesystem random device. Requests are split into at most 256-byte chunks;
+only EINTR is retried. Permission errors and other failures remain fatal, with
+no weaker fallback. Constructor/destructor symbols and the class layout remain
+unchanged.
+
+The port regression test applies the actual upstream patch and exercises empty
+and large spans, chunk bounds, interruptions, permission errors and failure after
+a partial fill. These are control-flow checks, not a test of cryptographic
+quality. Full engine/native helper/frame verification still gates availability.
