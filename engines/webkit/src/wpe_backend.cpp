@@ -100,6 +100,12 @@ static mwk_status context_create(const mwk_context_options* options, mwk_context
     if (!options || options->struct_size < sizeof(*options) || options->reserved ||
         !options->launch || !options->terminate || !options->process_user) return MWK_INVALID_ARGUMENT;
     if (wpe_process_manager_get_default()) return MWK_BUSY;
+    // The immutable component owns the measured injected module. Do not use
+    // the upstream /usr/lib build prefix or a caller-supplied plugin directory.
+#if defined(__mochios__)
+    if (!g_setenv("WEBKIT_INJECTED_BUNDLE_PATH", "/system/libraries/webkit", TRUE))
+        return MWK_ENGINE_ERROR;
+#endif
     // WebKit has one UI RunLoop per process. Reject a second session explicitly.
     bool expected = false;
     if (!session_claimed.compare_exchange_strong(expected, true)) return MWK_BUSY;

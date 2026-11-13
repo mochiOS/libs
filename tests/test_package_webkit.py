@@ -13,7 +13,7 @@ class EnginePackage(unittest.TestCase):
     def fixture(self, directory):
         root = Path(directory)/'prefix'
         data = bytearray(64); data[:6] = b'\x7fELF\x02\x01'; struct.pack_into('<HH',data,16,3,62)
-        for name in ['usr/lib/libwebkit.so.1', 'usr/lib/libengine.so.2', 'usr/libexec/mochios-webkit/WPEWebProcess', 'usr/libexec/WPENetworkProcess']:
+        for name in ['usr/lib/libwebkit.so.1', 'usr/lib/libengine.so.2', 'usr/libexec/mochios-webkit/WPEWebProcess', 'usr/libexec/WPENetworkProcess', module.INJECTED_BUNDLE]:
             p=root/name;p.parent.mkdir(parents=True, exist_ok=True);p.write_bytes(data)
         p=root/'usr/share/licenses/webkit/LICENSE';p.parent.mkdir(parents=True);p.write_text('upstream fixture notice')
         fonts=Path(directory)/'fonts';fonts.mkdir()
@@ -24,6 +24,7 @@ class EnginePackage(unittest.TestCase):
     def metadata(self, path):
         if path.name.startswith('libwebkit'):return 3,path.name,['libengine.so.2']
         if path.name.startswith('libengine'):return 3,path.name,[]
+        if path.name == 'libWPEInjectedBundle.so':return 3,None,['libengine.so.2']
         return 2,None,['libengine.so.2']
     def test_measured_separate_package_and_minimal_exported_children(self):
         with tempfile.TemporaryDirectory() as t:
@@ -36,6 +37,9 @@ class EnginePackage(unittest.TestCase):
             self.assertIn('/system/libraries/libwebkit.so.1',paths)
             self.assertIn('/system/libraries/webkit/fonts.conf',paths)
             self.assertIn('/system/libraries/webkit/libengine.so.2',paths)
+            plugin=next(b for b in m['binary'] if b['path'].endswith('/libWPEInjectedBundle.so'))
+            self.assertEqual(plugin['kind'],'library')
+            self.assertEqual(plugin['requires'],[])
             self.assertIn('/system/libraries/webkit/helpers/WPEWebProcess',paths)
             self.assertTrue(all(p.startswith(('/system/libraries/','/system/share/licenses/')) for p in paths))
             self.assertEqual(m['package']['provenance'],'built-in')
@@ -87,4 +91,13 @@ class EnginePackage(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'not SFNT'):module.stage(prefix,output,'1',fonts=fonts,font_licenses=notices)
                 (fonts/module.FONT_FILES[0]).unlink();(fonts/module.FONT_FILES[0]).symlink_to('/etc/passwd')
                 with self.assertRaisesRegex(ValueError,'unsafe font'):module.stage(prefix,output,'1',fonts=fonts,font_licenses=notices)
+            self.assertFalse(output.exists())
+
+    def test_missing_injected_bundle_is_not_a_successful_component(self):
+        with tempfile.TemporaryDirectory() as t:
+            prefix=self.fixture(t); output=Path(t)/'product'
+            (prefix/module.INJECTED_BUNDLE).unlink()
+            with patch.object(module,'elf',side_effect=self.metadata):
+                with self.assertRaisesRegex(ValueError,'injected bundle'):
+                    module.stage(prefix,output,'1')
             self.assertFalse(output.exists())

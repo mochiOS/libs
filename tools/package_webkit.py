@@ -16,6 +16,7 @@ import subprocess
 LIBRARY_ROOT = '/system/libraries/webkit'
 PUBLIC_LIBRARY = '/system/libraries/libwebkit.so.1'
 HELPERS = {'WPEWebProcess': 'web-process', 'WPENetworkProcess': 'network-process'}
+INJECTED_BUNDLE = 'usr/lib/wpe-webkit-2.0/injected-bundle/libWPEInjectedBundle.so'
 FONT_FILES = ('InterVariable.ttf', 'IBMPlexSansJP-Regular.ttf', 'IBMPlexSansJP-Medium.ttf',
               'IBMPlexSansJP-SemiBold.ttf', 'UDEVGothic-Regular.ttf', 'UDEVGothic-Bold.ttf')
 FONT_NOTICES = ('Inter.txt', 'IBMPlexSansJP.txt', 'UDEVGothic.txt')
@@ -77,7 +78,15 @@ def stage(prefix, output, version, package='org.mochios.webkit', *, fonts=None, 
             if kind != 3 or soname in inventory: raise ValueError('Ambiguous/non-shared SONAME')
             inventory[soname] = (path, needed)
     if set(helpers) != set(HELPERS): raise ValueError('Missing WebKit helper executable')
-    selected = {}; pending = ['libwebkit.so.1']
+    # WebKit loads this module with dlopen, so DT_NEEDED alone cannot find it.
+    # It is executable code, measured as a library, never a data resource.
+    injected_bundle = prefix / INJECTED_BUNDLE
+    if not injected_bundle.is_file() or injected_bundle.is_symlink():
+        raise ValueError('Missing/unsafe injected bundle')
+    kind, soname, needed = elf(injected_bundle)
+    if kind != 3 or soname is not None:
+        raise ValueError('Unexpected injected bundle ELF contract')
+    selected = {}; pending = ['libwebkit.so.1', *needed]
     for _, needed in helpers.values(): pending.extend(needed)
     while pending:
         name = pending.pop()
@@ -127,6 +136,7 @@ def stage(prefix, output, version, package='org.mochios.webkit', *, fonts=None, 
     for name, source in sorted(selected.items()):
         target = PUBLIC_LIBRARY if name == 'libwebkit.so.1' else LIBRARY_ROOT + '/' + name
         record(source, target, 'library')
+    record(injected_bundle, LIBRARY_ROOT + '/libWPEInjectedBundle.so', 'library')
     for name, (source, _) in sorted(helpers.items()):
         target = LIBRARY_ROOT + '/helpers/' + name
         caps = PORT['helper_capabilities'][name]
@@ -146,7 +156,7 @@ def stage(prefix, output, version, package='org.mochios.webkit', *, fonts=None, 
         record(source, '/system/share/licenses/' + package + '/' + str(source.relative_to(prefix / 'usr/share/licenses')))
     (output / 'manifest.toml').write_text(text)
     (output / 'artifacts.json').write_text(json.dumps(dict(format=1, delivery='system-image', update_owner='os', runtime_tested=False, signed=False,
-        code_libraries=sorted(selected), helpers=sorted(helpers),
+        code_libraries=sorted([*selected, 'libWPEInjectedBundle.so']), helpers=sorted(helpers),
         limitations=['Full native execution remains separately required.']), indent=2) + '\n')
     return output
 
