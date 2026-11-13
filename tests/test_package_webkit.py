@@ -28,7 +28,12 @@ class EnginePackage(unittest.TestCase):
                 module.stage(prefix,output,'2.54.2')
             m=tomllib.loads((output/'manifest.toml').read_text())
             self.assertEqual(m['package']['kind'],'binary')
-            self.assertNotIn('provenance',m['package'])
+            paths={f['path'] for f in m['file']}
+            self.assertIn('/system/libraries/libwebkit.so.1',paths)
+            self.assertIn('/system/libraries/webkit/libengine.so.2',paths)
+            self.assertIn('/system/libraries/webkit/helpers/WPEWebProcess',paths)
+            self.assertTrue(all(p.startswith(('/system/libraries/','/system/share/licenses/')) for p in paths))
+            self.assertEqual(m['package']['provenance'],'built-in')
             self.assertEqual({e['name'] for e in m['executable_export']},{'web-process','network-process'})
             for binary in m['binary']:
                 self.assertNotIn('fs.read.all',binary['requires'])

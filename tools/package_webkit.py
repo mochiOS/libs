@@ -1,4 +1,4 @@
-"""Stage a separate native engine package; never invent a signing identity.
+"""Stage a native engine component for the immutable System image; never invent a signing identity.
 
 Input is an assembled, verified mochiOS target prefix. This tool checks the ELF
 closure and file bindings again, but is not a substitute for artifact provenance
@@ -13,7 +13,8 @@ import shutil
 import struct
 import subprocess
 
-LIBRARY_ROOT = '/libraries/org.mochios.webkit'
+LIBRARY_ROOT = '/system/libraries/webkit'
+PUBLIC_LIBRARY = '/system/libraries/libwebkit.so.1'
 HELPERS = {'WPEWebProcess': 'web-process', 'WPENetworkProcess': 'network-process'}
 PORT = json.loads((Path(__file__).resolve().parents[1] / 'engines/webkit/port.json').read_text())
 
@@ -86,7 +87,7 @@ def stage(prefix, output, version, package='org.mochios.webkit'):
     # as executable authority; every installed code path is a measured file.
     output.mkdir(parents=True)
     text = 'format = 1\n\n[package]\n'
-    for key, value in dict(id=package, name='WebKit', version=version, vendor='mochiOS', kind='binary', architecture='x86_64', abi='mochios-1').items():
+    for key, value in dict(provenance='built-in', id=package, name='WebKit', version=version, vendor='mochiOS', kind='binary', architecture='x86_64', abi='mochios-1').items():
         text += key + ' = ' + json.dumps(value) + '\n'
     text += 'revision = 1\n'
     count = 0
@@ -102,16 +103,18 @@ def stage(prefix, output, version, package='org.mochios.webkit'):
         text += 'digest = "sha256:' + hashlib.file_digest(destination.open('rb'), 'sha256').hexdigest() + '"\nsize = ' + str(destination.stat().st_size) + '\nmode = "' + mode + '"\n'
         if kind:
             text += '\n[[binary]]\npath = ' + json.dumps(target) + '\nfile = ' + json.dumps(fid) + '\nkind = ' + json.dumps(kind) + '\nrequires = ' + json.dumps(caps or []) + '\n'
-    for name, source in sorted(selected.items()): record(source, LIBRARY_ROOT + '/' + name, 'library')
+    for name, source in sorted(selected.items()):
+        target = PUBLIC_LIBRARY if name == 'libwebkit.so.1' else LIBRARY_ROOT + '/' + name
+        record(source, target, 'library')
     for name, (source, _) in sorted(helpers.items()):
         target = LIBRARY_ROOT + '/helpers/' + name
         caps = PORT['helper_capabilities'][name]
         record(source, target, 'application', caps)
         text += '\n[[executable_export]]\nname = ' + json.dumps(HELPERS[name]) + '\nbinary = ' + json.dumps(target) + '\n'
     for source in sorted(licenses):
-        record(source, '/binary/resources/' + package + '/licenses/' + str(source.relative_to(prefix / 'usr/share/licenses')))
+        record(source, '/system/share/licenses/' + package + '/' + str(source.relative_to(prefix / 'usr/share/licenses')))
     (output / 'manifest.toml').write_text(text)
-    (output / 'artifacts.json').write_text(json.dumps(dict(format=1, runtime_tested=False, signed=False,
+    (output / 'artifacts.json').write_text(json.dumps(dict(format=1, delivery='system-image', update_owner='os', runtime_tested=False, signed=False,
         code_libraries=sorted(selected), helpers=sorted(helpers),
         limitations=['Non-code runtime assets require separately reviewed resource delegation.']), indent=2) + '\n')
     return output

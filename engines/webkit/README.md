@@ -186,25 +186,30 @@ Missing managers and rejected launches do not fall back to pathname spawn or
 reports launch failure without aborting the browser process.
 
 After a successful ordinary libs Actions build, assemble its verified target
-prefix using the normal file-inventory/digest checks, then stage an independent
-package (this does not sign, install, push or publish):
+prefix using the normal file-inventory/digest checks, then stage a System image
+component. This does not sign an image, install into a running OS, or publish:
 
 ```sh
 python3 tools/package_webkit.py --prefix /path/to/verified-prefix \
-  --output /path/to/new-webkit-product --version 2.54.2
-mpack create --manifest /path/to/new-webkit-product/manifest.toml \
-  --payload /path/to/new-webkit-product/payload --output /path/to/WebKit.mpkg
+  --output /path/to/mochiOS/out/system-libraries/webkit --version 2.54.2
 ```
 
-The existing binary package format supports exported application helpers and
-measured library binaries. DSOs preserve SONAMEs and live under
-`/libraries/org.mochios.webkit`, together with exported helpers in `helpers/`.
-This avoids installing private GLib/ICU/etc into the global library namespace.
-The initial application loader derives discovery directories from authenticated
-library records, without relaxing scoped reads or captured-byte validation.
-Terra's child environment uses this same private library directory. Package
-signing requires a real, explicitly selected publisher identity; the generated
-manifest does not fabricate provenance or signing records.
+The public entry library installs as `/system/libraries/libwebkit.so.1`.
+Private DSOs preserve upstream SONAMEs under `/system/libraries/webkit/`;
+exported helpers live in its `helpers/` directory and notices in
+`/system/share/licenses/org.mochios.webkit/`. The component declares built-in
+provenance for the normal System build pipeline. That declaration alone is not
+a signature: the OS builder pins the complete source manifest hash, verifies
+every payload, creates existing built-in records, then seals/signs the System
+image. Its read-only filesystem remains unchanged. Ordinary package.service
+installation is deliberately not extended to permit writes into `/system`.
+
+The OS build consumes the generic `build/system-libraries.toml` component
+catalog. It neither compiles WebKit nor knows Terra's implementation. Missing,
+changed, or conflicting inputs fail the image build. WebKit updates with the OS;
+AppStore installs Terra against the existing built-in System identity.
+The initial application loader derives library search directories from the
+verified manifest; Terra supplies the same System directories to its helpers.
 
 The package generator checks the complete DT_NEEDED closure and retains license
 notices. It does not claim non-code asset delegation is finished: fonts,
