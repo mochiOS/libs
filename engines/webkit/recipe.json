@@ -15,7 +15,8 @@
     "include/mochios/webkit.h": ".mochios-webkit/include/mochios/webkit.h",
     "src/process_manager.h": ".mochios-webkit/src/process_manager.h",
     "src/web_process_main.cpp": ".mochios-webkit/src/web_process_main.cpp",
-    "port.json": ".mochios-webkit/port.json"
+    "port.json": ".mochios-webkit/port.json",
+    "src/network_process_main.cpp": ".mochios-webkit/src/network_process_main.cpp"
   },
   "shared_libraries": [
     "libwebkit.so*"
@@ -31,6 +32,7 @@
     "Source/WebCore/LICENSE-LGPL-2.1"
   ],
   "executables": [
-    "usr/libexec/mochios-webkit/WPEWebProcess"
+    "usr/libexec/mochios-webkit/WPEWebProcess",
+    "usr/libexec/mochios-webkit/WPENetworkProcess"
   ]
 }

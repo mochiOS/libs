@@ -69,8 +69,8 @@ def stage(prefix, output, version, package='org.mochios.webkit', *, fonts=None, 
         with path.open('rb') as stream: magic = stream.read(4)
         if magic != b'\x7fELF': continue
         kind, soname, needed = elf(path)
-        if path.name == 'WPEWebProcess' and path.relative_to(prefix).as_posix() != 'usr/libexec/mochios-webkit/WPEWebProcess':
-            continue  # The upstream entry lacks the native resource bootstrap.
+        if path.name in HELPERS and path.relative_to(prefix).as_posix() != 'usr/libexec/mochios-webkit/' + path.name:
+            continue  # Use executable-owned libc from the reviewed adapter SDK.
         if path.name in HELPERS:
             if path.name in helpers: raise ValueError('Ambiguous helper')
             helpers[path.name] = (path, needed)

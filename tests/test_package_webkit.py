@@ -13,7 +13,7 @@ class EnginePackage(unittest.TestCase):
     def fixture(self, directory):
         root = Path(directory)/'prefix'
         data = bytearray(64); data[:6] = b'\x7fELF\x02\x01'; struct.pack_into('<HH',data,16,3,62)
-        for name in ['usr/lib/libwebkit.so.1', 'usr/lib/libengine.so.2', 'usr/libexec/mochios-webkit/WPEWebProcess', 'usr/libexec/WPENetworkProcess', module.INJECTED_BUNDLE]:
+        for name in ['usr/lib/libwebkit.so.1', 'usr/lib/libengine.so.2', 'usr/libexec/mochios-webkit/WPEWebProcess', 'usr/libexec/mochios-webkit/WPENetworkProcess', module.INJECTED_BUNDLE]:
             p=root/name;p.parent.mkdir(parents=True, exist_ok=True);p.write_bytes(data)
         p=root/'usr/share/licenses/webkit/LICENSE';p.parent.mkdir(parents=True);p.write_text('upstream fixture notice')
         fonts=Path(directory)/'fonts';fonts.mkdir()
@@ -99,5 +99,17 @@ class EnginePackage(unittest.TestCase):
             (prefix/module.INJECTED_BUNDLE).unlink()
             with patch.object(module,'elf',side_effect=self.metadata):
                 with self.assertRaisesRegex(ValueError,'injected bundle'):
+                    module.stage(prefix,output,'1')
+            self.assertFalse(output.exists())
+
+    def test_upstream_helper_cannot_replace_the_adapter_sdk_executable(self):
+        with tempfile.TemporaryDirectory() as t:
+            prefix=self.fixture(t); output=Path(t)/'product'
+            native=prefix/'usr/libexec/mochios-webkit/WPENetworkProcess'
+            upstream=prefix/'usr/libexec/wpe-webkit-2.0/WPENetworkProcess'
+            upstream.parent.mkdir(parents=True)
+            native.rename(upstream)
+            with patch.object(module,'elf',side_effect=self.metadata):
+                with self.assertRaisesRegex(ValueError,'Missing WebKit helper'):
                     module.stage(prefix,output,'1')
             self.assertFalse(output.exists())
