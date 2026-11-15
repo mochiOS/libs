@@ -17,9 +17,9 @@
       "commit": "6f9d7c1373262c541324a16a358785b33ef116cf"
     },
     "libffi": {
-      "tag": "v3.8.0",
-      "version": "3.8.0",
-      "commit": "12ffd1f9dc56fcea79d2f742f424301ae668d663"
+      "tag": "v3.8.1",
+      "version": "3.8.1",
+      "commit": "de7afe7aa9e8ab7ac36429428a7222caae1e7988"
     },
     "libiconv": {
       "tag": "v1.19.1",
