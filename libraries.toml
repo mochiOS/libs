@@ -44,7 +44,7 @@ submodules = { "deps/sljit" = { git = "https://github.com/zherczeg/sljit.git", c
 [libraries.libffi]
 git = "https://github.com/libffi/libffi.git"
 tag_pattern = '^v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
-revision = 9
+revision = 1
 enabled = true
 recipe = "recipes/libffi/recipe.json"
 dependencies = []
@@ -70,7 +70,7 @@ dependencies = ["libiconv"]
 [libraries.glib]
 git = "https://gitlab.gnome.org/GNOME/glib.git"
 tag_pattern = '^(?P<version>2\.[0-9]*[02468]\.[0-9]+)$'
-revision = 13
+revision = 14
 enabled = true
 recipe = "recipes/glib/recipe.json"
 dependencies = ["zlib", "pcre2", "libffi", "libiconv", "gettext-runtime"]
@@ -164,7 +164,7 @@ submodules = { "list" = { git = "https://github.com/publicsuffix/list", commit =
 [libraries.libsoup]
 git = "https://gitlab.gnome.org/GNOME/libsoup.git"
 tag_pattern = '^(?P<version>3\.[0-9]*[02468]\.[0-9]+)$'
-revision = 2
+revision = 3
 enabled = true
 recipe = "recipes/libsoup/recipe.json"
 dependencies = ["glib", "glib-networking", "nghttp2", "sqlite", "libpsl", "zlib"]
@@ -181,7 +181,7 @@ dependencies = ["glib", "libpng"]
 [libraries.glib-networking]
 git = "https://gitlab.gnome.org/GNOME/glib-networking.git"
 tag_pattern = '^(?P<version>2\.[0-9]*[02468]\.[0-9]+)$'
-revision = 1
+revision = 2
 enabled = true
 recipe = "recipes/glib-networking/recipe.json"
 dependencies = ["glib"]
@@ -197,7 +197,7 @@ dependencies = []
 [libraries.fontconfig]
 git = "https://gitlab.freedesktop.org/fontconfig/fontconfig.git"
 tag_pattern = '^(?P<version>2\.[0-9]+\.[0-9]+)$'
-revision = 6
+revision = 1
 enabled = true
 recipe = "recipes/fontconfig/recipe.json"
 dependencies = ["expat", "freetype"]
@@ -215,7 +215,7 @@ dependencies = []
 git = "https://github.com/harfbuzz/harfbuzz.git"
 tag_pattern = '^(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
 source_archive = "https://github.com/harfbuzz/harfbuzz/releases/download/{version}/harfbuzz-{version}.tar.xz"
-revision = 8
+revision = 1
 enabled = true
 recipe = "recipes/harfbuzz/recipe.json"
 dependencies = ["freetype", "glib", "icu"]
